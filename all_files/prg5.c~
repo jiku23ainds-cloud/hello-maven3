@@ -1,0 +1,83 @@
+#include <stdio.h>
+#include <ctype.h>
+#define MAX 10
+int top=-1,stack[MAX];
+void main(){
+char exp[30];
+int i,n1,n2;
+printf("Enter Expression: ");
+scanf("%s",exp);
+while(exp[i]!="\0")
+{
+if(isdigit(exp[i]))
+{
+push(exp[i]-'0');
+i++;
+}
+else if(exp[i]=='+')
+{
+n1=pop();
+n2=pop();
+push(n2+n1);
+i++;
+}
+else if(exp[i]=='-')
+{
+n1=pop();
+n2=pop();
+push(n2-n1);
+i++;
+}
+else if(exp[i]=='*')
+{
+n1=pop();
+n2=pop();
+push(n2*n1);
+i++;
+}
+else if(exp[i]=='/')
+{
+n1=pop();
+n2=pop();
+push(n2/n1);
+i++;
+}
+else if(exp[i]=='%')
+{
+n1=pop();
+n2=pop();
+push(n2%n1);
+i++;
+}
+else if(exp[i]=='^')
+{
+n1=pop();
+n2=pop();
+push(n2^n1);
+i++;
+}
+
+}
+printf("Final value: %d",pop());
+}
+
+void push(int ch)
+{
+if (top==(MAX-1))
+{
+printf("Overflow");
+}
+else
+{
+stack[top]=ch;
+}
+}
+
+int pop(){
+if (top==-1){
+printf("Underflow");
+}
+else{
+return stack[top];
+}
+}

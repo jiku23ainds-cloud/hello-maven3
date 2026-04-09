@@ -1,0 +1,3216 @@
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : String(i); }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+import StepperDirectionButtons from './../Modules/ApplAdmissionForm/StepperDirectionButtons.js';
+const {
+  Container,
+  Row,
+  Col,
+  Image,
+  Button,
+  Form,
+  Card,
+  InputGroup,
+  Spinner,
+  Alert
+} = ReactBootstrap;
+export default class RegistrationPageForKUKComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "onSubmit", e => {
+      e.preventDefault();
+    });
+    _defineProperty(this, "handleChange", e => {
+      //console.log(e.target.name, e.target.value);
+      var val = e.target.value;
+      //console.log(e.target);
+      if (e.target.type == "checkbox") {
+        val = e.target.checked;
+      }
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "handleChangeForCaps", e => {
+      var val = e.target.value;
+      val = val.toUpperCase();
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "onChangeState", e => {
+      this.setState({
+        selMemberID: '',
+        fname: undefined,
+        lname: undefined,
+        tel: undefined,
+        email: undefined,
+        disableTel: false,
+        disableEmail: false,
+        isPPPOtpVerified: false,
+        isAadharOtpVerified: false,
+        applType: '',
+        msg: '',
+        aadhar: undefined,
+        pppNo: undefined,
+        txnNo: '',
+        memberArr: [],
+        selMemberData: {},
+        doHaveAadhar: "",
+        continueRegister: false,
+        errors: {}
+      });
+      var val = e.target.value;
+      this.setState({
+        [e.target.name]: val,
+        applType: ''
+      });
+    });
+    _defineProperty(this, "onChangeType", e => {
+      this.setState({
+        selMemberID: '',
+        fname: undefined,
+        lname: undefined,
+        tel: undefined,
+        email: undefined,
+        disableTel: false,
+        disableEmail: false,
+        isPPPOtpVerified: false,
+        isAadharOtpVerified: false,
+        msg: '',
+        aadhar: undefined,
+        pppNo: undefined,
+        txnNo: '',
+        memberArr: [],
+        selMemberData: {},
+        doHaveAadhar: "",
+        continueRegister: false,
+        errors: {}
+      });
+      var val = e.target.value;
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "onChangeWithOutStateAadhar", e => {
+      var val = e.target.value;
+      this.setState({
+        selMemberID: '',
+        fname: undefined,
+        lname: undefined,
+        tel: undefined,
+        email: undefined,
+        disableTel: false,
+        disableEmail: false,
+        isPPPOtpVerified: false,
+        isAadharOtpVerified: false,
+        msg: '',
+        aadhar: undefined,
+        pppNo: undefined,
+        txnNo: '',
+        memberArr: [],
+        selMemberData: {},
+        doHaveAadhar: "",
+        continueRegister: val == "NO" ? true : false,
+        errors: {}
+      });
+      console.log("::", val);
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "validateDataOnRender", defaultVal => {
+      const {
+        fname = defaultVal,
+        mname = defaultVal,
+        lname = defaultVal
+      } = this.state;
+      var nameRegPattern = /^[a-zA-Z ]+$/;
+      var emailRegPattern = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-z]{1,4}$/;
+      var mobileRegPattern = /^([+]\d{2})?\d{10}$/;
+      var aadharRegPattern = /^([0-9]){12}$/;
+      var isValidPage1 = true;
+      if (fname != undefined) {
+        if (fname.trim() == '') {
+          this.state.errors['fname'] = 'Please enter First Name!';
+          isValidPage1 = false;
+        } else if (!nameRegPattern.test(fname)) {
+          this.state.errors['fname'] = 'Please enter valid First Name!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['fname'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (mname != undefined) {
+        if (mname.trim() == '') {
+          //this.state.errors['mname'] = 'Please enter Last Name!';
+          //isValidPage1 = false;
+        } else if (!nameRegPattern.test(mname)) {
+          this.state.errors['mname'] = 'Please enter valid Last Name!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['mname'];
+        }
+      } else {
+        //isValidPage1 = false;
+      }
+      if (lname != undefined) {
+        if (lname.trim() == '') {} else if (!nameRegPattern.test(lname)) {
+          this.state.errors['lname'] = 'Please enter valid Last Name!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['lname'];
+        }
+      } else {
+        //isValidPage1 = false;
+      }
+      this.state.isValidPage1 = isValidPage1;
+      //-------------------------------------
+      const {
+        email = defaultVal,
+        tel = defaultVal
+      } = this.state;
+      var isValidPage2 = true;
+      if (email != undefined) {
+        if (email.trim() == '') {
+          this.state.errors['email'] = 'Please enter Email!';
+          isValidPage2 = false;
+        } else if (!emailRegPattern.test(email)) {
+          this.state.errors['email'] = 'Please enter valid Email Id!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['email'];
+        }
+      } else {
+        isValidPage2 = false;
+      }
+      if (tel != undefined) {
+        if (tel.trim() == '') {
+          this.state.errors['tel'] = 'Please enter Mobile No.!';
+          isValidPage2 = false;
+        } else if (!mobileRegPattern.test(tel)) {
+          this.state.errors['tel'] = 'Please enter valid Mobile No!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['tel'];
+        }
+      } else {
+        isValidPage2 = false;
+      }
+      this.state.isValidPage2 = isValidPage2;
+
+      //---------------------------------------------//
+
+      const {
+        terms = defaultVal ? false : undefined,
+        captchaTxt = defaultVal
+      } = this.state;
+      var isValidPage3 = true;
+      if (captchaTxt != undefined) {
+        console.log(terms);
+        if (captchaTxt.trim() == '') {
+          this.state.errors['captchaTxt'] = 'Please enter captcha!';
+          isValidPage3 = false;
+        } else {
+          delete this.state.errors['captchaTxt'];
+        }
+      } else {
+        isValidPage3 = false;
+      }
+      const {
+        isError = false,
+        field = '',
+        message = ''
+      } = this.state.errorFromResponse;
+      if (isError) {
+        this.state.errors[field] = message;
+      }
+      this.state.isValidPage3 = isValidPage3;
+
+      //----------------------------------------------//
+
+      const {
+        aadhar = defaultVal
+      } = this.state;
+      var isValidPage4 = true;
+      if (aadhar != undefined) {
+        if (aadhar.trim() == '') {
+          this.state.errors['aadhar'] = 'Please enter aadhar number...!';
+          isValidPage4 = false;
+        } else if (!aadharRegPattern.test(aadhar)) {
+          this.state.errors['aadhar'] = 'Please enter valid aadhar number!';
+          isValidPage4 = false;
+        } else {
+          delete this.state.errors['aadhar'];
+        }
+      } else {
+        isValidPage4 = false;
+      }
+      this.state.isValidPage4 = isValidPage4;
+
+      //---------------------------------------
+
+      const {
+        aadhar_otp = defaultVal
+      } = this.state;
+      var isValidPage5 = true;
+      if (aadhar_otp != undefined) {
+        if (aadhar_otp.trim() == '') {
+          isValidPage5 = false;
+        } else {
+          delete this.state.errors['aadhar_otp'];
+        }
+      } else {
+        isValidPage5 = false;
+      }
+      this.state.isValidPage5 = isValidPage5;
+
+      //------------------------------------
+
+      const {
+        pppNo = defaultVal
+      } = this.state;
+      var isValidPage6 = true;
+      if (pppNo != undefined) {
+        if (pppNo.trim() == '') {
+          this.state.errors['pppNo'] = 'Please enter PPP number...!';
+          isValidPage6 = false;
+        } else {
+          delete this.state.errors['pppNo'];
+        }
+      } else {
+        isValidPage6 = false;
+      }
+      this.state.isValidPage6 = isValidPage6;
+
+      //---------------------------------------
+
+      const {
+        ppp_otp = defaultVal
+      } = this.state;
+      var isValidPage7 = true;
+      if (ppp_otp != undefined) {
+        if (ppp_otp.trim() == '') {
+          isValidPage7 = false;
+        } else {
+          delete this.state.errors['ppp_otp'];
+        }
+      } else {
+        isValidPage7 = false;
+      }
+      this.state.isValidPage7 = isValidPage7;
+    });
+    _defineProperty(this, "sendAadharOTP", () => {
+      var aadharNo = this.state.aadhar;
+      if (aadharNo != "") {
+        this.setState({
+          adhrOtpProcessing: true,
+          adhrOtpSent: true
+        }, () => {
+          $.ajax({
+            url: '/anon_generateOtpForAadhar.json',
+            data: {
+              aadharNo: aadharNo
+            },
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+              if (res.status.toLowerCase() == "successfull") {
+                this.setState({
+                  adhrOtpSent: true,
+                  adhrOtpProcessing: false,
+                  txnNo: res.txnNo,
+                  memberId: res.MemberID,
+                  msg: res.msg
+                });
+                console.log("sbjh:::" + this.state.msg);
+              } else {
+                if (this.state.applStateType == "OTHER_STATE") {
+                  this.setState({
+                    adhrOtpSent: false,
+                    adhrOtpProcessing: false,
+                    msg: res.msg,
+                    disableEmail: false,
+                    disableTel: false,
+                    isAadharOtpVerified: false,
+                    continueRegister: true
+                  });
+                } else if (this.state.applStateType == "HARYANA_STATE" && this.state.applType == "WITHOUT_PPP_AADHAR") {
+                  this.setState({
+                    adhrOtpSent: false,
+                    adhrOtpProcessing: false,
+                    msg: res.msg,
+                    disableEmail: false,
+                    disableTel: false,
+                    isAadharOtpVerified: false,
+                    continueRegister: true
+                  });
+                } else {
+                  this.setState({
+                    adhrOtpSent: false,
+                    adhrOtpProcessing: false,
+                    txnNo: res.txnNo,
+                    memberId: res.MemberID,
+                    msg: res.msg
+                  });
+                  bootbox.confirm(res.msg + ", Do you want to continue without PPP ID ?", function (result) {
+                    if (result) {
+                      this.setState({
+                        applType: "WITHOUT_PPP_AADHAR",
+                        msg: '',
+                        aadhar: undefined
+                      });
+                    }
+                  }.bind(this));
+                }
+                console.log("sjdvhgsdv::" + this.state.msg);
+              }
+            }.bind(this)
+          });
+        });
+      } else {
+        bootbox.alert("Please Enter Aadhar Number");
+      }
+    });
+    _defineProperty(this, "verifyAadharOTP", () => {
+      var aadharOTP = this.state.aadhar_otp;
+      var txnNo = this.state.txnNo;
+      var memberID = this.state.memberId;
+      var email = this.state.email;
+      var aadharNo = this.state.aadhar;
+      if (aadharOTP != "") {
+        this.setState({
+          otpProcessing: true,
+          otpSent: true
+        }, () => {
+          $.ajax({
+            url: '/anon_verifyOtpForAadhar.json',
+            data: {
+              aadharOTP: aadharOTP,
+              tranNo: txnNo,
+              memberID: memberID,
+              email: email,
+              aadharNo: aadharNo
+            },
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+              if (res.status.toLowerCase() == "successfull") {
+                const {
+                  memberID = '',
+                  firstName = '',
+                  lastName = '',
+                  email = '',
+                  mobileNo = ''
+                } = res.result;
+                this.setState({
+                  selMemberData: res.result,
+                  selMemberID: memberID,
+                  fname: firstName.toUpperCase(),
+                  lname: lastName.toUpperCase(),
+                  tel: mobileNo,
+                  email: email.toLowerCase(),
+                  disableTel: mobileNo != '' ? true : false,
+                  disableEmail: email != '' ? false : false,
+                  isAadharOtpVerified: true
+                });
+
+                /*setTimeout(()=>{
+                window.location = '/anon_applWelcomePage.htm';
+                    
+                }, 1500);*/
+              } else if (this.state.applStateType == "HARYANA_STATE" && this.state.applType == "WITHOUT_PPP_AADHAR") {
+                this.setState({
+                  adhrOtpSent: false,
+                  adhrOtpProcessing: false,
+                  msg: res.msg,
+                  disableEmail: false,
+                  disableTel: false,
+                  isAadharOtpVerified: false,
+                  continueRegister: true
+                });
+              } else {
+                this.setState({
+                  msg: res.message,
+                  adhrOtpProcessing: false,
+                  adhrOtpSent: false,
+                  adhrOtpResend: true,
+                  aadhar_otp: '',
+                  isAadharOtpVerified: false
+                });
+                console.log("sjdvhgsdv::" + this.state.msg);
+                bootbox.confirm(res.msg + ",Do you want to continue without PPP ID ?", function (result) {
+                  if (result) {
+                    this.setState({
+                      applType: "WITHOUT_PPP_AADHAR"
+                    });
+                  }
+                }.bind(this));
+              }
+            }.bind(this)
+          });
+        });
+      } else {
+        bootbox.alert("Please Enter Aadhar OTP");
+      }
+    });
+    _defineProperty(this, "sendPPPPOTP", () => {
+      var pppNo = this.state.pppNo;
+      if (pppNo != "") {
+        $.ajax({
+          url: '/anon_generateOtpForPPPfamilyId.json',
+          data: {
+            familyId: pppNo
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.status.toLowerCase() == "successfull") {
+              this.setState({
+                pppOtpSent: true,
+                pppOtpResent: true,
+                pppOtpProcessing: false,
+                txnNo: res.txnNo,
+                msg: res.msg
+              });
+              console.log("sbjh:::" + this.state.msg);
+            } else {
+              this.setState({
+                pppOtpSent: false,
+                pppOtpResent: false,
+                pppOtpProcessing: false,
+                txnNo: res.txnNo,
+                msg: res.msg
+              });
+              console.log("sjdvhgsdv::" + this.state.msg);
+              bootbox.confirm(res.msg + ", Do you forgot your PPP ID ?", function (result) {
+                if (result) {
+                  this.setState({
+                    applType: "AADHAR"
+                  });
+                }
+              }.bind(this));
+            }
+          }.bind(this)
+        });
+      } else {
+        bootbox.alert("Please Enter Aadhar Number");
+      }
+    });
+    _defineProperty(this, "verifyPPPOtp", () => {
+      var pppNo = this.state.pppNo;
+      var tranNo = this.state.txnNo;
+      var pppOtp = this.state.ppp_otp;
+      this.setState({
+        isFinalVerifyLoading: true,
+        isPPPOtpVerified: false
+      }, () => {
+        $.ajax({
+          url: '/anon_verifyOtpForPPPfamilyId.json',
+          data: {
+            familyId: pppNo,
+            tranNo: tranNo,
+            pppOtp: pppOtp
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.status.toLowerCase() == "successfull") {
+              console.log("sbjh:::" + this.state.msg);
+              var familyDtls = res.familyDtls != undefined ? res.familyDtls : {};
+              var houseNo = familyDtls.familyHouseNumber != undefined ? familyDtls.familyHouseNumber : "";
+              var streetNo = familyDtls.familyStreetNumber != undefined ? familyDtls.familyStreetNumber : "";
+              var address_LandMark = familyDtls.familyLandMark != undefined ? familyDtls.familyLandMark : "";
+              var pinCode = familyDtls.familyPinCode != undefined ? familyDtls.familyPinCode : "";
+              var familyIncome = familyDtls.familyIncome != undefined ? familyDtls.familyIncome : "";
+              var pppMemArr = familyDtls.pppMemberDetails != undefined ? familyDtls.pppMemberDetails : [];
+              var memArr = [];
+              for (var obj of pppMemArr) {
+                //								const {memberID='',firstName='',lastName='',email='',mobileNo=''}=obj;
+                //								var jObj={"memberID":memberID,"firstName":firstName,"lastName":lastName,"email":email,"mobileNo":mobileNo};
+                obj["houseNo"] = houseNo;
+                obj["streetNo"] = streetNo;
+                obj["address_LandMark"] = address_LandMark;
+                obj["pinCode"] = pinCode;
+                obj["familyIncome"] = familyIncome;
+                memArr.push(obj);
+              }
+              this.setState({
+                pppOtpSent: true,
+                pppOtpResent: true,
+                pppOtpProcessing: false,
+                msg: res.msg,
+                isPPPOtpVerified: true,
+                isFinalVerifyLoading: false,
+                memberArr: memArr
+              });
+            } else {
+              this.setState({
+                pppOtpSent: false,
+                pppOtpResent: true,
+                pppOtpProcessing: false,
+                msg: res.msg,
+                isPPPOtpVerified: false,
+                isFinalVerifyLoading: false
+              });
+              console.log("sjdvhgsdv::" + this.state.msg);
+            }
+          }.bind(this)
+        });
+      });
+    });
+    _defineProperty(this, "handleMemberDetails", e => {
+      var val = e.target.value;
+      var data = this.state.memberArr.filter(obj => obj.memberID == val);
+      const {
+        memberID = '',
+        firstName = '',
+        lastName = '',
+        email = '',
+        mobileNo = ''
+      } = data[0];
+      console.log("::", memberID, "SDSAD::::", mobileNo);
+      this.setState({
+        [e.target.name]: data[0],
+        selMemberID: val,
+        fname: firstName.toUpperCase(),
+        lname: lastName.toUpperCase(),
+        tel: mobileNo,
+        email: email.toLowerCase(),
+        disableTel: mobileNo != '' ? true : false,
+        disableEmail: email != '' ? false : false
+      });
+    });
+    _defineProperty(this, "onFinalSubmit", () => {
+      if (this.state.applType == "WITHOUT_PPP_AADHAR" && !this.state.isAadharOtpVerified) {
+        bootbox.confirm("Kindely do your PPP ID registration within 15 days of admission otherwise you do not consider for admission process , Do you want to continue?", function (result) {
+          if (result) {
+            this.onFinalSubmit1();
+          }
+        }.bind(this));
+      } else {
+        this.onFinalSubmit1();
+      }
+    });
+    _defineProperty(this, "onFinalSubmit1", () => {
+      this.setState({
+        isFinalSubmitLoading1: true,
+        isFinalSubmitSuccess1: false
+      }, () => {
+        const {
+          fname,
+          mname,
+          lname,
+          email,
+          tel,
+          captchaTxt,
+          email_otp,
+          tel_otp,
+          applType = "",
+          disableEmail,
+          disableTel,
+          selMemberData,
+          applStateType
+        } = this.state;
+        const {
+          formType,
+          customerUID
+        } = this.props;
+        const pageLink = window.location.origin;
+        const applFormId = window.gLoginStatus.applFormId;
+        var memberDtls = JSON.stringify(selMemberData);
+        $.ajax({
+          url: '/restApi/registerNewApplicant.json',
+          type: 'POST',
+          data: {
+            fname,
+            mname,
+            lname,
+            email,
+            tel,
+            captchaTxt,
+            formType,
+            email_otp,
+            tel_otp,
+            applType,
+            disableEmail,
+            disableTel,
+            applStateType,
+            memberDtls,
+            customerUID,
+            pageLink,
+            applFormId
+          },
+          dataType: 'json',
+          success: function (res) {
+            const {
+              isError = true,
+              field = '',
+              message = ''
+            } = res;
+            if (isError) {
+              if (field == '') {
+                if (message == 'USER_ALREADY_EXIST') {
+                  this.state.otpSentOnemail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already associated with your account, Please login to continue.'
+                  };
+                } else if (message == 'USER_ALREADY_EXIST_IN_USERS') {
+                  this.state.otpSentOnemail = false;
+                  this.state.disableEmail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already exist in system, Please enter email never used before.'
+                  };
+                } else {
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'commonErrorBlock',
+                    message: 'An error occurred. Please try again later.'
+                  };
+                }
+              } else {
+                if (field == 'email') {
+                  this.state.otpSentOnemail = false;
+                }
+                this.state.errorFromResponse = res;
+              }
+              this.setState({
+                isFinalSubmitLoading1: false,
+                isFinalSubmitSuccess1: false,
+                captchaCount: this.state.captchaCount + 1,
+                captchaTxt: ''
+              });
+            } else {
+              this.state.errorFromResponse = {};
+              this.setState({
+                isFinalSubmitLoading1: false,
+                isFinalSubmitSuccess1: true
+              }, () => {
+                setTimeout(() => {
+                  /*if(formType=='aflUserReg'){
+                  	window.location = '/aflsDashBoard.htm';
+                  }else{*/
+                  window.location = '/anon_applWelcomePage.htm';
+                  //}
+                }, 1500);
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    this.state = {
+      captchaCount: 0,
+      errors: {},
+      isValidPage1: false,
+      isValidPage2: false,
+      isValidPage3: false,
+      isValidPage4: false,
+      isValidPage5: false,
+      isValidPage6: false,
+      isValidPage7: false,
+      isFinalSubmitLoading1: false,
+      isFinalSubmitSuccess1: false,
+      applStateType: "",
+      applType: "",
+      txnNo: "",
+      memberId: "",
+      adhrOtpProcessing: false,
+      pppOtpProcessing: false,
+      adhrOtpSent: false,
+      pppOtpSent: false,
+      pppOtpResent: false,
+      isAadharOtpVerified: false,
+      isFinalVerifyLoading: false,
+      isPPPOtpVerified: false,
+      memberArr: [],
+      selMemberData: {},
+      disableTel: false,
+      disableEmail: false,
+      selMemberID: '-1',
+      doHaveAadhar: "",
+      continueRegister: false,
+      errorFromResponse: {}
+    };
+  }
+  componentDidMount() {}
+  render() {
+    const {
+      captchaCount = 0,
+      isPPPOtpVerified,
+      disableEmail,
+      disableTel,
+      isAadharOtpVerified,
+      applStateType,
+      applType,
+      txnNo,
+      doHaveAadhar,
+      continueRegister
+    } = this.state;
+    console.log("isPPPOtpVerified::", isPPPOtpVerified, "disableEmail::", disableEmail, "disableTel::", disableTel);
+    const {
+      FooterComponent,
+      formType = 'applicantRegKuk'
+    } = this.props;
+    $("#mobile_no").keypress(function (e) {
+      var keyCode = e.which ? e.which : e.keyCode;
+      var result = !(keyCode >= 65 && keyCode <= 90 || keyCode >= 33 && keyCode <= 47 || keyCode == 126 || keyCode >= 97 && keyCode <= 122 || keyCode >= 58 && keyCode <= 64 || keyCode >= 91 && keyCode <= 96);
+      return result;
+    });
+    var otpTypeIndex = window?.gLoginStatus?.otpTypeKUK || '0';
+    var isOtpNotReqired = otpTypeIndex == '0';
+    var isOtpSameForBoth = otpTypeIndex == '1';
+    var isOtpDiffForBoth = otpTypeIndex == '2';
+    var isRegiClosed = window?.gLoginStatus?.isRegiClosed || false;
+    this.validateDataOnRender();
+    return /*#__PURE__*/React.createElement(Card, {
+      className: "mb-2",
+      style: {
+        height: '98.6%'
+      }
+    }, /*#__PURE__*/React.createElement(Card.Header, null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-question-circle-o pull-right",
+      "aria-hidden": "true"
+    }), isRegiClosed && /*#__PURE__*/React.createElement("h6", {
+      style: {
+        color: '#FF0000'
+      }
+    }, "  Applicant registration will start soon..!!"), !isRegiClosed && /*#__PURE__*/React.createElement("h6", null, /*#__PURE__*/React.createElement("b", null, "New Applicant Registration"))), /*#__PURE__*/React.createElement(Card.Body, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, {
+      onSubmit: this.onSubmit,
+      autoComplete: "on"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "HARYANA_STATE",
+      name: "applStateType",
+      disabled: isRegiClosed,
+      onChange: this.onChangeState
+    }), " Haryana State "), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "OTHER_STATE",
+      name: "applStateType",
+      disabled: isRegiClosed,
+      onChange: this.onChangeState
+    }), " Other State"), "\xA0\xA0\xA0\xA0"), this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "radioQuestiondDiv"
+    }, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "PPP",
+      name: "applType",
+      onChange: this.onChangeType,
+      checked: this.state.applType == "PPP" ? true : false
+    }), " Enter PPP ID"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "AADHAR",
+      name: "applType",
+      onChange: this.onChangeType,
+      checked: this.state.applType == "AADHAR" ? true : false
+    }), " I forget my PPP ID"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "WITHOUT_PPP_AADHAR",
+      name: "applType",
+      onChange: this.onChangeType,
+      checked: this.state.applType == "WITHOUT_PPP_AADHAR" ? true : false
+    }), " I don't have PPP ID "), "\xA0\xA0\xA0\xA0"), this.state.applStateType == "OTHER_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "outStateAadhar"
+    }, /*#__PURE__*/React.createElement("label", null, "Do you have Aadhar ? "), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "AADHAR",
+      name: "applType",
+      onChange: this.onChangeWithOutStateAadhar,
+      checked: this.state.applType == "AADHAR" ? true : false
+    }), "Yes"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "NO",
+      name: "applType",
+      onChange: this.onChangeWithOutStateAadhar,
+      checked: this.state.applType == "NO" ? true : false
+    }), " No")), this.state.applType == "PPP" && this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "haryanaStatePPPDiv"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['pppNo'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.pppNo,
+      autoComplete: "off",
+      type: "text",
+      name: "pppNo",
+      id: "ppp_No",
+      placeholder: "Enter PPP Number"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['pppNo'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage6 || isPPPOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendPPPPOTP()
+    }, this.state.pppOtpResent != true ? 'Verify' : 'Reverify'))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: "",
+      onChange: this.handleChange,
+      value: this.state.ppp_otp,
+      type: "text",
+      name: "ppp_otp",
+      placeholder: "Enter PPP OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, null))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.pppOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.pppOtpProcessing == false && this.state.pppOtpSent && this.state.applType == "PPP" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.pppOtpProcessing == false && this.state.pppOtpSent == false && this.state.applType == "PPP" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalVerifyLoading,
+      isSuccess: this.state.isPPPOtpVerified,
+      isDisabled: !(this.state.isValidPage6 && this.state.isValidPage7) || isPPPOtpVerified ? true : false,
+      nextStep: () => this.verifyPPPOtp(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isPPPOtpVerified == true ? "Verified" : "Verify",
+      className: ""
+    })), this.state.applType == "AADHAR" && this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "adharNoAndOtpDiv"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar,
+      autoComplete: "off",
+      type: "text",
+      name: "aadhar",
+      id: "aadhar_no",
+      placeholder: "Enter Aadhar Number",
+      maxLength: "12"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage4 || isAadharOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendAadharOTP()
+    }, this.state.adhrOtpSent != true ? 'Verify' : 'ReVerify'), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar_otp,
+      type: "text",
+      name: "aadhar_otp",
+      placeholder: "Enter Aadhar OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar_Otp'] || ''))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.adhrOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent == false && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalVerifyLoading,
+      isSuccess: this.state.isAadharOtpVerified,
+      isDisabled: !(this.state.isValidPage4 && this.state.isValidPage5) || isAadharOtpVerified ? true : false,
+      nextStep: () => this.verifyAadharOTP(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isAadharOtpVerified == true ? "Verified" : "Verify",
+      className: ""
+    })), this.state.applType == "WITHOUT_PPP_AADHAR" && this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("div", {
+      id: ""
+    }, /*#__PURE__*/React.createElement("label", null, "Do you have Aadhar ? "), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "YES",
+      name: "doHaveAadhar",
+      onChange: this.handleChange,
+      checked: this.state.doHaveAadhar == "YES" ? true : false
+    }), "Yes"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "NO",
+      name: "doHaveAadhar",
+      onChange: this.handleChange,
+      checked: this.state.doHaveAadhar == "NO" ? true : false
+    }), " No")))), doHaveAadhar == "YES" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar,
+      autoComplete: "off",
+      type: "text",
+      name: "aadhar",
+      id: "aadhar_no",
+      placeholder: "Enter Aadhar Number",
+      maxLength: "12"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage4 || isAadharOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendAadharOTP()
+    }, this.state.adhrOtpSent != true ? 'Verify' : 'Reverify'), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar_otp,
+      type: "text",
+      name: "aadhar_otp",
+      placeholder: "Enter Aadhar OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar_Otp'] || ''))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.adhrOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent && this.state.applType == "WITHOUT_PPP_AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent == false && this.state.applType == "WITHOUT_PPP_AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalVerifyLoading,
+      isSuccess: this.state.isAadharOtpVerified,
+      isDisabled: !(this.state.isValidPage4 && this.state.isValidPage5) || isAadharOtpVerified ? true : false,
+      nextStep: () => this.verifyAadharOTP(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isAadharOtpVerified == true ? "OTP Verified" : "Verify OTP",
+      className: ""
+    }))), this.state.applType == "AADHAR" && this.state.applStateType == "OTHER_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "adharNoAndOtpDiv"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar,
+      autoComplete: "off",
+      type: "text",
+      name: "aadhar",
+      id: "aadhar_no",
+      placeholder: "Enter Aadhar Number",
+      maxLength: "12"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage4 || isAadharOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendAadharOTP()
+    }, this.state.adhrOtpSent != true ? 'Verify' : 'Reverify'), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar_otp,
+      type: "text",
+      name: "aadhar_otp",
+      placeholder: "Enter Aadhar OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar_Otp'] || ''))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.adhrOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent == false && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalSubmitLoading,
+      isSuccess: this.state.isAadharOtpVerified,
+      isDisabled: (this.state.isValidPage4 && this.state.isValidPage5) == true ? false : true || this.state.isAadharOtpVerified == true ? true : false,
+      nextStep: () => this.verifyAadharOTP(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isAadharOtpVerified == true ? " OTP Verified" : "Verify OTP",
+      className: ""
+    })), /*#__PURE__*/React.createElement("div", null, this.state.isPPPOtpVerified && /*#__PURE__*/React.createElement(Row, {
+      style: {
+        marginTop: "12px"
+      }
+    }, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 8,
+      md: 8
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "selMember"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      as: "select",
+      name: "selMemberData",
+      value: this.state.selMemberID,
+      onChange: this.handleMemberDetails,
+      style: {
+        fontSize: "13px"
+      }
+    }, /*#__PURE__*/React.createElement("option", {
+      value: "-1"
+    }, "Choose family member"), this.state.memberArr.map((childOpObj, c_index) => {
+      var eleId = childOpObj.memberID;
+      var eleVal = childOpObj.firstName + ' ' + childOpObj.lastName;
+      return /*#__PURE__*/React.createElement("option", {
+        key: c_index,
+        value: eleId
+      }, eleVal);
+    }))))), (this.state.isPPPOtpVerified || this.state.isAadharOtpVerified || doHaveAadhar == "NO" || continueRegister) && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
+      style: {
+        marginTop: "12px"
+      }
+    }, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "fname"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['fname'] ? 'is-invalid' : '',
+      type: "text",
+      name: "fname",
+      onChange: this.handleChange,
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.fname || '',
+      disabled: isPPPOtpVerified || isAadharOtpVerified,
+      placeholder: "Enter First Name",
+      autoComplete: "given-name"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['fname'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "mname"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['mname'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isPPPOtpVerified || isAadharOtpVerified,
+      type: "text",
+      name: "mname",
+      placeholder: "Enter Middle Name",
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.mname || '',
+      autoComplete: "additional-name"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['mname'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "lname"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['lname'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isPPPOtpVerified || isAadharOtpVerified,
+      type: "text",
+      name: "lname",
+      placeholder: "Enter Last Name",
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.lname || '',
+      autoComplete: "family-name"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['lname'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.email,
+      disabled: disableEmail,
+      type: "email",
+      name: "email",
+      placeholder: "Enter email",
+      autoComplete: "email"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "formBasicPassword"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.tel,
+      disabled: disableTel,
+      type: "text",
+      name: "tel",
+      id: "mobile_no",
+      placeholder: "Enter Mobile Number",
+      autoComplete: "tel",
+      maxLength: "10"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel'] || '')))), isOtpNotReqired == false && this.state.email != undefined && this.state.email.length > 0 && this.state.tel != undefined && this.state.tel.length > 0 && this.state.isValidPage2 != false && /*#__PURE__*/React.createElement(Row, null, !this.state.disableEmail && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: isOtpSameForBoth ? 6 : 3,
+      md: isOtpSameForBoth ? 6 : 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.email_otp,
+      type: "text",
+      name: "email_otp",
+      placeholder: isOtpSameForBoth ? "Enter Email / Mobile OTP" : "Enter Email OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email_otp'] || ''))), !this.state.disableEmail && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, isOtpSameForBoth && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      tel: this.state.tel,
+      otpType: "sameForBoth"
+    }), isOtpSameForBoth != true && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      otpType: "email"
+    })), isOtpSameForBoth && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }), isOtpDiffForBoth == true && !this.state.disableTel && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "tel_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      name: "tel_otp",
+      placeholder: "Enter Mobile OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel_otp'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      tel: this.state.tel,
+      otpType: "tel"
+    })))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Image, {
+      src: "/imageCaptcha.jpg?dd=" + captchaCount,
+      style: {
+        height: "45px"
+      },
+      className: "",
+      fluid: true
+    }), /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "relodCaptcha",
+      onClick: () => {
+        this.setState({
+          captchaCount: captchaCount + 1
+        });
+      }
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa fa-refresh",
+      style: {
+        color: "#0e3e88"
+      }
+    }))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "captchaTxt"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['captchaTxt'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      value: this.state.captchaTxt,
+      name: "captchaTxt",
+      autoComplete: "off",
+      placeholder: "Enter Captcha"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['captchaTxt'] || '')))), this.state.errors['commonErrorBlock'] && /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "commonErrorBlock"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: 'is-invalid'
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['commonErrorBlock'] || '')), /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalSubmitLoading1,
+      isSuccess: this.state.isFinalSubmitSuccess1,
+      isDisabled: this.state.isValidPage1 && this.state.isValidPage2 && this.state.isValidPage3 && (isAadharOtpVerified || isPPPOtpVerified || applType == "WITHOUT_PPP_AADHAR" && applStateType == "HARYANA_STATE" || applStateType == "OTHER_STATE") ? false : true,
+      nextStep: () => this.onFinalSubmit(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: "Register",
+      className: ""
+    }))))))), /*#__PURE__*/React.createElement(Card.Footer, {
+      className: "text-center"
+    }, FooterComponent != undefined && FooterComponent));
+  }
+}
+class OtpSendButtonComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "sendOTP", () => {
+      const {
+        email,
+        tel,
+        otpType = 'email'
+      } = this.props;
+      this.setState({
+        otpProcessing: true,
+        otpSent: true
+      }, () => {
+        $.ajax({
+          url: '/anon_applRegistrationOtp.json',
+          data: {
+            email: email,
+            tel: tel,
+            otpType: otpType,
+            loginFormType: window.gLoginStatus.loginFormType
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.isError == true) {
+              this.setState({
+                otpSent: false,
+                otpProcessing: false
+              });
+            } else {
+              this.setState({
+                otpProcessing: false,
+                otpSent: true,
+                otp: res.otp_no
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    this.state = {
+      otpProcessing: false,
+      otpSent: false
+    };
+  }
+  render() {
+    return /*#__PURE__*/React.createElement("div", null, this.state.otpSent != true && /*#__PURE__*/React.createElement(Button, {
+      className: "btn-block",
+      size: "sm",
+      onClick: e => this.sendOTP()
+    }, "Send OTP"), this.state.otpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.otpProcessing == false && this.state.otpSent && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.otp), this.state.otpSent == true && /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "btn-block",
+      size: "sm",
+      style: {
+        color: "#0e3e88",
+        fontSize: "12px",
+        marginLeft: "-171px"
+      },
+      onClick: e => this.sendOTP()
+    }, "Resend OTP"));
+  }
+}        ∏€ x ˇˇ     20260309231353-8lõ€ “G!T   https://erp.cmrit.ac.in/scriptReactCompiled/login/RegistrationPageForKUKComponent.js      rÿ  function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : String(i); }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+import StepperDirectionButtons from './../Modules/ApplAdmissionForm/StepperDirectionButtons.js';
+const {
+  Container,
+  Row,
+  Col,
+  Image,
+  Button,
+  Form,
+  Card,
+  InputGroup,
+  Spinner,
+  Alert
+} = ReactBootstrap;
+export default class RegistrationPageForKUKComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "onSubmit", e => {
+      e.preventDefault();
+    });
+    _defineProperty(this, "handleChange", e => {
+      //console.log(e.target.name, e.target.value);
+      var val = e.target.value;
+      //console.log(e.target);
+      if (e.target.type == "checkbox") {
+        val = e.target.checked;
+      }
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "handleChangeForCaps", e => {
+      var val = e.target.value;
+      val = val.toUpperCase();
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "onChangeState", e => {
+      this.setState({
+        selMemberID: '',
+        fname: undefined,
+        lname: undefined,
+        tel: undefined,
+        email: undefined,
+        disableTel: false,
+        disableEmail: false,
+        isPPPOtpVerified: false,
+        isAadharOtpVerified: false,
+        applType: '',
+        msg: '',
+        aadhar: undefined,
+        pppNo: undefined,
+        txnNo: '',
+        memberArr: [],
+        selMemberData: {},
+        doHaveAadhar: "",
+        continueRegister: false,
+        errors: {}
+      });
+      var val = e.target.value;
+      this.setState({
+        [e.target.name]: val,
+        applType: ''
+      });
+    });
+    _defineProperty(this, "onChangeType", e => {
+      this.setState({
+        selMemberID: '',
+        fname: undefined,
+        lname: undefined,
+        tel: undefined,
+        email: undefined,
+        disableTel: false,
+        disableEmail: false,
+        isPPPOtpVerified: false,
+        isAadharOtpVerified: false,
+        msg: '',
+        aadhar: undefined,
+        pppNo: undefined,
+        txnNo: '',
+        memberArr: [],
+        selMemberData: {},
+        doHaveAadhar: "",
+        continueRegister: false,
+        errors: {}
+      });
+      var val = e.target.value;
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "onChangeWithOutStateAadhar", e => {
+      var val = e.target.value;
+      this.setState({
+        selMemberID: '',
+        fname: undefined,
+        lname: undefined,
+        tel: undefined,
+        email: undefined,
+        disableTel: false,
+        disableEmail: false,
+        isPPPOtpVerified: false,
+        isAadharOtpVerified: false,
+        msg: '',
+        aadhar: undefined,
+        pppNo: undefined,
+        txnNo: '',
+        memberArr: [],
+        selMemberData: {},
+        doHaveAadhar: "",
+        continueRegister: val == "NO" ? true : false,
+        errors: {}
+      });
+      console.log("::", val);
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "validateDataOnRender", defaultVal => {
+      const {
+        fname = defaultVal,
+        mname = defaultVal,
+        lname = defaultVal
+      } = this.state;
+      var nameRegPattern = /^[a-zA-Z ]+$/;
+      var emailRegPattern = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-z]{1,4}$/;
+      var mobileRegPattern = /^([+]\d{2})?\d{10}$/;
+      var aadharRegPattern = /^([0-9]){12}$/;
+      var isValidPage1 = true;
+      if (fname != undefined) {
+        if (fname.trim() == '') {
+          this.state.errors['fname'] = 'Please enter First Name!';
+          isValidPage1 = false;
+        } else if (!nameRegPattern.test(fname)) {
+          this.state.errors['fname'] = 'Please enter valid First Name!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['fname'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (mname != undefined) {
+        if (mname.trim() == '') {
+          //this.state.errors['mname'] = 'Please enter Last Name!';
+          //isValidPage1 = false;
+        } else if (!nameRegPattern.test(mname)) {
+          this.state.errors['mname'] = 'Please enter valid Last Name!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['mname'];
+        }
+      } else {
+        //isValidPage1 = false;
+      }
+      if (lname != undefined) {
+        if (lname.trim() == '') {} else if (!nameRegPattern.test(lname)) {
+          this.state.errors['lname'] = 'Please enter valid Last Name!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['lname'];
+        }
+      } else {
+        //isValidPage1 = false;
+      }
+      this.state.isValidPage1 = isValidPage1;
+      //-------------------------------------
+      const {
+        email = defaultVal,
+        tel = defaultVal
+      } = this.state;
+      var isValidPage2 = true;
+      if (email != undefined) {
+        if (email.trim() == '') {
+          this.state.errors['email'] = 'Please enter Email!';
+          isValidPage2 = false;
+        } else if (!emailRegPattern.test(email)) {
+          this.state.errors['email'] = 'Please enter valid Email Id!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['email'];
+        }
+      } else {
+        isValidPage2 = false;
+      }
+      if (tel != undefined) {
+        if (tel.trim() == '') {
+          this.state.errors['tel'] = 'Please enter Mobile No.!';
+          isValidPage2 = false;
+        } else if (!mobileRegPattern.test(tel)) {
+          this.state.errors['tel'] = 'Please enter valid Mobile No!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['tel'];
+        }
+      } else {
+        isValidPage2 = false;
+      }
+      this.state.isValidPage2 = isValidPage2;
+
+      //---------------------------------------------//
+
+      const {
+        terms = defaultVal ? false : undefined,
+        captchaTxt = defaultVal
+      } = this.state;
+      var isValidPage3 = true;
+      if (captchaTxt != undefined) {
+        console.log(terms);
+        if (captchaTxt.trim() == '') {
+          this.state.errors['captchaTxt'] = 'Please enter captcha!';
+          isValidPage3 = false;
+        } else {
+          delete this.state.errors['captchaTxt'];
+        }
+      } else {
+        isValidPage3 = false;
+      }
+      const {
+        isError = false,
+        field = '',
+        message = ''
+      } = this.state.errorFromResponse;
+      if (isError) {
+        this.state.errors[field] = message;
+      }
+      this.state.isValidPage3 = isValidPage3;
+
+      //----------------------------------------------//
+
+      const {
+        aadhar = defaultVal
+      } = this.state;
+      var isValidPage4 = true;
+      if (aadhar != undefined) {
+        if (aadhar.trim() == '') {
+          this.state.errors['aadhar'] = 'Please enter aadhar number...!';
+          isValidPage4 = false;
+        } else if (!aadharRegPattern.test(aadhar)) {
+          this.state.errors['aadhar'] = 'Please enter valid aadhar number!';
+          isValidPage4 = false;
+        } else {
+          delete this.state.errors['aadhar'];
+        }
+      } else {
+        isValidPage4 = false;
+      }
+      this.state.isValidPage4 = isValidPage4;
+
+      //---------------------------------------
+
+      const {
+        aadhar_otp = defaultVal
+      } = this.state;
+      var isValidPage5 = true;
+      if (aadhar_otp != undefined) {
+        if (aadhar_otp.trim() == '') {
+          isValidPage5 = false;
+        } else {
+          delete this.state.errors['aadhar_otp'];
+        }
+      } else {
+        isValidPage5 = false;
+      }
+      this.state.isValidPage5 = isValidPage5;
+
+      //------------------------------------
+
+      const {
+        pppNo = defaultVal
+      } = this.state;
+      var isValidPage6 = true;
+      if (pppNo != undefined) {
+        if (pppNo.trim() == '') {
+          this.state.errors['pppNo'] = 'Please enter PPP number...!';
+          isValidPage6 = false;
+        } else {
+          delete this.state.errors['pppNo'];
+        }
+      } else {
+        isValidPage6 = false;
+      }
+      this.state.isValidPage6 = isValidPage6;
+
+      //---------------------------------------
+
+      const {
+        ppp_otp = defaultVal
+      } = this.state;
+      var isValidPage7 = true;
+      if (ppp_otp != undefined) {
+        if (ppp_otp.trim() == '') {
+          isValidPage7 = false;
+        } else {
+          delete this.state.errors['ppp_otp'];
+        }
+      } else {
+        isValidPage7 = false;
+      }
+      this.state.isValidPage7 = isValidPage7;
+    });
+    _defineProperty(this, "sendAadharOTP", () => {
+      var aadharNo = this.state.aadhar;
+      if (aadharNo != "") {
+        this.setState({
+          adhrOtpProcessing: true,
+          adhrOtpSent: true
+        }, () => {
+          $.ajax({
+            url: '/anon_generateOtpForAadhar.json',
+            data: {
+              aadharNo: aadharNo
+            },
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+              if (res.status.toLowerCase() == "successfull") {
+                this.setState({
+                  adhrOtpSent: true,
+                  adhrOtpProcessing: false,
+                  txnNo: res.txnNo,
+                  memberId: res.MemberID,
+                  msg: res.msg
+                });
+                console.log("sbjh:::" + this.state.msg);
+              } else {
+                if (this.state.applStateType == "OTHER_STATE") {
+                  this.setState({
+                    adhrOtpSent: false,
+                    adhrOtpProcessing: false,
+                    msg: res.msg,
+                    disableEmail: false,
+                    disableTel: false,
+                    isAadharOtpVerified: false,
+                    continueRegister: true
+                  });
+                } else if (this.state.applStateType == "HARYANA_STATE" && this.state.applType == "WITHOUT_PPP_AADHAR") {
+                  this.setState({
+                    adhrOtpSent: false,
+                    adhrOtpProcessing: false,
+                    msg: res.msg,
+                    disableEmail: false,
+                    disableTel: false,
+                    isAadharOtpVerified: false,
+                    continueRegister: true
+                  });
+                } else {
+                  this.setState({
+                    adhrOtpSent: false,
+                    adhrOtpProcessing: false,
+                    txnNo: res.txnNo,
+                    memberId: res.MemberID,
+                    msg: res.msg
+                  });
+                  bootbox.confirm(res.msg + ", Do you want to continue without PPP ID ?", function (result) {
+                    if (result) {
+                      this.setState({
+                        applType: "WITHOUT_PPP_AADHAR",
+                        msg: '',
+                        aadhar: undefined
+                      });
+                    }
+                  }.bind(this));
+                }
+                console.log("sjdvhgsdv::" + this.state.msg);
+              }
+            }.bind(this)
+          });
+        });
+      } else {
+        bootbox.alert("Please Enter Aadhar Number");
+      }
+    });
+    _defineProperty(this, "verifyAadharOTP", () => {
+      var aadharOTP = this.state.aadhar_otp;
+      var txnNo = this.state.txnNo;
+      var memberID = this.state.memberId;
+      var email = this.state.email;
+      var aadharNo = this.state.aadhar;
+      if (aadharOTP != "") {
+        this.setState({
+          otpProcessing: true,
+          otpSent: true
+        }, () => {
+          $.ajax({
+            url: '/anon_verifyOtpForAadhar.json',
+            data: {
+              aadharOTP: aadharOTP,
+              tranNo: txnNo,
+              memberID: memberID,
+              email: email,
+              aadharNo: aadharNo
+            },
+            type: 'POST',
+            dataType: 'json',
+            success: function (res) {
+              if (res.status.toLowerCase() == "successfull") {
+                const {
+                  memberID = '',
+                  firstName = '',
+                  lastName = '',
+                  email = '',
+                  mobileNo = ''
+                } = res.result;
+                this.setState({
+                  selMemberData: res.result,
+                  selMemberID: memberID,
+                  fname: firstName.toUpperCase(),
+                  lname: lastName.toUpperCase(),
+                  tel: mobileNo,
+                  email: email.toLowerCase(),
+                  disableTel: mobileNo != '' ? true : false,
+                  disableEmail: email != '' ? false : false,
+                  isAadharOtpVerified: true
+                });
+
+                /*setTimeout(()=>{
+                window.location = '/anon_applWelcomePage.htm';
+                    
+                }, 1500);*/
+              } else if (this.state.applStateType == "HARYANA_STATE" && this.state.applType == "WITHOUT_PPP_AADHAR") {
+                this.setState({
+                  adhrOtpSent: false,
+                  adhrOtpProcessing: false,
+                  msg: res.msg,
+                  disableEmail: false,
+                  disableTel: false,
+                  isAadharOtpVerified: false,
+                  continueRegister: true
+                });
+              } else {
+                this.setState({
+                  msg: res.message,
+                  adhrOtpProcessing: false,
+                  adhrOtpSent: false,
+                  adhrOtpResend: true,
+                  aadhar_otp: '',
+                  isAadharOtpVerified: false
+                });
+                console.log("sjdvhgsdv::" + this.state.msg);
+                bootbox.confirm(res.msg + ",Do you want to continue without PPP ID ?", function (result) {
+                  if (result) {
+                    this.setState({
+                      applType: "WITHOUT_PPP_AADHAR"
+                    });
+                  }
+                }.bind(this));
+              }
+            }.bind(this)
+          });
+        });
+      } else {
+        bootbox.alert("Please Enter Aadhar OTP");
+      }
+    });
+    _defineProperty(this, "sendPPPPOTP", () => {
+      var pppNo = this.state.pppNo;
+      if (pppNo != "") {
+        $.ajax({
+          url: '/anon_generateOtpForPPPfamilyId.json',
+          data: {
+            familyId: pppNo
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.status.toLowerCase() == "successfull") {
+              this.setState({
+                pppOtpSent: true,
+                pppOtpResent: true,
+                pppOtpProcessing: false,
+                txnNo: res.txnNo,
+                msg: res.msg
+              });
+              console.log("sbjh:::" + this.state.msg);
+            } else {
+              this.setState({
+                pppOtpSent: false,
+                pppOtpResent: false,
+                pppOtpProcessing: false,
+                txnNo: res.txnNo,
+                msg: res.msg
+              });
+              console.log("sjdvhgsdv::" + this.state.msg);
+              bootbox.confirm(res.msg + ", Do you forgot your PPP ID ?", function (result) {
+                if (result) {
+                  this.setState({
+                    applType: "AADHAR"
+                  });
+                }
+              }.bind(this));
+            }
+          }.bind(this)
+        });
+      } else {
+        bootbox.alert("Please Enter Aadhar Number");
+      }
+    });
+    _defineProperty(this, "verifyPPPOtp", () => {
+      var pppNo = this.state.pppNo;
+      var tranNo = this.state.txnNo;
+      var pppOtp = this.state.ppp_otp;
+      this.setState({
+        isFinalVerifyLoading: true,
+        isPPPOtpVerified: false
+      }, () => {
+        $.ajax({
+          url: '/anon_verifyOtpForPPPfamilyId.json',
+          data: {
+            familyId: pppNo,
+            tranNo: tranNo,
+            pppOtp: pppOtp
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.status.toLowerCase() == "successfull") {
+              console.log("sbjh:::" + this.state.msg);
+              var familyDtls = res.familyDtls != undefined ? res.familyDtls : {};
+              var houseNo = familyDtls.familyHouseNumber != undefined ? familyDtls.familyHouseNumber : "";
+              var streetNo = familyDtls.familyStreetNumber != undefined ? familyDtls.familyStreetNumber : "";
+              var address_LandMark = familyDtls.familyLandMark != undefined ? familyDtls.familyLandMark : "";
+              var pinCode = familyDtls.familyPinCode != undefined ? familyDtls.familyPinCode : "";
+              var familyIncome = familyDtls.familyIncome != undefined ? familyDtls.familyIncome : "";
+              var pppMemArr = familyDtls.pppMemberDetails != undefined ? familyDtls.pppMemberDetails : [];
+              var memArr = [];
+              for (var obj of pppMemArr) {
+                //								const {memberID='',firstName='',lastName='',email='',mobileNo=''}=obj;
+                //								var jObj={"memberID":memberID,"firstName":firstName,"lastName":lastName,"email":email,"mobileNo":mobileNo};
+                obj["houseNo"] = houseNo;
+                obj["streetNo"] = streetNo;
+                obj["address_LandMark"] = address_LandMark;
+                obj["pinCode"] = pinCode;
+                obj["familyIncome"] = familyIncome;
+                memArr.push(obj);
+              }
+              this.setState({
+                pppOtpSent: true,
+                pppOtpResent: true,
+                pppOtpProcessing: false,
+                msg: res.msg,
+                isPPPOtpVerified: true,
+                isFinalVerifyLoading: false,
+                memberArr: memArr
+              });
+            } else {
+              this.setState({
+                pppOtpSent: false,
+                pppOtpResent: true,
+                pppOtpProcessing: false,
+                msg: res.msg,
+                isPPPOtpVerified: false,
+                isFinalVerifyLoading: false
+              });
+              console.log("sjdvhgsdv::" + this.state.msg);
+            }
+          }.bind(this)
+        });
+      });
+    });
+    _defineProperty(this, "handleMemberDetails", e => {
+      var val = e.target.value;
+      var data = this.state.memberArr.filter(obj => obj.memberID == val);
+      const {
+        memberID = '',
+        firstName = '',
+        lastName = '',
+        email = '',
+        mobileNo = ''
+      } = data[0];
+      console.log("::", memberID, "SDSAD::::", mobileNo);
+      this.setState({
+        [e.target.name]: data[0],
+        selMemberID: val,
+        fname: firstName.toUpperCase(),
+        lname: lastName.toUpperCase(),
+        tel: mobileNo,
+        email: email.toLowerCase(),
+        disableTel: mobileNo != '' ? true : false,
+        disableEmail: email != '' ? false : false
+      });
+    });
+    _defineProperty(this, "onFinalSubmit", () => {
+      if (this.state.applType == "WITHOUT_PPP_AADHAR" && !this.state.isAadharOtpVerified) {
+        bootbox.confirm("Kindely do your PPP ID registration within 15 days of admission otherwise you do not consider for admission process , Do you want to continue?", function (result) {
+          if (result) {
+            this.onFinalSubmit1();
+          }
+        }.bind(this));
+      } else {
+        this.onFinalSubmit1();
+      }
+    });
+    _defineProperty(this, "onFinalSubmit1", () => {
+      this.setState({
+        isFinalSubmitLoading1: true,
+        isFinalSubmitSuccess1: false
+      }, () => {
+        const {
+          fname,
+          mname,
+          lname,
+          email,
+          tel,
+          captchaTxt,
+          email_otp,
+          tel_otp,
+          applType = "",
+          disableEmail,
+          disableTel,
+          selMemberData,
+          applStateType
+        } = this.state;
+        const {
+          formType,
+          customerUID
+        } = this.props;
+        const pageLink = window.location.origin;
+        const applFormId = window.gLoginStatus.applFormId;
+        var memberDtls = JSON.stringify(selMemberData);
+        $.ajax({
+          url: '/restApi/registerNewApplicant.json',
+          type: 'POST',
+          data: {
+            fname,
+            mname,
+            lname,
+            email,
+            tel,
+            captchaTxt,
+            formType,
+            email_otp,
+            tel_otp,
+            applType,
+            disableEmail,
+            disableTel,
+            applStateType,
+            memberDtls,
+            customerUID,
+            pageLink,
+            applFormId
+          },
+          dataType: 'json',
+          success: function (res) {
+            const {
+              isError = true,
+              field = '',
+              message = ''
+            } = res;
+            if (isError) {
+              if (field == '') {
+                if (message == 'USER_ALREADY_EXIST') {
+                  this.state.otpSentOnemail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already associated with your account, Please login to continue.'
+                  };
+                } else if (message == 'USER_ALREADY_EXIST_IN_USERS') {
+                  this.state.otpSentOnemail = false;
+                  this.state.disableEmail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already exist in system, Please enter email never used before.'
+                  };
+                } else {
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'commonErrorBlock',
+                    message: 'An error occurred. Please try again later.'
+                  };
+                }
+              } else {
+                if (field == 'email') {
+                  this.state.otpSentOnemail = false;
+                }
+                this.state.errorFromResponse = res;
+              }
+              this.setState({
+                isFinalSubmitLoading1: false,
+                isFinalSubmitSuccess1: false,
+                captchaCount: this.state.captchaCount + 1,
+                captchaTxt: ''
+              });
+            } else {
+              this.state.errorFromResponse = {};
+              this.setState({
+                isFinalSubmitLoading1: false,
+                isFinalSubmitSuccess1: true
+              }, () => {
+                setTimeout(() => {
+                  /*if(formType=='aflUserReg'){
+                  	window.location = '/aflsDashBoard.htm';
+                  }else{*/
+                  window.location = '/anon_applWelcomePage.htm';
+                  //}
+                }, 1500);
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    this.state = {
+      captchaCount: 0,
+      errors: {},
+      isValidPage1: false,
+      isValidPage2: false,
+      isValidPage3: false,
+      isValidPage4: false,
+      isValidPage5: false,
+      isValidPage6: false,
+      isValidPage7: false,
+      isFinalSubmitLoading1: false,
+      isFinalSubmitSuccess1: false,
+      applStateType: "",
+      applType: "",
+      txnNo: "",
+      memberId: "",
+      adhrOtpProcessing: false,
+      pppOtpProcessing: false,
+      adhrOtpSent: false,
+      pppOtpSent: false,
+      pppOtpResent: false,
+      isAadharOtpVerified: false,
+      isFinalVerifyLoading: false,
+      isPPPOtpVerified: false,
+      memberArr: [],
+      selMemberData: {},
+      disableTel: false,
+      disableEmail: false,
+      selMemberID: '-1',
+      doHaveAadhar: "",
+      continueRegister: false,
+      errorFromResponse: {}
+    };
+  }
+  componentDidMount() {}
+  render() {
+    const {
+      captchaCount = 0,
+      isPPPOtpVerified,
+      disableEmail,
+      disableTel,
+      isAadharOtpVerified,
+      applStateType,
+      applType,
+      txnNo,
+      doHaveAadhar,
+      continueRegister
+    } = this.state;
+    console.log("isPPPOtpVerified::", isPPPOtpVerified, "disableEmail::", disableEmail, "disableTel::", disableTel);
+    const {
+      FooterComponent,
+      formType = 'applicantRegKuk'
+    } = this.props;
+    $("#mobile_no").keypress(function (e) {
+      var keyCode = e.which ? e.which : e.keyCode;
+      var result = !(keyCode >= 65 && keyCode <= 90 || keyCode >= 33 && keyCode <= 47 || keyCode == 126 || keyCode >= 97 && keyCode <= 122 || keyCode >= 58 && keyCode <= 64 || keyCode >= 91 && keyCode <= 96);
+      return result;
+    });
+    var otpTypeIndex = window?.gLoginStatus?.otpTypeKUK || '0';
+    var isOtpNotReqired = otpTypeIndex == '0';
+    var isOtpSameForBoth = otpTypeIndex == '1';
+    var isOtpDiffForBoth = otpTypeIndex == '2';
+    var isRegiClosed = window?.gLoginStatus?.isRegiClosed || false;
+    this.validateDataOnRender();
+    return /*#__PURE__*/React.createElement(Card, {
+      className: "mb-2",
+      style: {
+        height: '98.6%'
+      }
+    }, /*#__PURE__*/React.createElement(Card.Header, null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-question-circle-o pull-right",
+      "aria-hidden": "true"
+    }), isRegiClosed && /*#__PURE__*/React.createElement("h6", {
+      style: {
+        color: '#FF0000'
+      }
+    }, "  Applicant registration will start soon..!!"), !isRegiClosed && /*#__PURE__*/React.createElement("h6", null, /*#__PURE__*/React.createElement("b", null, "New Applicant Registration"))), /*#__PURE__*/React.createElement(Card.Body, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, {
+      onSubmit: this.onSubmit,
+      autoComplete: "on"
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "HARYANA_STATE",
+      name: "applStateType",
+      disabled: isRegiClosed,
+      onChange: this.onChangeState
+    }), " Haryana State "), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "OTHER_STATE",
+      name: "applStateType",
+      disabled: isRegiClosed,
+      onChange: this.onChangeState
+    }), " Other State"), "\xA0\xA0\xA0\xA0"), this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "radioQuestiondDiv"
+    }, /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "PPP",
+      name: "applType",
+      onChange: this.onChangeType,
+      checked: this.state.applType == "PPP" ? true : false
+    }), " Enter PPP ID"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "AADHAR",
+      name: "applType",
+      onChange: this.onChangeType,
+      checked: this.state.applType == "AADHAR" ? true : false
+    }), " I forget my PPP ID"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "WITHOUT_PPP_AADHAR",
+      name: "applType",
+      onChange: this.onChangeType,
+      checked: this.state.applType == "WITHOUT_PPP_AADHAR" ? true : false
+    }), " I don't have PPP ID "), "\xA0\xA0\xA0\xA0"), this.state.applStateType == "OTHER_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "outStateAadhar"
+    }, /*#__PURE__*/React.createElement("label", null, "Do you have Aadhar ? "), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "AADHAR",
+      name: "applType",
+      onChange: this.onChangeWithOutStateAadhar,
+      checked: this.state.applType == "AADHAR" ? true : false
+    }), "Yes"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "NO",
+      name: "applType",
+      onChange: this.onChangeWithOutStateAadhar,
+      checked: this.state.applType == "NO" ? true : false
+    }), " No")), this.state.applType == "PPP" && this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "haryanaStatePPPDiv"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['pppNo'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.pppNo,
+      autoComplete: "off",
+      type: "text",
+      name: "pppNo",
+      id: "ppp_No",
+      placeholder: "Enter PPP Number"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['pppNo'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage6 || isPPPOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendPPPPOTP()
+    }, this.state.pppOtpResent != true ? 'Verify' : 'Reverify'))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: "",
+      onChange: this.handleChange,
+      value: this.state.ppp_otp,
+      type: "text",
+      name: "ppp_otp",
+      placeholder: "Enter PPP OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, null))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.pppOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.pppOtpProcessing == false && this.state.pppOtpSent && this.state.applType == "PPP" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.pppOtpProcessing == false && this.state.pppOtpSent == false && this.state.applType == "PPP" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalVerifyLoading,
+      isSuccess: this.state.isPPPOtpVerified,
+      isDisabled: !(this.state.isValidPage6 && this.state.isValidPage7) || isPPPOtpVerified ? true : false,
+      nextStep: () => this.verifyPPPOtp(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isPPPOtpVerified == true ? "Verified" : "Verify",
+      className: ""
+    })), this.state.applType == "AADHAR" && this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "adharNoAndOtpDiv"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar,
+      autoComplete: "off",
+      type: "text",
+      name: "aadhar",
+      id: "aadhar_no",
+      placeholder: "Enter Aadhar Number",
+      maxLength: "12"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage4 || isAadharOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendAadharOTP()
+    }, this.state.adhrOtpSent != true ? 'Verify' : 'ReVerify'), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar_otp,
+      type: "text",
+      name: "aadhar_otp",
+      placeholder: "Enter Aadhar OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar_Otp'] || ''))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.adhrOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent == false && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalVerifyLoading,
+      isSuccess: this.state.isAadharOtpVerified,
+      isDisabled: !(this.state.isValidPage4 && this.state.isValidPage5) || isAadharOtpVerified ? true : false,
+      nextStep: () => this.verifyAadharOTP(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isAadharOtpVerified == true ? "Verified" : "Verify",
+      className: ""
+    })), this.state.applType == "WITHOUT_PPP_AADHAR" && this.state.applStateType == "HARYANA_STATE" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, null, /*#__PURE__*/React.createElement("div", {
+      id: ""
+    }, /*#__PURE__*/React.createElement("label", null, "Do you have Aadhar ? "), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "YES",
+      name: "doHaveAadhar",
+      onChange: this.handleChange,
+      checked: this.state.doHaveAadhar == "YES" ? true : false
+    }), "Yes"), "\xA0\xA0\xA0\xA0", /*#__PURE__*/React.createElement("label", null, /*#__PURE__*/React.createElement("input", {
+      type: "radio",
+      value: "NO",
+      name: "doHaveAadhar",
+      onChange: this.handleChange,
+      checked: this.state.doHaveAadhar == "NO" ? true : false
+    }), " No")))), doHaveAadhar == "YES" && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar,
+      autoComplete: "off",
+      type: "text",
+      name: "aadhar",
+      id: "aadhar_no",
+      placeholder: "Enter Aadhar Number",
+      maxLength: "12"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage4 || isAadharOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendAadharOTP()
+    }, this.state.adhrOtpSent != true ? 'Verify' : 'Reverify'), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar_otp,
+      type: "text",
+      name: "aadhar_otp",
+      placeholder: "Enter Aadhar OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar_Otp'] || ''))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.adhrOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent && this.state.applType == "WITHOUT_PPP_AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent == false && this.state.applType == "WITHOUT_PPP_AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalVerifyLoading,
+      isSuccess: this.state.isAadharOtpVerified,
+      isDisabled: !(this.state.isValidPage4 && this.state.isValidPage5) || isAadharOtpVerified ? true : false,
+      nextStep: () => this.verifyAadharOTP(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isAadharOtpVerified == true ? "OTP Verified" : "Verify OTP",
+      className: ""
+    }))), this.state.applType == "AADHAR" && this.state.applStateType == "OTHER_STATE" && /*#__PURE__*/React.createElement("div", {
+      id: "adharNoAndOtpDiv"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "2px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar,
+      autoComplete: "off",
+      type: "text",
+      name: "aadhar",
+      id: "aadhar_no",
+      placeholder: "Enter Aadhar Number",
+      maxLength: "12"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Button, {
+      className: "btn-sm",
+      disabled: !this.state.isValidPage4 || isAadharOtpVerified ? true : false,
+      style: {
+        width: "120px"
+      },
+      onClick: e => this.sendAadharOTP()
+    }, this.state.adhrOtpSent != true ? 'Verify' : 'Reverify'), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, txnNo != "" && /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      style: {
+        marginLeft: "4px",
+        marginTop: "10px"
+      }
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['aadhar'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.aadhar_otp,
+      type: "text",
+      name: "aadhar_otp",
+      placeholder: "Enter Aadhar OTP",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['aadhar_Otp'] || ''))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginLeft: "20px"
+      }
+    }, this.state.adhrOtpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.msg), this.state.adhrOtpProcessing == false && this.state.adhrOtpSent == false && this.state.applType == "AADHAR" && /*#__PURE__*/React.createElement("p", {
+      className: "text-danger small"
+    }, this.state.msg))), txnNo != "" && /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalSubmitLoading,
+      isSuccess: this.state.isAadharOtpVerified,
+      isDisabled: (this.state.isValidPage4 && this.state.isValidPage5) == true ? false : true || this.state.isAadharOtpVerified == true ? true : false,
+      nextStep: () => this.verifyAadharOTP(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: this.state.isAadharOtpVerified == true ? " OTP Verified" : "Verify OTP",
+      className: ""
+    })), /*#__PURE__*/React.createElement("div", null, this.state.isPPPOtpVerified && /*#__PURE__*/React.createElement(Row, {
+      style: {
+        marginTop: "12px"
+      }
+    }, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 8,
+      md: 8
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "selMember"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      as: "select",
+      name: "selMemberData",
+      value: this.state.selMemberID,
+      onChange: this.handleMemberDetails,
+      style: {
+        fontSize: "13px"
+      }
+    }, /*#__PURE__*/React.createElement("option", {
+      value: "-1"
+    }, "Choose family member"), this.state.memberArr.map((childOpObj, c_index) => {
+      var eleId = childOpObj.memberID;
+      var eleVal = childOpObj.firstName + ' ' + childOpObj.lastName;
+      return /*#__PURE__*/React.createElement("option", {
+        key: c_index,
+        value: eleId
+      }, eleVal);
+    }))))), (this.state.isPPPOtpVerified || this.state.isAadharOtpVerified || doHaveAadhar == "NO" || continueRegister) && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Row, {
+      style: {
+        marginTop: "12px"
+      }
+    }, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "fname"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['fname'] ? 'is-invalid' : '',
+      type: "text",
+      name: "fname",
+      onChange: this.handleChange,
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.fname || '',
+      disabled: isPPPOtpVerified || isAadharOtpVerified,
+      placeholder: "Enter First Name",
+      autoComplete: "given-name"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['fname'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "mname"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['mname'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isPPPOtpVerified || isAadharOtpVerified,
+      type: "text",
+      name: "mname",
+      placeholder: "Enter Middle Name",
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.mname || '',
+      autoComplete: "additional-name"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['mname'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 4,
+      md: 4
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "lname"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['lname'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isPPPOtpVerified || isAadharOtpVerified,
+      type: "text",
+      name: "lname",
+      placeholder: "Enter Last Name",
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.lname || '',
+      autoComplete: "family-name"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['lname'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.email,
+      disabled: disableEmail,
+      type: "email",
+      name: "email",
+      placeholder: "Enter email",
+      autoComplete: "email"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "formBasicPassword"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.tel,
+      disabled: disableTel,
+      type: "text",
+      name: "tel",
+      id: "mobile_no",
+      placeholder: "Enter Mobile Number",
+      autoComplete: "tel",
+      maxLength: "10"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel'] || '')))), isOtpNotReqired == false && this.state.email != undefined && this.state.email.length > 0 && this.state.tel != undefined && this.state.tel.length > 0 && this.state.isValidPage2 != false && /*#__PURE__*/React.createElement(Row, null, !this.state.disableEmail && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: isOtpSameForBoth ? 6 : 3,
+      md: isOtpSameForBoth ? 6 : 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.email_otp,
+      type: "text",
+      name: "email_otp",
+      placeholder: isOtpSameForBoth ? "Enter Email / Mobile OTP" : "Enter Email OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email_otp'] || ''))), !this.state.disableEmail && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, isOtpSameForBoth && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      tel: this.state.tel,
+      otpType: "sameForBoth"
+    }), isOtpSameForBoth != true && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      otpType: "email"
+    })), isOtpSameForBoth && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }), isOtpDiffForBoth == true && !this.state.disableTel && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "tel_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      name: "tel_otp",
+      placeholder: "Enter Mobile OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel_otp'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      tel: this.state.tel,
+      otpType: "tel"
+    })))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Image, {
+      src: "/imageCaptcha.jpg?dd=" + captchaCount,
+      style: {
+        height: "45px"
+      },
+      className: "",
+      fluid: true
+    }), /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "relodCaptcha",
+      onClick: () => {
+        this.setState({
+          captchaCount: captchaCount + 1
+        });
+      }
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa fa-refresh",
+      style: {
+        color: "#0e3e88"
+      }
+    }))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "captchaTxt"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['captchaTxt'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      value: this.state.captchaTxt,
+      name: "captchaTxt",
+      autoComplete: "off",
+      placeholder: "Enter Captcha"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['captchaTxt'] || '')))), this.state.errors['commonErrorBlock'] && /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "commonErrorBlock"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: 'is-invalid'
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['commonErrorBlock'] || '')), /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalSubmitLoading1,
+      isSuccess: this.state.isFinalSubmitSuccess1,
+      isDisabled: this.state.isValidPage1 && this.state.isValidPage2 && this.state.isValidPage3 && (isAadharOtpVerified || isPPPOtpVerified || applType == "WITHOUT_PPP_AADHAR" && applStateType == "HARYANA_STATE" || applStateType == "OTHER_STATE") ? false : true,
+      nextStep: () => this.onFinalSubmit(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: "Register",
+      className: ""
+    }))))))), /*#__PURE__*/React.createElement(Card.Footer, {
+      className: "text-center"
+    }, FooterComponent != undefined && FooterComponent));
+  }
+}
+class OtpSendButtonComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "sendOTP", () => {
+      const {
+        email,
+        tel,
+        otpType = 'email'
+      } = this.props;
+      this.setState({
+        otpProcessing: true,
+        otpSent: true
+      }, () => {
+        $.ajax({
+          url: '/anon_applRegistrationOtp.json',
+          data: {
+            email: email,
+            tel: tel,
+            otpType: otpType,
+            loginFormType: window.gLoginStatus.loginFormType
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.isError == true) {
+              this.setState({
+                otpSent: false,
+                otpProcessing: false
+              });
+            } else {
+              this.setState({
+                otpProcessing: false,
+                otpSent: true,
+                otp: res.otp_no
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    this.state = {
+      otpProcessing: false,
+      otpSent: false
+    };
+  }
+  render() {
+    return /*#__PURE__*/React.createElement("div", null, this.state.otpSent != true && /*#__PURE__*/React.createElement(Button, {
+      className: "btn-block",
+      size: "sm",
+      onClick: e => this.sendOTP()
+    }, "Send OTP"), this.state.otpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.otpProcessing == false && this.state.otpSent && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.otp), this.state.otpSent == true && /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "btn-block",
+      size: "sm",
+      style: {
+        color: "#0e3e88",
+        fontSize: "12px",
+        marginLeft: "-171px"
+      },
+      onClick: e => this.sendOTP()
+    }, "Resend OTP"));
+  }
+}”ò¿Ÿc  a         Ê3ÃŒ      _defineProperty    ﬂN#9      obj    B¸ø;      key    |ÀL√      _toPropertyKey     âœ#¸      _toPrimitive   IŸX´,      @@toPrimitive must return a primitive value.   tl=      StepperDirectionButtons    ‰~n9      ./../Modules/ApplAdmissionForm/StepperDirectionButtons.js      ≠K˝ó	      Container	      Ö∫∂      Row
+    ˜v†      Col    û“      Image      G’†ÿ      Button     >oí…      Form   ◊m<=      Card   KïB…
+      InputGroup     N¿Í9      Spinner    ∫…¥|      Alert      ¿]ö      ReactBootstrap     z$N      RegistrationPageForKUKComponent    ,ï
+x      React      ≤xi	      Component       ¶      props      Èp~      onSubmit   B9∫¿      preventDefault     ;Ëyv      handleChange   &⁄õ      val    ÿy*      checkbox   »:0ó      checked    *∆Î      setState   ö˙…é      handleChangeForCaps    ¨‚s◊      toUpperCase     Ï‚4u      onChangeState!      G~•       selMemberID"    D>É›      fname#      úê≤4      lname$      IPJM      tel%    <€Ò      email&      â6 2
+      disableTel'     ≈l{_      disableEmail(   ·€¡ä      isPPPOtpVerified)   iıÓU      isAadharOtpVerified*    "Rë      applType+   ˇ?Xã      msg,    ∫^¶⁄      aadhar-     J      pppNo.      'Æ∑˛      txnNo/      2’ﬁ	      memberArr0      ·Ÿ2      selMemberData1      p¬ë      doHaveAadhar2   Z%Wt      continueRegister3   |¯I|      onChangeType4   \4-ı      onChangeWithOutStateAadhar5     ˛Q1      console6    =X˚      log7    tñ—      ::8     U_Í      validateDataOnRender9   &dù
+      defaultVal:     Ë˚
+œ      mname;      ˘GÕ“      state<      3…      nameRegPattern=     Úq\Â      ^[a-zA-Z ]+$>   ∑œM      emailRegPattern?    G§N]      ^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-z]{1,4}$@      ÑÌúA      mobileRegPatternA   ≈Ïéj      ^([+]\d{2})?\d{10}$B    g3©      aadharRegPatternC   ‡ôë”      ^([0-9]){12}$D      qÊëÁ      isValidPage1E   óñôb      trimF   ƒ•|@      Please enter First Name!G   U}ﬂ      Please enter valid First Name!H     ˙¢,Æ      Please enter valid Last Name!I      *`…Ö      isValidPage2J   ⁄3™Í      Please enter Email!K    ë6è»      Please enter valid Email Id!L   ∞°N#      Please enter Mobile No.!M   ºØÅ+      Please enter valid Mobile No!N      •      termsO      µÃ¨
+      captchaTxtP     „Ÿ $      isValidPage3Q   ^\p      Please enter captcha!R      †“ñ!      fieldS      KÒŸ4      errorFromResponseT      úS8¬      isValidPage4U   é/X¡      Please enter aadhar number...!V     Áﬂ®D!      Please enter valid aadhar number!W      M≥
+      aadhar_otpX     UÕo`      isValidPage5Y   Gß˛      isValidPage6Z   Ëÿ√∏      Please enter PPP number...![    {õ      ppp_otp\    «¿ﬁú      isValidPage7]   ;≥óh      sendAadharOTP^      ¶Ωò      aadharNo_   üNY      adhrOtpProcessing`      
+óûû      adhrOtpSenta    æd»ê      ajaxb   ƒé>      /anon_generateOtpForAadhar.jsonc    6ó(Å      datad   ﬂ:      POSTe   DoÄw      dataTypef   …©\9      successg    ª:0      resh    RâDo      toLowerCasei    '–      successfullj    ‚%ûÌ      memberIdk   å∞      MemberIDl   ﬂ0≤‰      sbjh:::m    D∫‡°      applStateTypen      "~Ä      OTHER_STATEo    ËAq      HARYANA_STATEp      ≈õF       WITHOUT_PPP_AADHARq     ´yÜ…      bootboxr    :}»@      confirms    –õf*      , Do you want to continue without PPP ID ?t     ‡Õ      bindu   SÂ+      sjdvhgsdv::v    “Ô¢Z      alertw      •ŸØ˝      Please Enter Aadhar Numberx     ìv      verifyAadharOTPy    qXK	      aadharOTPz      ¬ÓÆ&      memberID{   „!8„      otpProcessing|      æ,¬∏      otpSent}    Wä«‚      /anon_verifyOtpForAadhar.json~      j(»≤      tranNo     ∞◊∆	      firstNameÄ       [¸9      lastNameÅ   KBá      mobileNoÇ   xË…      adhrOtpResendÉ      H˜`©)      ,Do you want to continue without PPP ID ?Ñ      ô}PÑ      Please Enter Aadhar OTPÖ    !ïÃ§      sendPPPPOTPÜ    Ä∏k≈$      /anon_generateOtpForPPPfamilyId.jsoná   :NË7      familyIdà   µÁí]
+      pppOtpSentâ     ∞u+ï      pppOtpResentä   ¢q£^      pppOtpProcessingã   Â7-      , Do you forgot your PPP ID ?å      qqÍ‘      AADHARç     ÁBJd      verifyPPPOtpé   X	ºF      pppOtpè     £ˇ∏<      isFinalVerifyLoadingê   È%"      /anon_verifyOtpForPPPfamilyId.jsonë     ≤.
+      familyDtlsí     0¯      houseNoì    ﬂKÅ      familyHouseNumberî      ≤∑6Û      streetNoï   °TÇH      familyStreetNumberñ     Û˜>Ñ      address_LandMarkó   s˙”F      familyLandMarkò     !&⁄      pinCodeô    ºpÈ      familyPinCodeö      „ªÉ      familyIncomeõ   »«ëQ	      pppMemArrú      t      pppMemberDetailsù   g:Àç      memArrû     Ñu2      pushü   É%-≈      handleMemberDetails†    >	≈      filter°     „ºk	      SDSAD::::¢      £Lj      onFinalSubmit£      v(Üé      Kindely do your PPP ID registration within 15 days of admission otherwise you do not consider for admission process , Do you want to continue?§     |K{      onFinalSubmit1•     6Tc•      isFinalSubmitLoading1¶      Â≈      isFinalSubmitSuccess1ß      Ûx&∞	      email_otp®      Z/k      tel_otp©    ˚vtÒ      formType™   Ã±      customerUID´    `è)      pageLink¨   ¯2áâ      window≠     0+QA      locationÆ   =®Ä;      originØ     uπI 
+      applFormId∞     67b      gLoginStatus±   ¸‘÷Ç
+      memberDtls≤     nßÎ	      stringify≥      ÌåE3"      /restApi/registerNewApplicant.json¥     Ò¿r6      USER_ALREADY_EXISTµ     cOhÄ      otpSentOnemail∂     E
+uU      That email address is already associated with your account, Please login to continue.∑      J=·`      USER_ALREADY_EXIST_IN_USERS∏    ƒ‘« T      That email address is already exist in system, Please enter email never used before.π   ló˛¯      commonErrorBlock∫   ¬'∆É*      An error occurred. Please try again later.ª     ËZC!      captchaCountº   3AtŸ
+      setTimeoutΩ     Ek)      /anon_applWelcomePage.htmæ      H⁄”      -1ø     dJ∆      componentDidMount¿      ‘ÍÕ˜      render¡     –wÓæ      isPPPOtpVerified::¬     V      disableEmail::√     h∆      disableTel::ƒ   ⁄ˇ˝      FooterComponent≈    ª!EÄ      applicantRegKuk∆    [);ï
+      #mobile_no«     ®±V      keypress»   ≠5      keyCode…    ≈∏0      which       ·ÑÊó      otpTypeIndexÀ   ë8P◊
+      otpTypeKUKÃ     
+9	^      isOtpNotReqiredÕ    %‰√}      isOtpSameForBothŒ   i¯      isOtpDiffForBothœ   üg/Û      isRegiClosed–   DC      createElement—      6CY>	      className“      o¡      mb-2”   ∑…≈      height‘     ˛Ññ      98.6%’      πºç$      Header÷     ñ:Ô"      fa fa-question-circle-o pull-right◊     CâÎ4      aria-hiddenÿ    Ï
+ó      colorŸ      “gÛæ      #FF0000⁄    ÂúíÀ,        Applicant registration will start soon..!!€   ªS4       New Applicant Registration‹     ¨◊Ñ      Body›   ú≥ÊŸ      divﬁ    ≥"      autoCompleteﬂ   6zgÚ      radio‡      ûzÉw      disabled·   t®$ä      onChange‚   7µ2l       Haryana State „    ˛-ŒÌ      ††††‰   WF≤       Other StateÂ   ©Î      radioQuestiondDivÊ      y:’      PPPÁ    Î|F‡       Enter PPP IDË      _iò)       I forget my PPP IDÈ    ÙÉ›2       I don't have PPP ID Í      ∞h›F      outStateAadharÎ     qßõÄ      Do you have Aadhar ? Ï      7Ã      YesÌ    #Œπk       NoÓ    Öà|      haryanaStatePPPDivÔ     ÃàR      Group      ©È¯¶      mb-3Ò   GÁ$W
+      marginLeftÚ     ˛Åñ      2pxÛ    ∑·∏œ	      marginTopÙ      –£¥      10pxı   ø      Controlˆ    úøG.
+      is-invalid˜     ˙¯Öﬂ      off¯    à3¿µ      text˘   ˙ló      ppp_No˙     ﬁ∞π:      placeholder˚    ˝π"Ñ      Enter PPP Number¸   µ…nµ      Feedback˝   õ…      invalid˛    =Ew      4pxˇ    Jcﬂı      btn-sm     ÎƒJ˚      width     ∫>ü˚      120px     ;ã¢Ô      onClick    %¬ˇ      Verify    ¥      Reverify  Ù™Jé      Enter PPP OTP      ;Ò      20px  =ÿÿT      text-primary small    ZU P(      fa fa-circle-o-notch fa-spin fa-lg fa-fw	  „˝j       Sending...
+   ∑‚@      text-success small    Óöz†      text-danger small     wÊu      isProcessing  ·¸ÅM	      isSuccess     ›7
+      isDisabled    ªÓM      nextStep  ˘“¢:
+      btnPrimary    ø[Ú      btn btn-primary   ßZ˚∂      btnClassName  &⁄»	      btn-block     ¬‹‰      nextStepLabel     ﬂ;ÚE      Verified  SÏD      adharNoAndOtpDiv  s,F_	      aadhar_no     üQ's      Enter Aadhar Number   -«8	      maxLength     ^"√      ReVerify  NîÁÌ      Enter Aadhar OTP  ƒ)D
+      aadhar_Otp    pd‘      YES   ntÖ      OTP Verified  (w2Ñ
+      Verify OTP     ∆=`Ω      isFinalSubmitLoading!  «"0ƒ       OTP Verified"     5˜í;      12px#  hæ08	      controlId$     ÛÜÿf	      selMember%     1<Î      select&    ˜ûe      fontSize'  ﬁBÃÏ      13px(  ⁄|`õ      option)    ⁄kéú      Choose family member*  9Ã      map+   Ë£ÒM
+      childOpObj,    ∞eúœ      c_index-   xOÅ      eleId.     ]qŒ—      eleVal/    T—©      onKeyUp0   £≠¢      Enter First Name1  î–Ãì
+      given-name2    Î∞Å∂      Enter Middle Name3     ‹@ï      additional-name4   æîÙ       Enter Last Name5   b§ÿ^      family-name6   ∫ˇp      Enter email7   9ï¶í      formBasicPassword8     KdÅT	      mobile_no9     smƒg      Enter Mobile Number:   `ô‹ç      Enter Email / Mobile OTP;  ’ß*      Enter Email OTP<   è9Ì      otp=   }mQ      OtpSendButtonComponent>    u´÷      otpType?   ’e€      sameForBoth@   Mkc      FragmentA  ó≈a˚      Enter Mobile OTPB  ú∑»õ      srcC   ;qƒ;      /imageCaptcha.jpg?dd=D     _ÇÂ  π€F$    45pxE  ¶n„Y      fluidF     ª©`X      hrefG  1™Å      relodCaptchaH  ⁄<–≠      fa fa fa-refreshI  bj¯®      #0e3e88J   ÉÏ∆¶      Enter CaptchaK     ^ƒ±Î      RegisterL  68E      FooterM    µ—9‡      text-centerN   }6ë∏      sendOTPO   ﬂÈ{Í      /anon_applRegistrationOtp.jsonP    ¿[éR      loginFormTypeQ     x.¡Ä      otp_noR    É+ä&      Send OTPS  Ï∂)$      -171pxT    Z\0
+      Resend OTPU    a ∂!      RegistrationPageForKUKComponent/<V     êÌï◊#      RegistrationPageForKUKComponent/</<W   n‰ò˛.      RegistrationPageForKUKComponent/</</<.success<X    °‹ñ0      RegistrationPageForKUKComponent/</</<.success</<Y  2ÓkÀ,      RegistrationPageForKUKComponent/</<.success<Z  ’3Æ∑.      RegistrationPageForKUKComponent/</<.success</<[    *æˇ'      RegistrationPageForKUKComponent/</data<\   d—ª2      RegistrationPageForKUKComponent/</</<.success</</<]    :ˆ‘      render/<`  ¢?Ãz      OtpSendButtonComponent/<a  Zƒlß      OtpSendButtonComponent/</<b    ±|3Ê%      OtpSendButtonComponent/</</<.success<     8   ¨  A   8          Ë   Ô%,â                                                                                                                                                                                        	                 
+                                                                                                                                                                                                                                                                                                                                                                                                       "                 #                $                  %                &           !      '           "                 #                $      *               +           %      +           &      +           '      +           (      +           )      +           *      +           +      +           ,      +           -      +           .      +           /      +           0                       8          1      9           2      :                ;           3      <           4      8          5      >           6      >           7      ≥Oåc                       P  P  P  P= P  	  P
+  P  P  P  P  P      ∑ `                 ˙              t  i              t  r  e  i                               w  `s                e              e                e                e                e                e                9  P  @  B  \  T  D  <  I  >  Y  X                 #  R  W  -  O  :  %  "  Ú   ,  N  $  [                 ^  P                            g  w               ó  w                  y  P.  Pz  P%  P^  P                            g  w                z    Ä  %  Å              ó  w                 -              g  w               ó  w                  -  P~  Pé  P                   
+         g  ë  í  î  ñ  ò  ö  õ  ù    w               e    Pc               z    Ä  %  Å                                             ó  w                                 ±               "  :  #  %  $  O  ß  ®  *  '  &  0  m  ©  ™  ´  Ø              g  w                Ú   R                                                                     Ã  Õ  Œ  œ  w  `             ª  P(  '  &  )  m  *  .  1  2  ƒ  ©              e  »  ó               e                               e                               e                               e                              + , - .                                              =               w  `s                                 %  P$  P> P                            g  w                  w  `             e               e  Ø¬0∞=      ?      A      C      IÙ$KEÆ˙ö         ˙  É   @        _      !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /  0  1  2  á                      Z     !  "  #  $  %  &  '  (  )  +  ,  -  .  /  0  1  2  á                      Z      !  "  #  $  %  &  '  (  )  +  ,  -  .  /  0  1  2  á                      
+      _  `         Û  c  ‰  e  f          ^          `  _  .  j  +     #     `  _  +  '  &  )  2     #   `  _  +  '  &  )  2        `  _  .  j  +          *  +  ,     
+   {  |         Û  c  ‰  e  f          y  ~  z  %  ^  	   -     0  !  "  #  $  %  &  '  )     #     `  _  +  '  &  )  2        +  _  `  Ç  W  )         *          Û  c  ‰  e  f          á          à  â  ä  .  +          à  â  ä  .  +          *     
+     è  (         Û  c  ‰  e  f          á  ~  é             #      à  â  ä  +  (  è  /        à  â  ä  +  (  è     
+    •  ¶         Û  ‰  c  e  f     U     "  :  #  %  $  O  ©  ß  ®  *  '  &  m  ±  ™  ´  Ø          Ú   R          Ú   R          Ú   R          •  ¶  ª  O             
+     •  ¶     õ    ª  á   D  I  P  T  X  Y  \  •  ¶  m  *  .  j  _  ä  `  à  â  )  è  (  /  0  &  '  !  1  2  S                             
+    —  ¿         ”     
+     —  ◊         ¿          ÿ     
+       ﬁ         ‰  ˙  =  ‡  ·          ‰  ˙  =  ‡  ·          ç         ‰  ˙  =  ·            ‰  ˙  =  ·            ‰  ˙  =  ·            ç         ‰  ˙  =  ·            ‰  ˙  =  ·            ç         \ P ç    
+   —  ¿     
+    Ò  Û     (    —  ·  ˙  ﬁ  ‰  =  ç ˙           ‰          \ P ç    
+   —  ¿     
+    Ò  Û         —  ‡  ¿                      \ P ç    
+   —  ¿     
+    Ò  Û     #    —  ·  ˙  ‰  =  ˙  ﬁ        ¿          Ò          —          —          —          —     (            —           ç         \ P ç    
+   —  ¿     
+    Ò  Û  	   -    —  ·  ˙  ﬁ  ‰  =  ç ˙           ‰          \ P ç    
+   —  ¿     
+    Ò  Û         —  ‡  ¿                      ‰          \ P ç    
+   —  ¿     
+    Ò  Û     #    —  ·  ˙  ‰  =  ˙  ﬁ        ‰          ¿          Ò          —          —          —          —     (            —           ç         ‰  ˙  =  ·            ‰  ˙  =  ·            \ P ç    
+   —  ¿     
+    Ò  Û  	   -    —  ·  ˙  ﬁ  ‰  =  ç ˙           ‰          \ P ç    
+   —  ¿     
+    Ò  Û         —  ‡  ¿                      ‰          \ P ç    
+   —  ¿     
+    Ò  Û     #    —  ·  ˙  ‰  =  ˙  ﬁ        ‰          ¿          Ò          —          —          —          —     (            —           ç         \ P ç    
+   —  ¿     
+    Ò  Û  	   -    —  ·  ˙  ﬁ  ‰  =  ç ˙           ‰          \ P ç    
+   —  ¿     
+    Ò  Û         —  ‡  ¿                      ‰          \ P ç    
+   —  ¿     
+    Ò  Û     #    —  ·  ˙  ‰  =  ˙  ﬁ        ‰          ¿          Ò          —          —          —          —     (            —           ¿          Û          \ P ç    
+   —  #        ú =  ˙  ·  ¿          &         ˙     
+       ˙         ¿          Û          \ P ç    
+   —  # 	   -    —  ‰  =  ·  / ˙  ‡  ˙  ﬁ          ‰          \ P ç    
+   —  # 	   -    —  ·  ‡  ‰  =  ˙  / ˙  ﬁ          ‰          \ P ç    
+   —  # 	   -    —  ·  ‡  ‰  =  ˙  / ˙  ﬁ          ‰          \ P ç    
+   —  #    (    —  ·  ˙  ‡  ‰  =  ˙  ﬁ           ‰          \ P ç    
+   —  # 
+   2    —  ·  ˙  ‡  ‰  =  ç ˙  ﬁ          ‰          \ P ç    
+   —  #    #    —  ·  ˙  ‰  =  ˙  ﬁ        ‰          \ P ç       %  $  >    
+   %  >        \ P ç       \ P ç    
+   —  #        —  ·  ‰  =  ˙  ﬁ         ‰          \ P ç    
+   $  >        \ P ç       B ¿  —  E          ”          F —         ª     
+     —  ¿         ÿ          \ P ç       #    #     —  ·  ‰  ˙  =  ﬁ  ˙        ‰          #         —          ‰     (            —           —     
+     {  |         Û  c  ‰  e  f          %  $  > P    
+      |  {         {  |  <    
+   {  |         —  ≤         —          —          —          F —  ≤  ¿           ÿ  & Ò  á&’™ç!´!8   –   v0∫ã∞  `        	       !       ≥¥   ¥  ¥  ¥  ‰æ   gÊL   ¥   ‰ÊL   ∂  	  ‰ÊL   ∂  
+  ‰ÊL   ∂    ‰ÊL	   ∂    ‰ÊL
+   ∂    ‰ÊL   ∂    ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰‰≥¥  ‰æ   L   rÊú   ô   ÊL   õ   ô   ‰tô   =Ès   ÈÁ@   ?   o   ?   o   ?   ‰¥  ’∂    ‰≥¥  ‰æ   L   rÊú   ô   ÊL   õ   ô   ‰tô   =Ès   ÈÁ@   ?   o   ?   ‰¥  ’∂    ‰ßí0@`ˇ"fƒ@Ä Â*ó0Ä âfƒ@Ä ∂ó@Ä ÕP–     ì   d   ˇˇˇˇ   ˛   Z   ˇˇˇˇ»   cy$'»   v                         ƒ     ø u œ ‰ø ø  $úD   ô   æ   ÊL   Èø  ø ;   ø >   >   >   >   y ‰õ   ô   ø  ø ø Q‰ô   ø  §ß `ˇˇˇÒP``ˇˇˇ±Pk`ê `Qà   à&Ù}à   I                        ƒ     ø     u –   ‰¡   ú   ô   ¡   õ   ô   æ    ¡   u ô   §ß `ˇˇˇˇP` § ˇˇˇ˘PQÄÄX  ,ü¡X  Â                        ø  Åü   ô   ‰ø  ô   ú   ô   ø  §ô   ø  æ   L   M–   ‰¡   úe   ô	   ¡   ÊL   Èø  ø ü   ô   ‰   ô   u –  ‰¡  Åú   ô   ¡  §ô   æ   Ç   Ë  É ©ô      ø ú   ô   æ   õ   ô   æ	   ô    ø  u §ß ` ê ì `Ä  ˘ˇˇˇ`ì ``ò ˇˇˇ¯P` ê 
+`ˇˇˇã`P	A`® ˇˇˇˇPQÄÄ  †ìml  Ø               B      „—    ‰7–   ‰…àÇø  ¡   Ö ƒ    â‰∂    ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π	   o
+   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    π;   >   ;   >    >!   >"   >#   >$   >%   >&   >'   >(   >)   *   >+   *   >,   *   >-   *   >.   >/   >0   >1   >2   >3   >4   >5   >6   j    >7   ;8   >9   >:   >;   <   >=   *   >>   >?   ;@   >A   OB   ‰ƒ    ®¶ß.`ˇˇˇ˚ˇˇˇ˙Pí `ˇˇˇÌPD`ˇˇˇÈPD`ˇˇˇ‚PD`ˇˇˇËPD3`ˇˇˇÈPDM`$ˇˇˇ€PDh`ˇˇˇ·PDÄ `ˇˇˇËPDÄ g`ˇˇˇÊPDÄ π`ˇˇˇÍPDÄ ‰`ˇˇˇÈPDÄ "`ˇˇˇ‚PDÄ 8`ˇˇˇËPDÄ C`ˇˇˇÁPDÄ ≤`,&*&&&&&&&&&****&&&&&&&&**&&**&ê XÄÄÄ<   ÒNÚÚ<                            ø  ÊL   Èy  ‰ß `
+P$PÄÄÄ∞   ‚è≥Ã∞   n                        ø  L   L   –   ‰ø  L   L      ú   ô   ø  L   L   –   ‰ô   ƒ    πÊL   È:ø  L   L   1¡   Ay ‰ß@`í@`ù 	`ó@`"	ì@PD
+PÄÄà   wèîÔà   M                        ø  L   L   –   ‰¡   ÊL   Èu  –   ‰ƒ    πÊL   È:ø  L   L   1¡   Ay ‰ß `í `
+P(`"	ì@PDPT  Ã®zT  Ì                 #       ƒ    πÊL   È;      >    >    >    >    >   >	   >
+   >   >      >      >    >    >      >   j    >   ;   >      >   >   ;   >   y ‰ø  L   L   –   ‰ƒ    πÊL   È:ø  L   L   1¡   A   >   y ‰ß `%	*	&	&	&	&	&	&	&	&	*	*	&	&	*	*	*	*	&	JPD`í `"	ì 	JPDP<  UˇG)<  Ÿ                 !       ƒ    πÊL   È;      >    >    >    >    >   >	   >
+   >   >      >    >    >      >   j    >   ;   >      >   >   ;   >   y ‰ø  L   L   –   ‰ƒ    πÊL   È:ø  L   L   1¡   Ay ‰ß `%	*	&	&	&	&	&	&	&	&	*	&	&	*	*	*	*	&	JPD`í `"	ì@PDPà  ‹S»Øà                  &       ø  L   L   –   ‰ƒ    πÊL   È;      >    >    >    >	    >
+   >   >   >   >      >    >    >      >   j    >   ;   >      >   ¡      ú   ô   õ   ô   ô   >   ;   >   y ‰æ   ÊL   È   ¡   y ‰ƒ    πÊL   È:ø  L   L   1¡   Ay ‰ß `í `%	*	&	&	&	&	&	&	&	&	*	&	&	*	*	*	*	™ 	JPD`ë ˇˇˇˆP$`"	ì@PDPÄÄ‡  ›–  _
+                ¡      ≥¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ‰ƒ    πL   gÊL   Ê ú   ô   ‰ø  ô   ¥  ‰ÊL   Ê ú   ô   ‰ø  ô   ¥  ‰ÊL   Ê ú   ô   ‰ø  ô   ¥  ‰‰n   –  ‰n   –  ‰n   –  ‰n	   –  ‰–  ‰¡   úΩ   ô	   ¡  ÊL
+   Èu     ú1   ô   ƒ    πL   L      O   ‰–  ‰õi   ô   ¡  ÊL   È¡  u ù1   ô   ƒ    πL   L      O   ‰–  ‰õ!   ô   ƒ    πL   L   S   ‰ô   õ   ô   –  ‰ô   ¡   úõ   ô   ¡  ÊL
+   Èu     ú   ô   õi   ô   ¡  ÊL   È¡  u ù1   ô!   ƒ    πL   L      O   ‰–  ‰õ!   ô$   ƒ    πL   L   S   ‰ô&   õ   ô&   ¡   úõ   ô(   ¡  ÊL
+   Èu     ú   ô,   õi   ô,   ¡  ÊL   È¡  u ù1   ô/   ƒ    πL   L      O   ‰–  ‰õ!   ô2   ƒ    πL   L   S   ‰ô4   õ   ô4   ƒ    πL   ¡  O   ‰ƒ    πL   gÊL   Ê ú   ô9   ‰ø  ô9   ¥  ‰ÊL   Ê ú   ô;   ‰ø  ô;   ¥  ‰‰–  ‰¡   úΩ   ô=   ¡  ÊL
+   Èu     ú1   ôA   ƒ    πL   L      O   ‰–  ‰õi   ôD   ¡  ÊL   È¡  u ù1   ôG   ƒ    πL   L      O   ‰–  ‰õ!   ôJ   ƒ    πL   L   S   ‰ôL   õ   ôL   –  ‰ôL   ¡   úΩ   ôN   ¡  ÊL
+   Èu     ú1   ôR   ƒ    πL   L      O   ‰–  ‰õi   ôU   ¡  ÊL   È¡  u ù1   ôX   ƒ    πL   L      O   ‰–  ‰õ!   ô[   ƒ    πL   L   S   ‰ô]   õ   ô]   –  ‰ô]   ƒ    πL   ¡  O   ‰ƒ    πL   gÊL   Ê ú$   ôb   ‰ø  ú   ôc   õ   ôc    ôc   ¥  ‰ÊL   Ê ú   ôe   ‰ø  ôe   ¥  ‰‰–   ‰¡   úâ   ôg   æ   ÊL   È¡  y ‰¡  ÊL
+   Èu     ú1   ôn   ƒ    πL   L      O   ‰–   ‰õ!   ôq   ƒ    πL   L   S   ‰ôs   õ   ôs   –   ‰ôs   ƒ    πL   L   gÊL   Ê ú   ôw   ‰ôw   ¥  ‰ÊL    Ê ú   ôy   ‰   ôy   ¥  ‰ÊL!   Ê ú   ô{   ‰   ô{   ¥  ‰‰¡  ú%   ô|   ƒ    πL   L   ¡  ¡  Q‰ô   ƒ    πL   ¡   O"   ‰ƒ    πL   gÊL#   Ê ú   ôÑ   ‰ø  ôÑ   ¥  ‰‰–  ‰¡   úΩ   ôÜ   ¡  ÊL
+   Èu     ú1   ôä   ƒ    πL   L   $   O#   ‰–  ‰õi   ôç   ¡  ÊL   È¡  u ù1   ôê   ƒ    πL   L   %   O#   ‰–  ‰õ!   ôì   ƒ    πL   L   S#   ‰ôï   õ   ôï   –  ‰ôï   ƒ    πL   ¡  O&   ‰ƒ    πL   gÊL'   Ê ú   ôö   ‰ø  ôö   ¥  ‰‰–
+  ‰¡   úY   ôú   ¡  ÊL
+   Èu     ú   ô†   –
+  ‰õ!   ô†   ƒ    πL   L   S'   ‰ô¢   õ   ô¢   –
+  ‰ô¢   ƒ    πL   ¡
+  O(   ‰ƒ    πL   gÊL)   Ê ú   ôß   ‰ø  ôß   ¥  ‰‰–	  ‰¡   úu   ô©   ¡  ÊL
+   Èu     ú1   ô≠   ƒ    πL   L   *   O)   ‰–	  ‰õ!   ô∞   ƒ    πL   L   S)   ‰ô≤   õ   ô≤   –	  ‰ô≤   ƒ    πL   ¡	  O+   ‰ƒ    πL   gÊL,   Ê ú   ô∑   ‰ø  ô∑   ¥  ‰‰–  ‰¡   úY   ôπ   ¡  ÊL
+   Èu     ú   ôΩ   –  ‰õ!   ôΩ   ƒ    πL   L   S,   ‰ôø   õ   ôø   –  ‰ôø   ƒ    πL   ¡  O-   ‰’ß ∫@`¢0¢¢N`*`*`*`*`&`	,`Pì `ú `ê `ˇˇˇ˚P-`ú `ê `¶0 	`K`	,`Pù@`ˇˇˇ˚P-`ú `ê `¶0"@%`	,`Pù `ˇˇˇ˚P-`ú `ê `¶0,@/`ñ01@4`¢02¢N5`&`	,`Pì `ú `ê `ˇˇˇ˚P-`ú `ê `¶0@ 	`KC`,`Pì `ú `ê `ˇˇˇ˚P-`ú `ê `¶0M 	`KP`ñ0T@W`¢0U∏NX`&`,	`ˇˇˇ¸P$`Pì `ú `ê `¶0a 	`;d@h`ß0e†§ê@i`.	`†@l`ñ0p@r`¢0qNs`&`
+,`Pì `ú `ê `ˇˇˇ˚P-`ú `ê `¶0~ 	` `ñ `¢0Ä  Ü `&`,`Pì `ê `¶ 	` `ñ `¢0Ä  ó `&`	,`Pì `ú `ê `¶ 	` `ñ `¢0Ä  © `&`,`Pì `ê `¶ 	` `ó PÄ‡         ^
+  ˇˇˇˇ¿   ¡xÀ-¿   {                          ƒ   πL   L   —    ‰ƒ       ú7   ô   ƒ   πÊL   È;   >   >   o   y ‰õ   ô
+   æ	   ÊL
+   È   y ‰ô   ß `ò `ñ 	`%&&EP>D 	`ë PIGP¨   NÆÂ)¨   d                          æ   ÊL   È;      >   ;   ƒ    >   >   	   >
+      >   o   ÊL   Èƒ   πu >   y ‰ß `%*%ê@**L;ˇˇˇ˚PHPD=	PÄÄÄ   ±Ç’]   B               Q       „–   ‰ø  L   ÊL   Èu     úz   ô   ¡   ÊL   È;   >   >   ø  L   >   ø  L	   >
+   ø  L   >   y ‰æ   ÊL   È   ¡   L   L   (y ‰õ©  ô   ¡   L   L      úT   ô   ¡   ÊL   È;   >   >   ø  L   >   >   >   >   >   y ‰õ  ô%   ¡   L   L      û   ô)   ‰¡   L   L      ô,   úT   ô-   ¡   ÊL   È;   >   >   ø  L   >   >   >   >   >   y ‰õÇ   ô8   ¡   ÊL   È;   >   >   ø  L   >   ø  L	   >
+   ø  L   >   y ‰æ   ÊL   Èø  L      (o   ÊL    È¡   u y ‰ôK   æ   ÊL   È!   ¡   L   L   (y ‰ôQ   ß&`Pì `%&&--MPD	`ˇˇˇP `û `%&&-&&&FPN`¬ `%&&-&&&FP> `%&&--M PD'`8L/ˇˇˇ˚PC'PI1`ˇˇˇÏPI3PÄÄ   ]—JÄ   G                       „–   ‰ø  ú8   ô   ¡   ÊL   È;      >      >    >   y ‰ô   ß&`-`%**FPIPÄÄ0  q∂¶B0  €                          ƒ   πL   L   —    ‰ƒ   πL   L   —    ‰ƒ   πL   L   —    ‰ƒ   πL   L   —    ‰ƒ   πL   L   —    ‰ƒ       ú7   ô   ƒ   πÊL   È;	   >
+   >   o   y ‰õ   ô   æ   ÊL   È   y ‰ô   ß `ò `ò `ò `ò `ò `ñ 	`%&&EP>N 	`ë PIQP‡   BÍπî‡   ê                          æ   ÊL   È;      >   ;   ƒ    >   ƒ    >   ƒ    >	   ƒ    >
+   ƒ    >   >      >      >   o   ÊL   Èƒ   πu >   y ‰ß `%*%++++ê@
+**LAˇˇˇ˚PHPDC	PÄÄÄÃ  |¬ûRº  ¸               R      „–   ‰ø  L   ÊL   Èu     ú™  ô   ≥¥  ¥  ¥  ¥  ¥  ‰ø  L   gÊL   Ê ú   ô   ‰   ô   ¥  ‰ÊL   Ê ú   ô
+   ‰   ô
+   ¥  ‰ÊL	   Ê ú   ô   ‰   ô   ¥  ‰ÊL
+   Ê ú   ô   ‰   ô   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰‰¡   ÊL   È;   ø  L   >   ¡  >   ¡  ÊL   Èu  >   ¡  ÊL   Èu  >   ¡  >   ¡  ÊL   Èu  >
+   ¡     ú   ô!   õ   ô!   ô!   >   ¡     ú   ô$   õ   ô$   ô$   >   >   y ‰’õ3  ô'   ¡   L   L      û   ô+   ‰¡   L   L      ô.   úT   ô/   ¡   ÊL   È;   >   >   ø  L   >   >   >   >   >    y ‰õ¢   ô:   ¡   ÊL   È;!   ø  L"   >   >   >   >#      >$   >   y ‰æ%   ÊL&   È'   ¡   L   L   (y ‰æ(   ÊL)   Èø  L   *   (o+   ÊL,   È¡   u y ‰ôR   ß&`Pì  ñ@`û0§§§§ê@	`%-)P(P()P(™ ™ F	PO`¬ `%&&-&&&FP># `%-&&&*F$PD,`ˇˇˇÏP$`7L3ˇˇˇ˚PC-PI5PÃ     (   õ  ˇˇˇˇl   Ô’«Ùl   7                       „–   ‰ø  ú(   ô   ¡   ÊL   È;      >   y ‰ô   ß&`-`%JPIPÄÄ  ›94í  ∞                         ƒ    πL   L   –   ‰¡      úp   ô   æ   ÊL   È;      >   ;	   ¡   >
+   >      >      >   o   ÊL   Èƒ    πu >   y ‰õ   ô   æ   ÊL   È   y ‰ô   ß `ñ `î 	`%*%N**L%ˇˇˇ˚PHP>' 	`ë PI*PÄÄÄ¥  ◊øªx¥  1               -       „–   ‰ø  L   ÊL   Èu     ús   ô   ¡   ÊL   È;   >   >   >   ø  L	   >	   ø  L
+   >
+   y ‰æ   ÊL   È   ¡   L   L
+   (y ‰õü   ô   ¡   ÊL   È;   >   >   >   ø  L	   >	   ø  L
+   >
+   y ‰æ   ÊL   È   ¡   L   L
+   (y ‰æ   ÊL   Èø  L
+      (o   ÊL   È¡   u y ‰ô-   ß&`Pì `%&&&-MPD	`ˇˇˇP `%&&&-MPD`ˇˇˇÏP$`+Lˇˇˇ˚PCPIPl   „M∏ßl   7                       „–   ‰ø  ú(   ô   ¡   ÊL   È;      >   y ‰ô   ß&`-`%JPIPÄÄ¥   _{%h¥   q                          ƒ   πL   L   —    ‰ƒ   πL   L   —    ‰ƒ   πL   L   —    ‰ƒ   πÊL   È;   >   >   o	   y ‰ß `ò `ò `ò `%	&	&
+EPD=PÄÄÄƒ   ®x™ƒ   z                          æ   ÊL   È;      >   ;   ƒ    >   ƒ    >   ƒ    >	   >
+      >      >   o   ÊL   Èƒ   πu >   y ‰ß 	`%*%++ê@**L3ˇˇˇ˚PHPD5PÄL  ºÉH]  I     
+          T      „–	  ‰ø  L   ÊL   Èu     úΩ  ô   æ   ÊL   È   ¡	  L   L   (y ‰ø  L	    ú   ô   ø  L	   õ   ô   ;
+   ô   –   ‰¡   L    ú   ô   ¡   L   õ   ô      ô   –  ‰¡   L    ú   ô   ¡   L   õ   ô      ô   –  ‰¡   L    ú   ô   ¡   L   õ   ô      ô   –  ‰¡   L    ú   ô   ¡   L   õ   ô       ô    –  ‰¡   L    ú   ô#   ¡   L   õ   ô$      ô$   –  ‰¡   L    ú   ô'   ¡   L   õ   ô(   j    ô)   –  ‰j    –  ‰¡  ÊMÈw  fÊL   Èö-   Áu  f ÊL   ùä   ô0   L   Æ–  ¡  ¡  O   ‰¡  ¡  O   ‰¡  ¡  O   ‰¡  ¡  O   ‰¡  ¡  O   ‰¡  ÊL   È¡  y ‰õ   ô8   ±Ë  d™ô9   ‰õiˇˇˇô9   Â ¡	  ÊL   È;   >   >   >   ø  L   >   >   >    ¡  >!   y ‰õm   ôD   ¡	  ÊL   È;"   >   >   >   ø  L   >   >   >    y ‰æ   ÊL   È#   ¡	  L   L   (y ‰ôT   ß&`Pì `ˇˇˇP$ `≠ `	 Æ `	!Æ &`	Æ `	Æ "`	Æ `	Æ `*`õ ˇˇˇú D`.`.`.`.`.`ˇˇˇ˚Põ@N`%&&&-&&IP> `%&&&-&FPD'`ˇˇˇÏPI)PÄL         x              b         Í  ú   å  "Q|  ˘                .      ≥¥  ¥  ¥  ¥  ¥  ‰ø  L   L   —    ‰ƒ   πL   L   ÊL   Èo   u –   ‰¡   MgÊL   Ê ú   ô
+   ‰	   ô
+   ¥  ‰ÊL
+   Ê ú   ô   ‰	   ô   ¥  ‰ÊL   Ê ú   ô   ‰	   ô   ¥  ‰ÊL   Ê ú   ô   ‰	   ô   ¥  ‰ÊL   Ê ú   ô   ‰	   ô   ¥  ‰‰æ   ÊL   È   ¡     ¡  y ‰ƒ   πÊL   È:ø  L   L   1¡   MAƒ    >   ¡  ÊL   Èu  >   ¡  ÊL   Èu  >   ¡  >   ¡  ÊL   Èu  >   ¡  	   ú   ô)   õ   ô)   ô)   >   ¡  	   ú   ô,   õ   ô,   ô,   >   y ‰’ß ñ `î `ò ˇˇˇ˘P@	`ú0§§§§ê@
+`ë 	ˇˇˇﬂP$`"	ï 	+	P(	P(	)	P(	™ 	™@PEPÄÄå         ¯  ˇˇˇˇ8   …WGπ8                            ø  L   ƒ    § `ÄÄ‹   üüªπ‹   ê                          ƒ    πL   L      û   ô   ‰ƒ    πL   L   ô   ú:   ô   æ   ÊL   È   o   ÊL	   Èƒ    πu y ‰õ   ô   ƒ    πÊL
+   Èy  ‰ô   ß `¢ /° 	`ë Ä  ¢Lˇˇˇ˚PCP> 	`PI
+PÄÄX   ë´œjX   (                       „–   ‰ø  ú   ô   ¡   ÊL   Èy  ‰ô   ß&`-`PI	PÄÄ`   '¶`   )                          ƒ    πÊL   È;   >   >   o   y ‰ß `%	&	&
+EPDnPÄÄÄÙ  ∑îÙ‰  S                9       ≥¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥	  ¥
+  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ‰ƒ    πL   gÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL	   ¥  ‰ÊL
+   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥	  ‰ÊL   ¥
+  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰‰ƒ    πL   gÊL   ¥  ‰ÊL   ¥  ‰‰æ   L   L   ¥  ‰æ   L   L   ¥  ‰æ   ÊL   È¡  u –   ‰æ   ÊL   È;      >       >!   ;"   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >	   ¡  >
+   ¡	  >   ¡
+  >   ¡  >   ¡  >   ¡   >#   ¡  >   ¡  >$   ¡  >   >%   &   >'   o(   ÊL)   Èƒ    πu >*   y ‰’ß ∆@`˙0
+º0@`§ `î `î `ˇˇˇˆP(	`%**%))))))))))))))))N-*Lgˇˇˇ˚PHPEiPÄÄÄÙ         R  ˇˇˇˇ0  Ñ:Hm   q        	       >      „–   ‰≥¥  ¥  ¥  ‰ø  gÊL   Ê ú   ô   ‰ô   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰‰¡  úß  ô   ¡     ú
+  ô	   ¡     úM   ô   ¡   L   O   ‰¡   L   ;	   >   
+   >      >   O   ‰õ§   ô   ¡     ú]   ô   ¡   L   O   ‰¡   L   O   ‰¡   L   ;   >   
+   >      >   O   ‰õ8   ô   ¡   L   ;   >      >      >   O   ‰ô%   õE   ô%   ¡  
+   ú   ô'   ¡   L   O   ‰ô)   ¡   L   ø  O   ‰ô+   ¡   ÊL   È;   >   >   ¡   L   L   (>      >   y ‰õC   ô5   ¡   L   ;   O   ‰¡   ÊL   È;   >   >   o   y ‰ô>   ’ß@`ô0†§ê@`.`î `î `ê `.&*ö@`î `ê `ê `.&*ö0 `.&*ü0 `î `ï@"`ó@$`%&&ï J$P>* `î `%&&E,PJ9PÄÄÄ0        j  ˇˇˇˇD   ôJoD                             æ    o   ‹y ‰ß `5CPDPÄ<   ˆ‹{∏<                             æ      O   ‰ß@`ê@PÄ$   ˇﬂ˝Á$                               ß \M   Ts<M  á>        P       s      „—    ‰”   ≥¥  ¥  ¥  ¥  ¥	  ¥
+  ¥  ¥  ¥  ¥  ¥  ‰ƒ   L   gÊL   Ê ú   ô   ‰ô   ∂    ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥	  ‰ÊL	   ¥
+  ‰ÊL
+   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰‰æ   ÊL   È   ¡     ¡     ¡  y ‰ƒ   L   gÊL   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰‰æ       u ÊL   Èo   y ‰æ   4ù$   ô   L   4ù   ô   L   õ   ô   ‰ ô   ü   ô   ‰   ô   –   ‰¡      –  ‰¡      –  ‰¡      –  ‰æ   4ù$   ô#   L   4ù   ô%   L    õ   ô&   ‰ ô&   ü   ô'   ‰ô'   –  ‰ƒ   ÊL!   Èy  ‰æ"   ÊL#   Èƒ   ∏   ;$   %   >&   ;'   (   >)   >*   æ"   ÊL#   Èƒ   L+   æ"   ÊL#   È,   ;-   .   >&   /   >0   u ¡  û=   ô:   ‰æ"   ÊL#   È1   ;2   ;3   4   >5   >*   6   u ôA   ¡  û:   ôC   ‰æ"   ÊL#   È1   æ"   ÊL#   È7   8   u u ôI   u æ"   ÊL#   Èƒ   L9   æ"   ÊL#   È:   æ"   ÊL#   È:   æ"   ÊL#   Èƒ   ∏   ;;   ƒ   L<   ><   =   >>   æ"   ÊL#   È:   æ"   ÊL#   È?   æ"   ÊL#   È@   ;A   B   >C   D   >E      >F   ¡  >G   ƒ   LH   >I   u J   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;L   B   >C   M   >E      >F   ¡  >G   ƒ   LH   >I   u N   u K   u ƒ   L   L   D   û  ôx   ‰æ"   ÊL#   È:   ;O   P   >Q   æ"   ÊL#   È?   æ"   ÊL#   È@   ;R   B   >C   S   >E   	   >F   ƒ   LT   >I   ƒ   L   L	   S   ú   ôä   õ   ôä   ôä   >U   u V   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;W   B   >C   X   >E   	   >F   ƒ   LT   >I   ƒ   L   L	   X   ú   ôõ   õ   ôõ   ôõ   >U   u Y   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;Z   B   >C   [   >E   	   >F   ƒ   LT   >I   ƒ   L   L	   [   ú   ô¨   õ   ô¨   ô¨   >U   u \   u K   u ô∞   ƒ   L   L   M   ûÄ  ô¥   ‰æ"   ÊL#   È:   ;]   ^   >Q   æ"   ÊL#   È?   _   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;`   B   >C   X   >E   	   >F   ƒ   La   >I   ƒ   L   L	   X   ú   ô…   õ   ô…   ô…   >U   u b   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;c   B   >C   d   >E   	   >F   ƒ   La   >I   ƒ   L   L	   d   ú   ô⁄   õ   ô⁄   ô⁄   >U   u e   u u ôﬁ   ƒ   L   L	   S   û0  ô‚   ‰ƒ   L   L   D   û  ôÊ   ‰æ"   ÊL#   È:   ;f   g   >Q   æ"   ÊL#   Èƒ 	  ∏ 	  æ"   ÊL#   Èƒ 
+  ∏ 
+  ;h   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;m   n   >&   ;o   p   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;u   ƒ   L   Lv   Lw   ú   ô  x   õ   ô  y   ô  >&   ƒ   Lz   >I   ƒ   L   Lw   >E   {   >>   |   >C   w   >F   }   >Q   ~   >   u æ"   ÊL#   Èƒ   Lt   LÄ   ;Å   Ç   >C   ƒ   L   Lv   Lw   ü   ô  ‰y   ô  u u u æ"   ÊL#   Èƒ 
+  ;É   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;Ñ   n   >&   ;Ö   Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   ∏   ;á   à   >&   ƒ   L   Lâ   ü   ô3  ‰¡  ô3  ú   ô4  õ   ô4  ô4  >G   ;ä   ã   >å   >*   oç   >é   ƒ   L   Lè   ú   ô>  ê   õ   ô>  ë   ô>  u u u æ"   ÊL#   Èƒ 
+  ;í   >i   >j   >k   ¡  y   ûË   ôI  ‰æ"   ÊL#   Èƒ   Ll   ;ì   n   >&   ;î   Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;ï   y   >&   ƒ   Lz   >I   ƒ   L   Lñ   >E   |   >C   ñ   >F   ó   >   y   >>   u æ"   ÊL#   Èƒ   Lt   LÄ   u u ôg  u æ"   ÊL#   È:   ;ò   ;ô   ö   >q   >*   ƒ   L   Lõ   ûV   ôq  ‰æ"   ÊL#   Èú   ;ù   û   >&   æ"   ÊL#   È,   ;ü   †   >&   u °   u ô{  ƒ   L   Lõ   ûz   ô  ‰ƒ   L   L¢   û_   ôÇ  ‰ƒ   L   L	   S   û>   ôÜ  ‰æ"   ÊL#   Èú   ;£   §   >&   ƒ   L   L•   u ôç  ƒ   L   Lõ   û|   ôë  ‰ƒ   L   L¢   û_   ôï  ‰ƒ   L   L	   S   û>   ôô  ‰æ"   ÊL#   Èú   ;¶   ß   >&   ƒ   L   L•   u ô†  u u ¡  y   û  ô§  ‰æ"   ÊL#   È∆®   ;©   ƒ   L   L™   >´   ƒ   L   L   >¨   ƒ   L   Lâ   û   ô±  ‰ƒ   L   L≠   ô≥  ü   ôµ  ‰¡  ôµ  ú   ô∂  õ   ô∂  ô∂  >Æ   oØ   >∞   ±   >≤   ≥   >¥   ƒ   L   L   ú   ôø  µ   õ   ôø  ê   ôø  >∂   y   >&   u ô¬  u ô√  ƒ   L   L	   X   û˝  ô«  ‰ƒ   L   L   D   û‹  ôÀ  ‰æ"   ÊL#   È:   ;∑   ∏   >Q   æ"   ÊL#   Èƒ 	  ∏ 	  æ"   ÊL#   Èƒ 
+  ∏ 
+  ;π   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;∫   n   >&   ;ª   p   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;º   ƒ   L   Lv   LΩ   ú   ôË  x   õ   ôË  y   ôË  >&   ƒ   Lz   >I   ƒ   L   LΩ   >E   {   >>   |   >C   Ω   >F   æ   >Q   ø   >   ¿   >¡   u æ"   ÊL#   Èƒ   Lt   LÄ   ;¬   Ç   >C   ƒ   L   Lv   LΩ   ü   ôˇ  ‰y   ôˇ  u u u æ"   ÊL#   Èƒ 
+  ;√   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;ƒ   n   >&   ;≈   Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   ∏   ;∆   à   >&   ƒ   L   L«   ü   ô  ‰¡  ô  ú   ô  õ   ô  ô  >G   ;»   ã   >å   >*   o…   >é   ƒ   L   L    ú   ô$  ê   õ   ô$  À   ô$  u æ"   ÊL#   Èƒ   Lt   LÄ   ;Ã   Ç   >C   ƒ   L   Lv   LΩ   ü   ô/  ‰y   ô/  u u u æ"   ÊL#   Èƒ 
+  ;Õ   >i   >j   >k   ¡  y   ûS  ô:  ‰æ"   ÊL#   Èƒ   Ll   ;Œ   n   >&   ;œ   Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;–   ƒ   L   Lv   LΩ   ú   ôK  x   õ   ôK  y   ôK  >&   ƒ   Lz   >I   ƒ   L   L—   >E   |   >C   —   >F   “   >   y   >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;”   Ç   >C   ƒ   L   Lv   L‘   ü   ô`  ‰y   ô`  u u ôb  u æ"   ÊL#   È:   ;’   ;÷   ö   >q   >*   ƒ   L   L◊   ûV   ôl  ‰æ"   ÊL#   Èú   ;ÿ   û   >&   æ"   ÊL#   È,   ;Ÿ   †   >&   u °   u ôv  ƒ   L   L◊   ûz   ôz  ‰ƒ   L   L    û_   ô}  ‰ƒ   L   L	   X   û>   ôÅ  ‰æ"   ÊL#   Èú   ;⁄   §   >&   ƒ   L   L•   u ôà  ƒ   L   L◊   û|   ôå  ‰ƒ   L   L    û_   ôê  ‰ƒ   L   L	   X   û>   ôî  ‰æ"   ÊL#   Èú   ;€   ß   >&   ƒ   L   L•   u ôõ  u u ¡  y   û  ôü  ‰æ"   ÊL#   È∆®   ;‹   ƒ   L   L™   >´   ƒ   L   L   >¨   ƒ   L   L«   û   ô¨  ‰ƒ   L   L›   ôÆ  ü   ô∞  ‰¡  ô∞  ú   ô±  õ   ô±  ô±  >Æ   oﬁ   >∞   ±   >≤   ≥   >¥   ƒ   L   L   ú   ô∫  µ   õ   ô∫  ê   ô∫  >∂   y   >&   u ôΩ  u ôæ  ƒ   L   L	   [   ûø	  ô¬  ‰ƒ   L   L   D   ûû	  ô∆  ‰æ"   ÊL#   È:   æ"   ÊL#   Èƒ 	  ∏ 	  æ"   ÊL#   Èƒ 
+  ∏ 
+  æ"   ÊL#   È:   ;ﬂ   y   >Q   æ"   ÊL#   È?   _   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;‡   B   >C   ·   >E      >F   ƒ   Lz   >I   ƒ   L   L   ·   ú   ô·  õ   ô·  ô·  >U   u b   u K   æ"   ÊL#   È?   æ"   ÊL#   È@   ;‚   B   >C   d   >E      >F   ƒ   Lz   >I   ƒ   L   L   d   ú   ôÚ  õ   ôÚ  ôÚ  >U   u e   u u u u ¡  ·   û¬  ô˙  ‰æ"   ÊL#   È:   æ"   ÊL#   Èƒ 	  æ"   ÊL#   Èƒ 
+  ;„   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;‰   n   >&   ;Â   p   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;Ê   ƒ   L   Lv   LΩ   ú   ô  x   õ   ô  y   ô  >&   ƒ   Lz   >I   ƒ   L   LΩ   >E   {   >>   |   >C   Ω   >F   æ   >Q   ø   >   ¿   >¡   u æ"   ÊL#   Èƒ   Lt   LÄ   ;Á   Ç   >C   ƒ   L   Lv   LΩ   ü   ô,  ‰y   ô,  u u u æ"   ÊL#   Èƒ 
+  ;Ë   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;È   n   >&   ;Í   Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   ∏   ;Î   à   >&   ƒ   L   L«   ü   ôF  ‰¡  ôF  ú   ôG  õ   ôG  ôG  >G   ;Ï   ã   >å   >*   oÌ   >é   ƒ   L   L    ú   ôQ  ê   õ   ôQ  ë   ôQ  u æ"   ÊL#   Èƒ   Lt   LÄ   ;Ó   Ç   >C   ƒ   L   Lv   LΩ   ü   ô\  ‰y   ô\  u u u æ"   ÊL#   Èƒ 
+  ;Ô   >i   >j   >k   ¡  y   ûS  ôg  ‰æ"   ÊL#   Èƒ   Ll   ;   n   >&   ;Ò   Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;Ú   ƒ   L   Lv   LΩ   ú   ôx  x   õ   ôx  y   ôx  >&   ƒ   Lz   >I   ƒ   L   L—   >E   |   >C   —   >F   “   >   y   >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;Û   Ç   >C   ƒ   L   Lv   L‘   ü   ôç  ‰y   ôç  u u ôè  u æ"   ÊL#   È:   ;Ù   ;ı   ö   >q   >*   ƒ   L   L◊   ûV   ôô  ‰æ"   ÊL#   Èú   ;ˆ   û   >&   æ"   ÊL#   È,   ;˜   †   >&   u °   u ô£  ƒ   L   L◊   ûz   ôß  ‰ƒ   L   L    û_   ô™  ‰ƒ   L   L	   [   û>   ôÆ  ‰æ"   ÊL#   Èú   ;¯   §   >&   ƒ   L   L•   u ôµ  ƒ   L   L◊   û|   ôπ  ‰ƒ   L   L    û_   ôΩ  ‰ƒ   L   L	   [   û>   ô¡  ‰æ"   ÊL#   Èú   ;˘   ß   >&   ƒ   L   L•   u ô»  u u ¡  y   û  ôÃ  ‰æ"   ÊL#   È∆®   ;˙   ƒ   L   L™   >´   ƒ   L   L   >¨   ƒ   L   L«   û   ôŸ  ‰ƒ   L   L›   ô€  ü   ô›  ‰¡  ô›  ú   ôﬁ  õ   ôﬁ  ôﬁ  >Æ   o˚   >∞   ±   >≤   ≥   >¥   ƒ   L   L   ú   ôÁ  ¸   õ   ôÁ  ˝   ôÁ  >∂   y   >&   u ôÍ  u ôÎ  u ôÏ  ƒ   L   L	   X   ûÍ  ô  ‰ƒ   L   L   M   û…  ôÙ  ‰æ"   ÊL#   È:   ;˛   ∏   >Q   æ"   ÊL#   Èƒ 	  ∏ 	  æ"   ÊL#   Èƒ 
+  ∏ 
+  ;ˇ   >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;   n   >&   ;  p   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;  ƒ   L   Lv   LΩ   ú   ô  x   õ   ô  y   ô  >&   ƒ   Lz   >I   ƒ   L   LΩ   >E   {   >>   |   >C   Ω   >F   æ   >Q   ø   >   ¿   >¡   u æ"   ÊL#   Èƒ   Lt   LÄ   ;  Ç   >C   ƒ   L   Lv   LΩ   ü   ô(  ‰y   ô(  u u u æ"   ÊL#   Èƒ 
+  ;  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;  n   >&   ;  Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   ∏   ;  à   >&   ƒ   L   L«   ü   ôB  ‰¡  ôB  ú   ôC  õ   ôC  ôC  >G   ;  ã   >å   >*   o	  >é   ƒ   L   L    ú   ôM  ê   õ   ôM  ë   ôM  u æ"   ÊL#   Èƒ   Lt   LÄ   ;
+  Ç   >C   ƒ   L   Lv   LΩ   ü   ôX  ‰y   ôX  u u u æ"   ÊL#   Èƒ 
+  ;  >i   >j   >k   ¡  y   ûS  ôc  ‰æ"   ÊL#   Èƒ   Ll   ;  n   >&   ;  Ü   >q   r   >s   >*   æ"   ÊL#   Èƒ   Lt   ;  ƒ   L   Lv   LΩ   ú   ôt  x   õ   ôt  y   ôt  >&   ƒ   Lz   >I   ƒ   L   L—   >E   |   >C   —   >F   “   >   y   >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;  Ç   >C   ƒ   L   Lv   L‘   ü   ôâ  ‰y   ôâ  u u ôã  u æ"   ÊL#   È:   ;  ;  ö   >q   >*   ƒ   L   L◊   ûV   ôï  ‰æ"   ÊL#   Èú   ;  û   >&   æ"   ÊL#   È,   ;  †   >&   u °   u ôü  ƒ   L   L◊   ûz   ô£  ‰ƒ   L   L    û_   ô¶  ‰ƒ   L   L	   X   û>   ô™  ‰æ"   ÊL#   Èú   ;  §   >&   ƒ   L   L•   u ô±  ƒ   L   L◊   û|   ôµ  ‰ƒ   L   L    û_   ôπ  ‰ƒ   L   L	   X   û>   ôΩ  ‰æ"   ÊL#   Èú   ;  ß   >&   ƒ   L   L•   u ôƒ  u u ¡  y   û  ô»  ‰æ"   ÊL#   È∆®   ;  ƒ   L   L  >´   ƒ   L   L   >¨   ƒ   L   L«   û   ô’  ‰ƒ   L   L›   ô◊  ú   ôŸ  õ   ôŸ  ôŸ  >Æ   o  >∞   ±   >≤   ≥   >¥   ƒ   L   L   ú   ô‚    õ   ô‚  ˝   ô‚  >∂   y   >&   u ôÂ  u ôÊ  æ"   ÊL#   È:   ƒ   L   L   ûZ  ôÎ  ‰æ"   ÊL#   Èƒ 	  ∏ 	  ;  ;    >s   >*   æ"   ÊL#   Èƒ 
+  ∏ 
+  ;  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;  n   >&     >   æ"   ÊL#   Èƒ   Lt   ;!  "  >#  $  >F   ƒ   L   L%  >E   ƒ   L&  >I   ;'  (  >)  >*   æ"   ÊL#   È*  ;+  ,  >E   -  u ƒ   L   L.  ÊL/  Èo0  u u u u u ô  ƒ   L   L   ü?   ô  ‰ƒ   L   L   ü$   ô  ‰¡  d   ü   ô!  ‰¡  ô!  û∫  ô"  ‰æ"   ÊL#   È:   æ"   ÊL#   Èƒ 	  ∏ 	  ;1  ;2    >s   >*   æ"   ÊL#   Èƒ 
+  ∏ 
+  ;3  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;4  n   >&   5  >   æ"   ÊL#   Èƒ   Lt   ;6  ƒ   L   Lv   L5  ú   ô>  x   õ   ô>  y   ô>  >&   |   >C   5  >F   ƒ   Lz   >I   ƒ   L7  >8  ƒ   L   L5  ü   ôH  ‰y   ôH  >E   ¡  ü   ôJ  ‰¡  ôJ  >G   9  >   :  >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;;  Ç   >C   ƒ   L   Lv   L5  ü   ôX  ‰y   ôX  u u u æ"   ÊL#   Èƒ 
+  ;<  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;=  n   >&   >  >   æ"   ÊL#   Èƒ   Lt   ;?  ƒ   L   Lv   L>  ú   ôo  x   õ   ôo  y   ôo  >&   ƒ   Lz   >I   ¡  ü   ôs  ‰¡  ôs  >G   |   >C   >  >F   @  >   ƒ   L7  >8  ƒ   L   L>  ü   ô|  ‰y   ô|  >E   A  >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;B  Ç   >C   ƒ   L   Lv   L>  ü   ôâ  ‰y   ôâ  u u u æ"   ÊL#   Èƒ 
+  ;C  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;D  n   >&   E  >   æ"   ÊL#   Èƒ   Lt   ;F  ƒ   L   Lv   LE  ú   ô†  x   õ   ô†  y   ô†  >&   ƒ   Lz   >I   ¡  ü   ô§  ‰¡  ô§  >G   |   >C   E  >F   G  >   ƒ   L7  >8  ƒ   L   LE  ü   ô≠  ‰y   ô≠  >E   H  >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;I  Ç   >C   ƒ   L   Lv   LE  ü   ô∫  ‰y   ô∫  u u u u æ"   ÊL#   Èƒ 	  æ"   ÊL#   Èƒ 
+  ;J  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;K  n   >&   L  >   æ"   ÊL#   Èƒ   Lt   ;M  ƒ   L   Lv   LL  ú   ô‘  x   õ   ô‘  y   ô‘  >&   ƒ   Lz   >I   ƒ   L   LL  >E   ¡  >G   L  >C   L  >F   N  >   L  >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;O  Ç   >C   ƒ   L   Lv   LL  ü   ôÍ  ‰y   ôÍ  u u u æ"   ÊL#   Èƒ 
+  ;P  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;Q  n   >&   R  >   æ"   ÊL#   Èƒ   Lt   ;S  ƒ   L   Lv   LT  ú   ô  x   õ   ô  y   ô  >&   ƒ   Lz   >I   ƒ   L   LT  >E   ¡  >G   |   >C   T  >F   U  >Q   V  >   T  >>   W  >¡   u æ"   ÊL#   Èƒ   Lt   LÄ   ;X  Ç   >C   ƒ   L   Lv   LT  ü   ô  ‰y   ô  u u u u ¡  û¯  ô  ‰ƒ   L   LL   û€  ô#  ‰ƒ   L   LL  LY   ûπ  ô(  ‰ƒ   L   LT   ûú  ô,  ‰ƒ   L   LT  LY   ûz  ô1  ‰ƒ   L   LZ  û]  ô5  ‰æ"   ÊL#   Èƒ 	  ƒ   L   L   ûŒ  ô;  ‰æ"   ÊL#   Èƒ 
+  ;[  >i   ¡  ú   ô@  õ   ô@  ô@  >j   ¡  ú   ôB  õ   ôB  ôB  >k   æ"   ÊL#   Èƒ   Ll   ;\  n   >&   ]  >   æ"   ÊL#   Èƒ   Lt   ;^  ƒ   L   Lv   L]  ú   ôQ  x   õ   ôQ  y   ôQ  >&   ƒ   Lz   >I   ƒ   L   L]  >E   |   >C   ]  >F   ¡  ú   ôZ  _  õ   ôZ  `  ôZ  >   a  >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;b  Ç   >C   ƒ   L   Lv   L]  ü   ôg  ‰y   ôg  u u u ôj  ƒ   L   L   û˜   ôn  ‰æ"   ÊL#   Èƒ 
+  ;c  >i   >j   >k   ¡  û_   ôu  ‰æ"   ÊL#   Èƒ   ∏   ;d  ƒ   L   LL  >L  ƒ   L   LT  >T  e  >f  u ôÄ  ¡  ûJ   ôÇ  ‰æ"   ÊL#   Èƒ   ∏   ;g  ƒ   L   LL  >L  L  >f  u ôä  u ôã  ¡  û:   ôå  ‰æ"   ÊL#   Èƒ 
+  ;h  >i   >j   >k   u ôì  ¡  û˝  ôï  ‰ƒ   L   L   û·  ôô  ‰æ"   ÊL#   Èæ"   Li  æ"   ÊL#   Èƒ 
+  ;j  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;k  n   >&   l  >   æ"   ÊL#   Èƒ   Lt   ;m  ƒ   L   Lv   Ll  ú   ô±  x   õ   ô±  y   ô±  >&   ƒ   Lz   >I   |   >C   l  >F   n  >   a  >>   u æ"   ÊL#   Èƒ   Lt   LÄ   ;o  Ç   >C   ƒ   L   Lv   Ll  ü   ô√  ‰y   ô√  u u u æ"   ÊL#   Èƒ 
+  ;p  >i   >j   >k   æ"   ÊL#   Èƒ   ∏   ;q  ƒ   L   LT  >T  T  >f  u u u ô÷  u ô◊  æ"   ÊL#   Èƒ 	  æ"   ÊL#   Èƒ 
+  ;r  >i   >j   >k   æ"   ÊL#   Èƒ   ∏   ;s  t  ƒ    (>u  ;v  w  >)   >*   y   >&   >x  u æ"   ÊL#   Èy  ;z  {  >|  }  >&   o~  >é   æ"   ÊL#   È,   ;  Ä  >&   ;Å  Ç  >5   >*   u u u æ"   ÊL#   Èƒ 
+  ;É  >i   >j   >k   æ"   ÊL#   Èƒ   Ll   ;Ñ  Ö  >   æ"   ÊL#   Èƒ   Lt   ;Ü  ƒ   L   Lv   LÖ  ú   ô  x   õ   ô  y   ô  >&   ƒ   Lz   >I   |   >C   ƒ   L   LÖ  >E   Ö  >F   {   >>   á  >   u æ"   ÊL#   Èƒ   Lt   LÄ   ;à  Ç   >C   ƒ   L   Lv   LÖ  ü   ô#  ‰y   ô#  u u u u ƒ   L   Lv   Lâ  ûØ   ô+  ‰æ"   ÊL#   Èƒ   Ll   ;ä  â  >   æ"   ÊL#   È:   ;ã  x   >&   u æ"   ÊL#   Èƒ   Lt   LÄ   ;å  Ç   >C   ƒ   L   Lv   Lâ  ü   ô?  ‰y   ô?  u u ôA  æ"   ÊL#   È∆®   ;ç  ƒ   L   Lé  >´   ƒ   L   Lè  >¨   ƒ   L   Lê  ûò   ôN  ‰ƒ   L   LZ  û}   ôQ  ‰ƒ   L   Lë  ûb   ôT  ‰¡  üS   ôU  ‰¡  üD   ôV  ‰¡
+  [   û   ôX  ‰¡	  D   ôY  ü   ôZ  ‰¡	  M   ô[  ú   ô\  õ   ô\  ô\  >Æ   oí  >∞   ±   >≤   ≥   >¥   ì  >∂   y   >&   u u ôe  u u
+ u u u æ"   ÊL#   Èƒ   Lî  ;ï  ñ  >&   ¡   û   ôq  ‰¡  ôq  u u ¶‘ß‘ß≥@	`°0Ò@`ë "	$	ˇˇˇ§P@	`¨0ê@`P
+ˇˇˇ˜PD`– `/`/`/`Ã `P$`(%*%	O" ë %*J"OPC%	† 7%%	?)E%,PH)9¢ Kó Pˇˇˇ”PH"PC)Ä  —í .í .%ê *í .í 0ë %***)ê@,yP32E,IPC2>ó 0ë %***)ê@2tP38E2DP38E,PC8/≤ W%*í 0ë %***ê ∂@:KP3@E:PC@<ó 0ë %***ê ∂@@rP3FE@BPCFBó 0ë %***ê ∂@FxP3LEFHP3LE8qPHL8≤ U%*ó PXí 0ë %***ê ∂@NÄ  ©P3TENyPCT2ó 0ë %***ê ∂@ThP3ZET8PCLxPHZ” w%*%'''%*%	*	Of%Ω ê ï ****JfPCoê %*™@oPC`PC\GPCq:%'''%*%	*	O{%* 
+≈ %	 *µ@{PCuPCq@PCÄ  ÇQ%'''° 0%*%	*	 %*ê ï ***JÄ  åPCÄ  îë ˇˇˇÚPCÄ  Ü*PHÄ  ÇWPCÄ  îWë %%	 ¨ E%*ë %JÄ  öPEÄ  ò:P Í Ä  á%*ê@Ä  úÄ  çP Ï Ä  ê%*ê@Ä  ûÄ  ñPHÄ  î]PC\PCÄ  †° 0%ï ï  Â ***∫ JÄ  †=PHZtPHÄ  ©
+” z%*%'''%*%	*	 %Ω ê ï *****JÄ  µPCÄ  øê %*™@Ä  øPCÄ  ØPCÄ  ´GPCÄ  ¡;%'''%*%	*	 %* 
+≈ %	 *µ@Ä  ÀPCÄ  “Nê %*™@Ä  “TPCÄ  ≈PCÄ  ¡APCÄ  ‘;%'''° 0%*%	*	 %Ω ê ï ***JÄ  ﬁPCÄ  Êê %*™@Ä  ÊPCÄ  ÿ*PHÄ  ‘APCÄ  Ë?ë %%	 ¨ F%*ë %JÄ  ÓPEÄ  Ï;P Í Ä  å%*ê@Ä  Ä  íP Ï Ä  ï%*ê@Ä  ÚÄ  õPHÄ  ËEPCÄ  ´PCÄ  Ù° 0%ï ï  Â ***∫ JÄ  Ù=PHÄ  ©oPHÄ  ˝
+‘ Ä  ôë %*ó PXí 0ë %***ê ∂@Ä  ˇÄ  ©P3Ä EÄ  ˇyPCÄ 2ó 0ë %***ê ∂@Ä hP3Ä EÄ 8PCÄ  ˝Ä Pˇˇˇ‘Pˇˇˇ‘PCÄ ß T%'''%*%	*	 %Ω ê ï *****JÄ PCÄ ê %*™@Ä PCÄ PCÄ Ä  öPCÄ !;%'''%*%	*	 %* 
+≈ %	 *µ@Ä +PCÄ 2Nê %*™@Ä 2TPCÄ %PCÄ !APCÄ 4;%'''° 0%*%	*	 %Ω ê ï ***JÄ >PCÄ Fê %*™@Ä FPCÄ 8*PHÄ 4APCÄ H?ë %%	 ¨ F%*ë %JÄ NPEÄ L;P Í Ä  ò%*ê@Ä PÄ  ûP Ï Ä  °%*ê@Ä RÄ  ßPHÄ HEPCÄ nPCÄ T° 0%ï ï  Â ***∫ JÄ T=PHÄ @PHÄ  ˝{PHÄ ]” x%*%'''%*%	*	 %Ω ê ï *****JÄ iPCÄ sê %*™@Ä sPCÄ cPCÄ _GPCÄ u;%'''%*%	*	 %* 
+≈ %	 *µ@Ä PCÄ ÜNê %*™@Ä ÜTPCÄ yPCÄ uAPCÄ à;%'''° 0%*%	*	 %Ω ê ï ***JÄ íPCÄ öê %*™@Ä öPCÄ å*PHÄ àAPCÄ ú?ë %%	 ¨ F%*ë %JÄ ¢PEÄ †;P Í Ä  å%*ê@Ä §Ä  íP Ï Ä  ï%*ê@Ä ¶Ä  õPHÄ úEPCÄ _PCÄ ®° 0%ï ï “ ***∫ JÄ ®=PHÄ ]nPHÄ ±í !ß @%%	 %'''%**%**ï ê %	 ë %EÄ ƒP !ó ˇˇˇ¸PCÄ ºPCÄ πPCÄ µPCÄ ±jPHÄ ÕÒ Ä  ©%%	 %'''%**%Ω **ê ê ™ ù *JÄ ÿPCÄ ‚ê %*™@Ä ‚PCÄ ’PCÄ —PCÄ ‰:%'''%**%Ω ê ù ***ê ™ JÄ ÎPCÄ ıê %*™@Ä ıPCÄ ËPCÄ ‰@PCÄ ˜:%'''%**%Ω ê ù ***ê ™ JÄ ˛PCÄ ê %*™@Ä PCÄ ˚PCÄ ˜@PCÄ ÕÄ  ΩPCÄ 
+;%'''%**%Ω ê ï )***JÄ PCÄ ê %*™@Ä PCÄ PCÄ 
+mPCÄ :%'''%**%Ω ê ï )*****JÄ #PCÄ .ê %*™@Ä .PCÄ  PCÄ @PCÄ 
+APCÄ 0,° 0ø >ÿ o® =%'¶ ¶ %**%Ω ê ï **¨ JÄ 7PCÄ ?ê %*™@Ä ?PCÄ 4PCÄ 0Ä CPHÄ A1® =%'''õ 5%ï ï JÄ E/P 	ù =%ï JÄ I8PHÄ A`PHÄ L
+õ 5%''GÄ L1P 	ë ® ;#%'''%**%Ω ê ***JÄ WPCÄ ^ê %*™@Ä ^PCÄ TPCÄ PÄ  âPCÄ `<%'''%ï JÄ dPCÄ `BPCÄ PRPHÄ 0Ä  ˚PHÄ g%'''%,%	 *FÄ kPCÄ rë %**JÄ zë %*%	OÄ zPCÄ rPCÄ gKPCÄ %'''%*%Ω ê *ï **JÄ ÖPCÄ çê %*™@Ä çPCÄ ÉPCÄ PCÄ gPCÄ è3¨ J%*ë %JÄ ëP ê %*™@Ä ìPCÄ èoPHÄ ïD%ï ï ˇŒ ****JÄ ïJPCÄ ÕÄ  èPHÄ ±PC)Ä ePˇˇˇ“Pˇˇˇ“PˇˇˇŒPCÄ û%*ñ@Ä û"PCPCÄ °TÄ\M        y>  ˇˇˇˇ    Ñ>         H  ¯âÿ„H                         ø  L   ú   ô   ø  L   õ   ô   ø  L   ô   –   ‰¡   A"û   ô   ‰¡   Z!ô   ü±   ô   ‰¡   !"û   ô
+   ‰¡   /!ô   üà   ô   ‰¡   ~üv   ô   ‰¡   a"û   ô   ‰¡   z!ô   üM   ô   ‰¡   :"û   ô   ‰¡   @!ô   ü$   ô   ‰¡   ["û   ô   ‰¡   `!ô   –  ‰¡  §ß `∂ `ˇ€ `$QÄÄ<   FÁ*<                            ƒ   ÊL   Èu  § `PÄÄ<   –,Ù7<                             ƒ   ÊL   Èu  § `PÄÄ<   úHTâ<                            ƒ   ÊL   Èu  § `PÄÄ<   Jd´Ç<                             ƒ   ÊL   Èu  § `PÄÄ<   úHTâ<                            ƒ   ÊL   Èu  § `PÄÄ<   Jd´Ç<                             ƒ   ÊL   Èu  § `PÄÄ<   úHTâ<                            ƒ   ÊL   Èu  § `PÄÄ<   Jd´Ç<                             ƒ   ÊL   Èu  § `PÄÄò   z}páò   Y                        ø  L   –   ‰ø  L      (ø  L   (–  ‰æ   ÊL   È   ;   ø >	   ¡   >
+   ¡  u §ß `-`.`ë 2%	(	)
+D!PCQÄÄ\   V≤-©\   *                          ƒ   ÊL   È;   ƒ    ∏    (>   y ‰ß 	`%ì@PDPÄ<   T™ƒ'<                             ƒ   ÊL   Èu  § `PÄÄ∏   ø≤E∏   m                      „—    ‰7–   ‰…àÇø  ¡   Ö ƒ    â‰∂    ‰ƒ    ƒ    π   o   y ‰ƒ    π;   >   >   O   ‰ƒ    ®¶ß.`ˇˇˇ˚ˇˇˇ˙Pí `ˇˇˇÓPD'`,&L+XÄÄ‘   Sh™ƒ   }                         ”   ƒ   πL   gÊL   ∂    ‰ÊL   ∂    ‰ÊL   Ê ú   ô   ‰   ô   ∂    ‰‰ƒ   πÊL   È;   >   >	   o
+   y ‰‘ß @`º0í@`%	&	&
+EPE$PÄÄÄ‘         w   ˇˇˇˇ   ?Ñ3   †                          æ   ÊL   È;      >   ;   ƒ    ∏    >   ƒ    ∏    >   ƒ    ∏    >	   æ
+   L   L   >   >      >      >   o   ÊL   Èƒ   πu >   y ‰ß 	`%*%ë ë ë ô@	**Lˇˇˇ˚PHPDPÄÄ¿   w,é¿   w                       „–   ‰ø  L   ú/   ô   ¡   ÊL   È;   >   >   y ‰õ7   ô   ¡   ÊL   È;   >   >   ø  L   >   y ‰ô   ß&`î `%&FP> `%&&MPIPÄÄt  ’«Âat  Ô                <        „—    ‰æ   ÊL   È   ƒ    L   L   ûN   ô   ‰æ   ÊL   Èƒ   ∏   ;      >   	   >
+   o   >      u ô   ƒ    L   L   ûV   ô   ‰æ   ÊL   È   ;      >   æ   ÊL   È   ;      >   u    u ô   ƒ    L   L   ûY   ô   ‰ƒ    L   L   û>   ô"   ‰æ   ÊL   È   ;      >   ƒ    L   L   u ô)   ƒ    L   L   ûy   ô-   ‰æ   ÊL   È   ;      >      >   	   >
+   ;      >       >!   "   >#   >$   o%   >   &   u ô;   u §ß(`í 5© ?%**EkPH¨ B%*ë %JP3	EDPH	… a%*ê@	gPHÆ D%***%	*	*	OEJPHPCQÄÄ<   Öîú<                            ƒ    ÊL   Èu  § `PÄÄ<   Öîú<                            ƒ    ÊL   Èu  § `PÄÄ3ıÿ  `'  \      @˙  É   @       `!  0    `T  ç  ,   Y   :    !  0  /    `    `≈  ˙  ‰        =    `≈  ˙      =  	  `    @z   !  "  #  $  %  &  '  (  )  *  +  ,  -  .  /    @0  1  2    @á   ≈  ˙  =  
+  `    @z   !  "  #  $  %  &  '  (  )  +  ,  -  .  /    @0  1  2    @á   ≈  ˙  =    `≈  ˙      @z   !  "  #  $  %  &  '  (  )  +  ,  -  .  /    @0  1  r 2  	  @á   5  6  7  =    `  `;  "  :  #     P  P  P  PE  z   á   F  ∆  G  H  D  %  $  J  K  L  M  I  N  O  5  6  Q  S  Ú   R    P  ,  U  V  T  W  X  -  Z  Y  [  \    `    @p  *  z   +  ,    `º  h  i      @`  _  .  k  j  +  5  6  l  ;  m  n    @'  &  )  2  o  *  p    @  @q  r  s    pt  u    `$  a    @b  Û    @^  c  d  ‰    e    pt  f    `;  ,  z     
+  @_  `    pq  v  w    `    @p  *    `º  h  i    `ó  z  z     Ä  %  Å      @0  !    "  #  $  &  '  )  ;  m  o  *  p    @`  _  +  2    @  Ç  W  5  6  u  q  r  É    pt    `$  a    @}  Û    @y  ~  z  %  ^  c  d  ‰    e    pt  f    `;  W  .  j  %  ,  z       @{  |    pq  v  Ñ    `    @å  *    `º  h  i      @à  â  ä  .  +  5  6  l  ;    @u  q  r  ã    pt    `;  -  z   $  a    @Ü  Û    @á  c  d  ‰    e    pt  f  q  v  w    `º  h  i  5  6  l  ;  +  ë  !  @ì  z   ï  ó  ô  ö  ú  F  m   ˙  í  î  ñ  ò  û    "  @à  â  ä  (  è  /  #  @u    `$  a    @ê  Û     @á  ~  é  c  d  ‰    e    pt  f    `;  -  .  [      @è  (    p  `z    `  `≈  ˙  ;  /  †    pz  z     Ä  %  Å  5  6  7  °    =  !    "  #  $  h  &  '  !  `§     `;  *  p  )  q  r  £    pt  §  (  `¨  Ω  ≠  '  `º  "  p%  `&  `Ú   R  z     ¥  ;  µ  '  @%  ∂  S  ∑  '  (  @∏  )  @π  ∫    *  @•  ¶  ª  O  +  @,  @!  p#  `$  `;  "  :  #  %  $  O  ß  ®  *  z   '  &  0  m    ©  ™  ¨  ≠  Æ  ∞  Ø  ,  ≤  $  a  %  @≥  Û  d  ‰  &  @±  ´  c    e     pt  f  "  `  $  @•  ¶    p  `    p    p    p     p3  	  p4  
+  p8    p]    px    pÖ    pç    pü    p¢    p§    p-  @ª  .  @á   D  I  P  T  X  Y  \  •  ¶  z   m  *  .  j  _  ä  `  à  â  )  è  (  /  /  @0  &  '  æ  !  1  2  0  @S  ;  )  `,  `…  »  -  `Ö  .  `ç  /  `]  0  `x  1  `]  2  `x  3  `]  4  `x  5  `z       Ä    –  ( ß  @  ˙  6  `  –  @ª  7  `¢  *  `+  `;  ª  (  '  &  )  m  *  .  1  2  5  6  ¡  ¬  √    ƒ  ©  ≈  $  ∆  «  %  p¨  ∞  À  0  1  2  œ  8    –  1  @“  —  2  @‘  ”  ¿  ’  i  3  @÷  ·  ◊  F 4  @5  @Ÿ  ÿ  ⁄  b  €  ‹  ›  6  @   ﬁ    Ë   7  @ﬂ  ‰  o  ˙  =  ‡     ·  ‚  „  8  @n  ‰  9  @Â  ç :  @Ê  3    Á  ;  @å  Ë  <  @p  È  =  @Í  Î  >  @4  Ï  ?  @r Ì  @  @Ó  A  @\ P ç Ô  B  @  C  @Ú  Ò  Ù  Û  ı  D  @á   -  ˆ  z     ˜  ¯  ˘  ˚  ˙  ¸  E  @˝  F  @G  @H  @˛  I  @ˇ  Y  J  @   &  p â    K  @L  @M  @N  @[   O  @P  @ ä  p  Q  @ R  @ 	 à  S  @
+ +  T  @   U  @è    \   '  p       V  @ W  @X  @Y  @Z  @,    B   [  @\  @]  @^  @_  @T  `  @(  p`   a  @b  @c  @d  @e  @W   f  @ g  @h  @_  i  @j  @k  @l  @m  @X  )  pn  @o  @ p  @q  @r  @s  @t  @u  @v  @w  @x  @y  @z  @*  p{  @|  @}  @~  @  @Ä  @Å  @Ç  @É  @Ñ  @Ö  @Ü  @á  @+  p  à  @â  @ä  @ã  @å  @ç  @é  @è  @ê  @ë  @í  @,  pì  @î  @ï  @ñ  @ó  @ò  @ô  @ö  @õ  @ú  @ù  @û  @ü  @  -  p! †  @°  @" ¢  @£  @$ # §  @% ú 0  !  ü  •  @' & ( ¶  @æ  ) /  * .  p®  @©  @™  @´  @"  ¨  @  / 0 1 ≠  @Æ  @Ø  @:  ∞  @2 3 ±  @≤  @≥  @#  ¥  @4 5 µ  @∂  @∑  @%  ∏  @6 π  @∫  @ª  @7 º  @$  8 9 @  Ω  @  I  æ  @ø  @ß  ¿  @: ; < ¡  @¬  @√  @? > ƒ  @≈  @@ ∆  @«  @®  »  @A …  @   @À  @Ã  @Õ  @C B Œ  @D E a  œ  @#  F G /  p—  @H “  @I ”  @‘  @O  ’  @J ÷  @π  ◊  @ÿ  @Ÿ  @⁄  @•  ¶  D  P  0  pK L €  @M =  `Ú     ﬂ  @|  {  ‡  @Q < <  `$  a  ›  @O Û  ﬁ  @%  $  > ¨  ∞  P c  d  ‰    e  4  pt  f  :  `;  `  %  $  >   ‹  @{  |  3  p9  `N 2  p·  @{  |  ;  ?  `N @  `N >  `  –  ›  ;  |  ‚  @ —   ≤  6  p R {  p  „  @ i  ‰  @ 	 Â  @
+ < a  Ê  @#  F Á  @I ÿ  " & S Ò  ¿  7  pT    `  p  p  p    	  
+                  `    Ä    pD   #  pø  $  p¿  8  `1  p5  pˇXÑê                                                 
+           6  C         #       U     !       U     !       U     ! %      U     ! A      U     ! \      U     ! {   .   U     ! „      U     ! ”      V     ! ±   "   W       ©      X       5     U     ! !     V     ! Ù   -   W       Ô      X       `     U     ! J     Y       E     Z       ¨  
+   U     ! ö     V     ! v  $   W       ∏     U     ! ∂     [     ! ÷     U     ! ‘     V       0     U     !   +   V     ! Ë     W       Â     X     ! ·     \     ! y     ø      "  û  ó  ¿      "  z     ]       }          !
+           !
+ Å          !
+ É          !
+ Ö          !
+ á          !
+ â          !
+ ã          !
+ ç     ]     ! ò          !
+ ú          !
+ ^     =     # S     `     ! >     a     ! 5  	   b       i  '   ¿      "  e          !
+ g          !
+ ùH©“      rÿ      rÿ                     Ï       Ï                    [  Ì   [                 q  î  \  î               ä Õ  Ø_  Ä  a–                   5    5     '            b  o  b  o     +            £  +  £  +  "   2            Y  „  Y  „  )   ,            	  n  	  n  E   +            ©  :  ©  :  _   9            o  6$  o  6$  z   3          Ä d$  {.  d$  {.  1  ,             %  '.  %  '.  7              ˚%  .  Ú%  .  ?             q,  ä-  h,  ä-  f  d          Ä ´.  ‚9  ´.  ‚9  y  .             Ò/  ë9  Ò/  ë9  É              W1  n9  N1  n9  è             Ç8  C9  y8  C9  º  a            :  ;?  :  ;?  À  *            &;  “>  ;  “>  ’             >  ´>  ˘=  ´>  Ë  S          Ä h?  «I  h?  «I  ˆ  +             C@  øI  C@  øI  ˝  
+            TA  †I  KA  †I              Ä ˚I  áL  ˚I  áL  4  2            OJ  iJ  OJ  iJ  6  .            µL  pN  µL  pN  J  ,            ÃM  'N  √M  'N  L  ¥            üN  P\  üN  P\  U  -             O  H\  O  H\  Y  
+            lS  )\  cS  )\  á              ‹Z  \  ‹Z  \  ∂               ˇZ  ı[  ˇZ  ı[  ∑               √_  »_  ≤_  »_  Ê             Ç —_  _–  À_  _–  Á  	             πa  ›b  ∞a  ›b  ˘  '            Vv  mv  Vv  mv  h              ˇ|  }  ˇ|  }  ã               (É  AÉ  (É  AÉ  ∏              ‘ä  ä  ‘ä  ä  ﬂ               eî  ~î  eî  ~î                )ú  Eú  )ú  Eú  ?               _¢  x¢  _¢  x¢  l              4™  P™  4™  P™  ì               ‚≠  ÂÆ  ‚≠  ÂÆ  ≠  :            –»  ,…  –»  ,…  \               .œ  Hœ  .œ  Hœ  Ä             ä ¶–  æ‘  b–  rÿ  ã              Á–  m‘  Á–  m‘  ç  &             õ—  e‘  õ—  e‘  ñ  
+            ﬂ“  F‘  ÷“  F‘  °            Ç «‘  pÿ  ¡‘  pÿ  ∑  	             ç’  †’  ç’  †’  ª              Bÿ  Uÿ  Bÿ  Uÿ  À            mŒ˝î                                   %            Y                ˇˇˇˇ      Y                                  5°›¡ëæÖÑñDëı$      	i’¬fi’¬fI]“ti÷›Ô   ~    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scriptReactCompiled/login/RegistrationPageForKUKComponent.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"55410-1774889044000"
+Last-Modified: Mon, 30 Mar 2026 16:44:04 GMT
+Content-Type: text/javascript
+Content-Length: 55410
+Date: Wed, 08 Apr 2026 02:47:38 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+ original-response-headers Date: Thu, 02 Apr 2026 04:19:55 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"55410-1774889044000"
+Last-Modified: Mon, 30 Mar 2026 16:44:04 GMT
+Content-Type: text/javascript
+Content-Length: 55410
+Keep-Alive: timeout=5, max=97
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 21 net-response-time-onstop 22 alt-data 1;55410,javascript/moz-module-bytecode-20260309231353-8l alt-data-from-child 1  ¥F

@@ -1,0 +1,104 @@
+#include<stdio.h>
+#define  MAX  50
+char stack[MAX],str[30];
+int top =-1;
+
+void push(char c)
+   {
+     if(top==MAX-1)
+     {
+      printf("stack overflow");
+     }
+     else{
+     top++;
+     stack[top]=c;
+     }
+     }
+char pop()
+     {
+       if(top==-1)
+       {
+       printf("stack underflow");
+       }
+       else{
+   
+       char value=stack[top];
+       top--;
+       return value;
+       }
+       }
+       
+int prec(char op){
+switch(op)
+{
+case'^':
+  return 3;
+  break;
+case'*':
+case'/':
+case'%':
+  return 2;
+  break;
+case'+':
+case'-':
+  return 1;
+  break;
+default:
+  return 0;
+  break;
+}
+}
+
+void convert_post()
+{
+
+for(int i=0;str[i]!='\0';i++)
+   {
+    switch(str[i]){
+    case'(':
+            push(str[i]);
+            break;
+    case')':
+            printf("%c",pop());
+            while(pop()!='(')
+            {
+               printf("%c",pop());
+            }
+            break;
+    case'^':
+    case'*':
+    case'/':
+    case'%':        
+    case'+':
+    case'-':
+          while(top==-1 && prec(str[i])<=prec(stack[top]))
+              {
+              printf("%c",pop());
+              }
+          push(str[i]);
+          break;
+    default:
+          printf("%c",str[i]);
+          break;
+          
+       
+       }
+       }
+      while(top!=-1)
+            {
+               printf("%c",pop());
+            }
+       }         
+int main()
+{
+
+printf("Enter the string:");
+scanf("%s",str);
+convert_post();
+return 0;
+}
+
+
+
+
+

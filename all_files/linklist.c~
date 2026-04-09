@@ -1,0 +1,28 @@
+#include <stdio.h>
+struct node{
+char usn[10];
+char name[10];
+char prg[10];
+int sem;
+int phno;
+struct node *link;
+};
+
+int main(){
+struct node *a=malloc(sizeof(struct node));
+printf("Enter USN");
+scanf("%s"a->USN);
+printf("Enter name");
+scanf("%s",a->name);
+printf("Enter programme:");
+scanf("%s",a->prg);
+printf("Enter sem:");
+scanf("%d",a->sem);
+printf("Enter phone no:");
+scanf("%d",a->phno);
+
+
+
+
+
+

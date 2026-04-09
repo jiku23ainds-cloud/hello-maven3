@@ -1,0 +1,715 @@
+$('document').ready(function() {
+	var hdnUserRole = $('#hdnUserRole').val();
+	if(hdnUserRole != "student" && hdnUserRole != "Student"){
+		getCourseFileShortCut();
+	}
+	//Ticket No. #864377
+	//Ctrl + Shift + V Sortcut Key To Open Voucher Entry Page from all pages for Finance Admin
+	document.onkeyup = function(e) {
+		if (e.ctrlKey && e.shiftKey && e.which == 86) {
+			if($('[href="fas_AccountEntries.htm"]').length>0){
+				window.open('fas_AccountEntries.htm','_blank');
+			}
+		}
+	};
+});
+var globalEmployeeSubjectIdShortcutLink = 0;
+var globdispInstCurs = [];
+
+function getCourseFileShortCut(divID='#ulShortcut', empId,employeeName, callback){
+	globdispInstCurs = [];
+	var redirectStatusHideMenu = $("#redirectStatusHideMenu").val();
+	var today = new Date();
+	today = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+	if(redirectStatusHideMenu!=undefined){
+		return;
+	}
+	var subjectwiseBatchId = 0;
+	var TempSubjectwiseBatchId = $("#TempSubjectwiseBatchId").val();
+	if(TempSubjectwiseBatchId!=undefined){
+		subjectwiseBatchId = TempSubjectwiseBatchId;
+	}
+	var allowForAll = false;
+	if($('#allowForAllShortCutVal')!=undefined && $('#allowForAllShortCutVal').val()=='true'){
+		allowForAll = true;
+	}
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'empRunningOrHistoryCourseFile.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_empRunningOrHistoryCourseFile.json';
+	}
+	$.ajax({
+		url:url,
+		data:{empId:empId,subjectwiseBatchId:subjectwiseBatchId,allowForAll:allowForAll},
+		dataType:'json',
+		type:'GET',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(replay){
+			var insCourseList = new Array();
+			for(var i=0;i<replay.employeeSubList.length;i++){
+				var semName = replay.employeeSubList[i].semName;
+				var division = replay.employeeSubList[i].division;
+				globdispInstCurs.push(replay.employeeSubList[i]);
+				var startDate = replay.employeeSubList[i].startDate;
+				var endDate = replay.employeeSubList[i].endDate;
+				var employeeNames = replay.employeeSubList[i].employeeNames;
+				
+				if($.inArray(replay.employeeSubList[i].dispInstCurs,insCourseList) == -1 && ((today.replace(/[^a-zA-Z]/g, "") > startDate.replace(/[^a-zA-Z]/g, "") && today.replace(/[^a-zA-Z]/g, "") < endDate.replace(/[^a-zA-Z]/g, "")) || today.replace(/[^a-zA-Z]/g, "") == startDate.replace(/[^a-zA-Z]/g, "") || today.replace(/[^a-zA-Z]/g, "") == endDate.replace(/[^a-zA-Z]/g, ""))){
+					boiler =
+						'<li class="divider"></li>'+
+						'<li class="disabled"><a href="javascript:void(0)" class="disabled-link" style="font-size: 11px;float:right; font-weight: bold; color: #777;">'+replay.employeeSubList[i].dispInstCurs+'</a></li>';
+					$(divID).append(boiler);
+					
+					insCourseList.push(replay.employeeSubList[i].dispInstCurs);
+				}
+				
+				if(replay.employeeSubList[i].isFreezed){
+					boiler ='<li><a href="javascript:void(0);" class="j-fa fa-files-o">'+replay.employeeSubList[i].dispSubName.gemsDecode()+' : '+semName+' ('+division+')';
+					if($('#customerHelper').val()=='XLRI'){
+						boiler+=' : '+employeeNames;
+					}					
+					boiler+='&nbsp;&nbsp;<b style="color:red">Course file is freezed</b></a></li>';
+				}else{
+					boiler ='<li><a href="javascript:void(0);" class="courseFileShortCut j-fa fa-files-o" id="courseFileShortCut_'+replay.employeeSubList[i].subBatch+'">'+replay.employeeSubList[i].dispSubName.gemsDecode()+' : '+semName+' ('+division+')';
+					if($('#customerHelper').val()=='XLRI'){
+						boiler+=' : '+employeeNames;
+					}
+					boiler+='</a></li>';
+				}
+				
+				$(divID).append(boiler);
+				$('.courseFileShortCut:last').data('empSub',replay.employeeSubList[i].empSub!=null && replay.employeeSubList[i].empSub!=undefined?replay.employeeSubList[i].empSub:"");
+				$('.courseFileShortCut:last').data('instCourse',replay.employeeSubList[i].instCourse!=null && replay.employeeSubList[i].instCourse!=undefined?replay.employeeSubList[i].instCourse:"");
+				$('.courseFileShortCut:last').data('dept',replay.employeeSubList[i].dept!=null && replay.employeeSubList[i].dept!=undefined?replay.employeeSubList[i].dept:"");
+				$('.courseFileShortCut:last').data('sem',replay.employeeSubList[i].sem!=null && replay.employeeSubList[i].sem!=undefined?replay.employeeSubList[i].sem:"");
+				$('.courseFileShortCut:last').data('semName',replay.employeeSubList[i].semName!=null && replay.employeeSubList[i].semName!=undefined?replay.employeeSubList[i].semName:"");
+				$('.courseFileShortCut:last').data('sub',replay.employeeSubList[i].sub!=null && replay.employeeSubList[i].sub!=undefined?replay.employeeSubList[i].sub:"");
+				$('.courseFileShortCut:last').data('subName',replay.employeeSubList[i].subName!=null && replay.employeeSubList[i].subName!=undefined?replay.employeeSubList[i].subName.gemsDecode():"");
+				$('.courseFileShortCut:last').data('subBatch',replay.employeeSubList[i].subBatch!=null && replay.employeeSubList[i].subBatch!=undefined?replay.employeeSubList[i].subBatch:"");
+				$('.courseFileShortCut:last').data('division',replay.employeeSubList[i].division!=null && replay.employeeSubList[i].division!=undefined?replay.employeeSubList[i].division:"");
+				$('.courseFileShortCut:last').data('intMarks',replay.employeeSubList[i].intMarks!=null && replay.employeeSubList[i].intMarks!=undefined?replay.employeeSubList[i].intMarks:"");
+				$('.courseFileShortCut:last').data('maxMarks',replay.employeeSubList[i].maxMarks!=null && replay.employeeSubList[i].maxMarks!=undefined?replay.employeeSubList[i].maxMarks:"");
+				$('.courseFileShortCut:last').data('subYear',replay.employeeSubList[i].subYear!=null && replay.employeeSubList[i].subYear!=undefined?replay.employeeSubList[i].subYear:"");
+				$('.courseFileShortCut:last').data('isFreezed',replay.employeeSubList[i].isFreezed!=null && replay.employeeSubList[i].isFreezed!=undefined?replay.employeeSubList[i].isFreezed:"");
+				$('.courseFileShortCut:last').data('parentSubBatchId',replay.employeeSubList[i].parentSubBatchId!=null && replay.employeeSubList[i].parentSubBatchId!=undefined?replay.employeeSubList[i].parentSubBatchId:"");
+				$('.courseFileShortCut:last').data('strengthId',replay.employeeSubList[i].strengthId!=null && replay.employeeSubList[i].strengthId!=undefined?replay.employeeSubList[i].strengthId:"");
+				$('.courseFileShortCut:last').data('batchSem',replay.employeeSubList[i].batchSem!=null && replay.employeeSubList[i].batchSem!=undefined?replay.employeeSubList[i].batchSem:"");
+				$('.courseFileShortCut:last').data('strengthId',replay.employeeSubList[i].strengthId!=null && replay.employeeSubList[i].strengthId!=undefined?replay.employeeSubList[i].strengthId:"");
+				$('.courseFileShortCut:last').data('subjectShortName',replay.employeeSubList[i].subjectShortName!=null && replay.employeeSubList[i].subjectShortName!=undefined?replay.employeeSubList[i].subjectShortName.gemsDecode():"");
+				$('.courseFileShortCut:last').data('dispInstCurs',replay.employeeSubList[i].dispInstCurs!=null && replay.employeeSubList[i].dispInstCurs!=undefined?replay.employeeSubList[i].dispInstCurs.gemsDecode():"");
+				$('.courseFileShortCut:last').data('isEQBAuthority',replay.employeeSubList[i].isEQBAuthority!=null && replay.employeeSubList[i].isEQBAuthority!=undefined?replay.employeeSubList[i].isEQBAuthority:"");
+				$('.courseFileShortCut:last').data('empId',empId);
+				$('.courseFileShortCut:last').data('employeeName',employeeName);
+				$('.courseFileShortCut:last').data('employeeNames',replay.employeeSubList[i].employeeNames!=null && replay.employeeSubList[i].employeeNames!=undefined?replay.employeeSubList[i].employeeNames:"");
+				$('#hdIsEQBAuthority').val(replay.employeeSubList[i].isEQBAuthority != null && replay.employeeSubList[i].isEQBAuthority != undefined ? replay.employeeSubList[i].isEQBAuthority : "");
+				$('#hdAllEmployeeNames').val(replay.employeeSubList[i].employeeNames != null && replay.employeeSubList[i].employeeNames != undefined ? replay.employeeSubList[i].employeeNames : "");
+			}
+			
+			try{
+				if(onLoadEmployeeRunningSubjectCourseFile!=undefined)
+					onLoadEmployeeRunningSubjectCourseFile(replay.employeeSubList);
+				
+			}catch(e){}
+			$('.courseFileShortCut').click(function(){
+				redirectRequest(this);
+			});
+			
+			try {
+				if(callback!=undefined) {
+					callback();
+				}
+			}catch(e) {
+				console.log(e);
+			}
+		},
+		error:function(){
+			alert("In loadYear()");
+		}
+	});
+}
+
+function checkNameStatus(){
+	try{
+		if(glosubInstCourse=="" || glosubShortName==""){
+			for(var i=0; i<globdispInstCurs.length; i++){
+				var subjId = globdispInstCurs[i].sub;
+				if(subjId == glosubId){
+					glosubInstCourse = globdispInstCurs[i].dispInstCurs;
+					glosubShortName = globdispInstCurs[i].subjectShortName;
+					gloemployeeNames = globdispInstCurs[i].employeeNames;
+				}else if(glosubId==""){
+					glosubInstCourse = globdispInstCurs[i].dispInstCurs;
+					glosubShortName = globdispInstCurs[i].subjectShortName;
+					gloemployeeNames = globdispInstCurs[i].employeeNames;
+					glosubName = $('#cmdloadsubject option:selected').text();
+					glosemesterName =  $('#cmdloadsemester option:selected').text();
+					glodivision = $('#cmdloadbatch option:selected').text();
+					glosubId = subjId;
+				}
+			}
+		}
+	}catch(e){
+		glosubInstCourse = "";
+		glosubShortName = "";
+		glosubName = "";
+		glosemesterName = "";
+		glodivision = "";
+		glosubId = "";
+		gloemployeeNames="";
+	}
+	
+	var parentSubId = $('#hdEmpParentSubId').val();
+	var currentURl = window.location.href;
+	var isCommonEmployeeCourseFile = false;
+	
+	if(currentURl.includes('commonEmployeeCourseFile.htm')){
+		isCommonEmployeeCourseFile = true;
+	}
+	
+	var boiler = '';
+	if(isCommonEmployeeCourseFile == true){
+		boiler = '<span style="float:left;cursor:pointer;" id="spnBack" class="badge badge-inverse" >'+
+		'<i class="icon-arrow-left icon-white"></i> Back</span><br><br>';
+	}
+	
+	if(parentSubId=="0") {
+		boiler +=glosubInstCourse+'<br>'+glosubShortName+'<br>'+glosubName+'<br>'+glosemesterName+'<br>'+glodivision;
+		if($('#customerHelper').val()=='XLRI'){
+			boiler +='<br>'+gloemployeeNames;
+		}
+	}else {
+		boiler +=glosubInstCourse+'<br>'+glosubShortName+'<br>'+glosubName+'<br>'+glosemesterName+'<br>'+glodivision;
+		if($('#customerHelper').val()=='XLRI'){
+			boiler +='<br>'+gloemployeeNames;
+		}
+	}
+	$('#thSubDetail').html(boiler);
+	if(isCommonEmployeeCourseFile == true){
+		$('#spnBack').click(function(){
+			$('#divSubjectCourseFile').hide('blind', {}, 1000, function(){
+				$('#divSubjectList').show();
+				$('#divCurrentSubjectList').show();
+				$('#showCourseFileTabs').show();
+			});
+		});
+	}
+}
+
+function redirectRequest(src) {
+	var instCourse = $(src).data('instCourse')!=null && $(src).data('instCourse')!=undefined?$(src).data('instCourse'):"";
+	var dept = $(src).data('dept')!=null && $(src).data('dept')!=undefined?$(src).data('dept'):"";
+	var sem = $(src).data('sem')!=null && $(src).data('sem')!=undefined?$(src).data('sem'):"";
+	var semName = $(src).data('semName')!=null && $(src).data('semName')!=undefined?$(src).data('semName'):"";
+	var sub = $(src).data('sub')!=null && $(src).data('sub')!=undefined?$(src).data('sub'):"";
+	var subName = $(src).data('subName')!=null && $(src).data('subName')!=undefined?$(src).data('subName'):"";
+	var subBatch = $(src).data('subBatch')!=null && $(src).data('subBatch')!=undefined?$(src).data('subBatch'):"";
+	var parentSubBatchId = $(src).data('parentSubBatchId')!=null && $(src).data('parentSubBatchId')!=undefined?$(src).data('parentSubBatchId'):"";
+	var division = $(src).data('division')!=null && $(src).data('division')!=undefined?$(src).data('division'):"";
+	var subYear = $(src).data('subYear')!=null && $(src).data('subYear')!=undefined?$(src).data('subYear'):"";
+	var intMarks = $(src).data('intMarks')!=null && $(src).data('intMarks')!=undefined?eval($(src).data('intMarks')):"";
+	var maxMarks = $(src).data('maxMarks')!=null && $(src).data('maxMarks')!=undefined?eval($(src).data('maxMarks')):"";
+	var empSub = $(src).data('empSub')!=null && $(src).data('empSub')!=undefined?eval($(src).data('empSub')):"";
+	var batchSem = $(src).data('batchSem')!=null && $(src).data('batchSem')!=undefined?eval($(src).data('batchSem')):"";
+	var isEQBAuthority = $(src).data('isEQBAuthority')!=null && $(src).data('isEQBAuthority')!=undefined?eval($(src).data('isEQBAuthority')):"";
+	var empId = $(src).data('empId')!=null && $(src).data('empId')!=undefined?$(src).data('empId'):"";
+	var employeeName = $(src).data('employeeName')!=null && $(src).data('employeeName')!=undefined?$(src).data('employeeName'):"";
+	var employeeNames = $(src).data('employeeNames')!=null && $(src).data('employeeNames')!=undefined?$(src).data('employeeNames'):"";
+	globalEmployeeSubjectIdShortcutLink = empSub;
+	
+	var isFreezed = $(src).data('isFreezed')!=null && $(src).data('isFreezed')!=undefined?eval($(src).data('isFreezed')):"";
+	var strengthId = $(src).data('strengthId')!=null && $(src).data('strengthId')!=undefined?eval($(src).data('strengthId')):"";
+	var subjectShortName = $(src).data('subjectShortName')!=null && $(src).data('subjectShortName')!=undefined?$(src).data('subjectShortName'):"";
+	var dispInstCurs = $(src).data('dispInstCurs')!=null && $(src).data('dispInstCurs')!=undefined?$(src).data('dispInstCurs'):"";
+	
+	var f = $('<form></form>').attr({method:'post', action:'EmployeeCourseFile.htm', target:'_blank'}).appendTo(document.body);
+	
+	$('<input>').attr({type:'hidden',name:'instCourse',value:instCourse}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'dept',value:dept}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'sem',value:sem}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'semName',value:semName}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'sub',value:sub}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subName',value:subName.gemsEncode()}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subBatch',value:subBatch}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'parentSubBatchId',value:parentSubBatchId}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'division',value:division}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subYear',value:subYear}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'intMarks',value:intMarks}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'maxMarks',value:maxMarks}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'empSub',value:empSub}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'isFreezed',value:isFreezed}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'strengthId',value:strengthId,id:'instituteCourseStrengthId'}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subjectShortName',value:subjectShortName}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'dispInstCurs',value:dispInstCurs}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'batchSem',value:batchSem}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'isEQBAuthority',value:isEQBAuthority}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'empId',value:empId}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'employeeName',value:employeeName}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'employeeNames',value:employeeNames}).appendTo(f);
+	
+	f[0].submit();
+	f.remove();
+	
+}        š  xšãe   20260309231353-8lÿ™  M
+¯ºK   https://erp.cmrit.ac.in/scripts/employeeJs/CourseFile/CourseFileShortCut.js      É;  $('document').ready(function() {
+	var hdnUserRole = $('#hdnUserRole').val();
+	if(hdnUserRole != "student" && hdnUserRole != "Student"){
+		getCourseFileShortCut();
+	}
+	//Ticket No. #864377
+	//Ctrl + Shift + V Sortcut Key To Open Voucher Entry Page from all pages for Finance Admin
+	document.onkeyup = function(e) {
+		if (e.ctrlKey && e.shiftKey && e.which == 86) {
+			if($('[href="fas_AccountEntries.htm"]').length>0){
+				window.open('fas_AccountEntries.htm','_blank');
+			}
+		}
+	};
+});
+var globalEmployeeSubjectIdShortcutLink = 0;
+var globdispInstCurs = [];
+
+function getCourseFileShortCut(divID='#ulShortcut', empId,employeeName, callback){
+	globdispInstCurs = [];
+	var redirectStatusHideMenu = $("#redirectStatusHideMenu").val();
+	var today = new Date();
+	today = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+	if(redirectStatusHideMenu!=undefined){
+		return;
+	}
+	var subjectwiseBatchId = 0;
+	var TempSubjectwiseBatchId = $("#TempSubjectwiseBatchId").val();
+	if(TempSubjectwiseBatchId!=undefined){
+		subjectwiseBatchId = TempSubjectwiseBatchId;
+	}
+	var allowForAll = false;
+	if($('#allowForAllShortCutVal')!=undefined && $('#allowForAllShortCutVal').val()=='true'){
+		allowForAll = true;
+	}
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'empRunningOrHistoryCourseFile.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_empRunningOrHistoryCourseFile.json';
+	}
+	$.ajax({
+		url:url,
+		data:{empId:empId,subjectwiseBatchId:subjectwiseBatchId,allowForAll:allowForAll},
+		dataType:'json',
+		type:'GET',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(replay){
+			var insCourseList = new Array();
+			for(var i=0;i<replay.employeeSubList.length;i++){
+				var semName = replay.employeeSubList[i].semName;
+				var division = replay.employeeSubList[i].division;
+				globdispInstCurs.push(replay.employeeSubList[i]);
+				var startDate = replay.employeeSubList[i].startDate;
+				var endDate = replay.employeeSubList[i].endDate;
+				var employeeNames = replay.employeeSubList[i].employeeNames;
+				
+				if($.inArray(replay.employeeSubList[i].dispInstCurs,insCourseList) == -1 && ((today.replace(/[^a-zA-Z]/g, "") > startDate.replace(/[^a-zA-Z]/g, "") && today.replace(/[^a-zA-Z]/g, "") < endDate.replace(/[^a-zA-Z]/g, "")) || today.replace(/[^a-zA-Z]/g, "") == startDate.replace(/[^a-zA-Z]/g, "") || today.replace(/[^a-zA-Z]/g, "") == endDate.replace(/[^a-zA-Z]/g, ""))){
+					boiler =
+						'<li class="divider"></li>'+
+						'<li class="disabled"><a href="javascript:void(0)" class="disabled-link" style="font-size: 11px;float:right; font-weight: bold; color: #777;">'+replay.employeeSubList[i].dispInstCurs+'</a></li>';
+					$(divID).append(boiler);
+					
+					insCourseList.push(replay.employeeSubList[i].dispInstCurs);
+				}
+				
+				if(replay.employeeSubList[i].isFreezed){
+					boiler ='<li><a href="javascript:void(0);" class="j-fa fa-files-o">'+replay.employeeSubList[i].dispSubName.gemsDecode()+' : '+semName+' ('+division+')';
+					if($('#customerHelper').val()=='XLRI'){
+						boiler+=' : '+employeeNames;
+					}					
+					boiler+='&nbsp;&nbsp;<b style="color:red">Course file is freezed</b></a></li>';
+				}else{
+					boiler ='<li><a href="javascript:void(0);" class="courseFileShortCut j-fa fa-files-o" id="courseFileShortCut_'+replay.employeeSubList[i].subBatch+'">'+replay.employeeSubList[i].dispSubName.gemsDecode()+' : '+semName+' ('+division+')';
+					if($('#customerHelper').val()=='XLRI'){
+						boiler+=' : '+employeeNames;
+					}
+					boiler+='</a></li>';
+				}
+				
+				$(divID).append(boiler);
+				$('.courseFileShortCut:last').data('empSub',replay.employeeSubList[i].empSub!=null && replay.employeeSubList[i].empSub!=undefined?replay.employeeSubList[i].empSub:"");
+				$('.courseFileShortCut:last').data('instCourse',replay.employeeSubList[i].instCourse!=null && replay.employeeSubList[i].instCourse!=undefined?replay.employeeSubList[i].instCourse:"");
+				$('.courseFileShortCut:last').data('dept',replay.employeeSubList[i].dept!=null && replay.employeeSubList[i].dept!=undefined?replay.employeeSubList[i].dept:"");
+				$('.courseFileShortCut:last').data('sem',replay.employeeSubList[i].sem!=null && replay.employeeSubList[i].sem!=undefined?replay.employeeSubList[i].sem:"");
+				$('.courseFileShortCut:last').data('semName',replay.employeeSubList[i].semName!=null && replay.employeeSubList[i].semName!=undefined?replay.employeeSubList[i].semName:"");
+				$('.courseFileShortCut:last').data('sub',replay.employeeSubList[i].sub!=null && replay.employeeSubList[i].sub!=undefined?replay.employeeSubList[i].sub:"");
+				$('.courseFileShortCut:last').data('subName',replay.employeeSubList[i].subName!=null && replay.employeeSubList[i].subName!=undefined?replay.employeeSubList[i].subName.gemsDecode():"");
+				$('.courseFileShortCut:last').data('subBatch',replay.employeeSubList[i].subBatch!=null && replay.employeeSubList[i].subBatch!=undefined?replay.employeeSubList[i].subBatch:"");
+				$('.courseFileShortCut:last').data('division',replay.employeeSubList[i].division!=null && replay.employeeSubList[i].division!=undefined?replay.employeeSubList[i].division:"");
+				$('.courseFileShortCut:last').data('intMarks',replay.employeeSubList[i].intMarks!=null && replay.employeeSubList[i].intMarks!=undefined?replay.employeeSubList[i].intMarks:"");
+				$('.courseFileShortCut:last').data('maxMarks',replay.employeeSubList[i].maxMarks!=null && replay.employeeSubList[i].maxMarks!=undefined?replay.employeeSubList[i].maxMarks:"");
+				$('.courseFileShortCut:last').data('subYear',replay.employeeSubList[i].subYear!=null && replay.employeeSubList[i].subYear!=undefined?replay.employeeSubList[i].subYear:"");
+				$('.courseFileShortCut:last').data('isFreezed',replay.employeeSubList[i].isFreezed!=null && replay.employeeSubList[i].isFreezed!=undefined?replay.employeeSubList[i].isFreezed:"");
+				$('.courseFileShortCut:last').data('parentSubBatchId',replay.employeeSubList[i].parentSubBatchId!=null && replay.employeeSubList[i].parentSubBatchId!=undefined?replay.employeeSubList[i].parentSubBatchId:"");
+				$('.courseFileShortCut:last').data('strengthId',replay.employeeSubList[i].strengthId!=null && replay.employeeSubList[i].strengthId!=undefined?replay.employeeSubList[i].strengthId:"");
+				$('.courseFileShortCut:last').data('batchSem',replay.employeeSubList[i].batchSem!=null && replay.employeeSubList[i].batchSem!=undefined?replay.employeeSubList[i].batchSem:"");
+				$('.courseFileShortCut:last').data('strengthId',replay.employeeSubList[i].strengthId!=null && replay.employeeSubList[i].strengthId!=undefined?replay.employeeSubList[i].strengthId:"");
+				$('.courseFileShortCut:last').data('subjectShortName',replay.employeeSubList[i].subjectShortName!=null && replay.employeeSubList[i].subjectShortName!=undefined?replay.employeeSubList[i].subjectShortName.gemsDecode():"");
+				$('.courseFileShortCut:last').data('dispInstCurs',replay.employeeSubList[i].dispInstCurs!=null && replay.employeeSubList[i].dispInstCurs!=undefined?replay.employeeSubList[i].dispInstCurs.gemsDecode():"");
+				$('.courseFileShortCut:last').data('isEQBAuthority',replay.employeeSubList[i].isEQBAuthority!=null && replay.employeeSubList[i].isEQBAuthority!=undefined?replay.employeeSubList[i].isEQBAuthority:"");
+				$('.courseFileShortCut:last').data('empId',empId);
+				$('.courseFileShortCut:last').data('employeeName',employeeName);
+				$('.courseFileShortCut:last').data('employeeNames',replay.employeeSubList[i].employeeNames!=null && replay.employeeSubList[i].employeeNames!=undefined?replay.employeeSubList[i].employeeNames:"");
+				$('#hdIsEQBAuthority').val(replay.employeeSubList[i].isEQBAuthority != null && replay.employeeSubList[i].isEQBAuthority != undefined ? replay.employeeSubList[i].isEQBAuthority : "");
+				$('#hdAllEmployeeNames').val(replay.employeeSubList[i].employeeNames != null && replay.employeeSubList[i].employeeNames != undefined ? replay.employeeSubList[i].employeeNames : "");
+			}
+			
+			try{
+				if(onLoadEmployeeRunningSubjectCourseFile!=undefined)
+					onLoadEmployeeRunningSubjectCourseFile(replay.employeeSubList);
+				
+			}catch(e){}
+			$('.courseFileShortCut').click(function(){
+				redirectRequest(this);
+			});
+			
+			try {
+				if(callback!=undefined) {
+					callback();
+				}
+			}catch(e) {
+				console.log(e);
+			}
+		},
+		error:function(){
+			alert("In loadYear()");
+		}
+	});
+}
+
+function checkNameStatus(){
+	try{
+		if(glosubInstCourse=="" || glosubShortName==""){
+			for(var i=0; i<globdispInstCurs.length; i++){
+				var subjId = globdispInstCurs[i].sub;
+				if(subjId == glosubId){
+					glosubInstCourse = globdispInstCurs[i].dispInstCurs;
+					glosubShortName = globdispInstCurs[i].subjectShortName;
+					gloemployeeNames = globdispInstCurs[i].employeeNames;
+				}else if(glosubId==""){
+					glosubInstCourse = globdispInstCurs[i].dispInstCurs;
+					glosubShortName = globdispInstCurs[i].subjectShortName;
+					gloemployeeNames = globdispInstCurs[i].employeeNames;
+					glosubName = $('#cmdloadsubject option:selected').text();
+					glosemesterName =  $('#cmdloadsemester option:selected').text();
+					glodivision = $('#cmdloadbatch option:selected').text();
+					glosubId = subjId;
+				}
+			}
+		}
+	}catch(e){
+		glosubInstCourse = "";
+		glosubShortName = "";
+		glosubName = "";
+		glosemesterName = "";
+		glodivision = "";
+		glosubId = "";
+		gloemployeeNames="";
+	}
+	
+	var parentSubId = $('#hdEmpParentSubId').val();
+	var currentURl = window.location.href;
+	var isCommonEmployeeCourseFile = false;
+	
+	if(currentURl.includes('commonEmployeeCourseFile.htm')){
+		isCommonEmployeeCourseFile = true;
+	}
+	
+	var boiler = '';
+	if(isCommonEmployeeCourseFile == true){
+		boiler = '<span style="float:left;cursor:pointer;" id="spnBack" class="badge badge-inverse" >'+
+		'<i class="icon-arrow-left icon-white"></i> Back</span><br><br>';
+	}
+	
+	if(parentSubId=="0") {
+		boiler +=glosubInstCourse+'<br>'+glosubShortName+'<br>'+glosubName+'<br>'+glosemesterName+'<br>'+glodivision;
+		if($('#customerHelper').val()=='XLRI'){
+			boiler +='<br>'+gloemployeeNames;
+		}
+	}else {
+		boiler +=glosubInstCourse+'<br>'+glosubShortName+'<br>'+glosubName+'<br>'+glosemesterName+'<br>'+glodivision;
+		if($('#customerHelper').val()=='XLRI'){
+			boiler +='<br>'+gloemployeeNames;
+		}
+	}
+	$('#thSubDetail').html(boiler);
+	if(isCommonEmployeeCourseFile == true){
+		$('#spnBack').click(function(){
+			$('#divSubjectCourseFile').hide('blind', {}, 1000, function(){
+				$('#divSubjectList').show();
+				$('#divCurrentSubjectList').show();
+				$('#showCourseFileTabs').show();
+			});
+		});
+	}
+}
+
+function redirectRequest(src) {
+	var instCourse = $(src).data('instCourse')!=null && $(src).data('instCourse')!=undefined?$(src).data('instCourse'):"";
+	var dept = $(src).data('dept')!=null && $(src).data('dept')!=undefined?$(src).data('dept'):"";
+	var sem = $(src).data('sem')!=null && $(src).data('sem')!=undefined?$(src).data('sem'):"";
+	var semName = $(src).data('semName')!=null && $(src).data('semName')!=undefined?$(src).data('semName'):"";
+	var sub = $(src).data('sub')!=null && $(src).data('sub')!=undefined?$(src).data('sub'):"";
+	var subName = $(src).data('subName')!=null && $(src).data('subName')!=undefined?$(src).data('subName'):"";
+	var subBatch = $(src).data('subBatch')!=null && $(src).data('subBatch')!=undefined?$(src).data('subBatch'):"";
+	var parentSubBatchId = $(src).data('parentSubBatchId')!=null && $(src).data('parentSubBatchId')!=undefined?$(src).data('parentSubBatchId'):"";
+	var division = $(src).data('division')!=null && $(src).data('division')!=undefined?$(src).data('division'):"";
+	var subYear = $(src).data('subYear')!=null && $(src).data('subYear')!=undefined?$(src).data('subYear'):"";
+	var intMarks = $(src).data('intMarks')!=null && $(src).data('intMarks')!=undefined?eval($(src).data('intMarks')):"";
+	var maxMarks = $(src).data('maxMarks')!=null && $(src).data('maxMarks')!=undefined?eval($(src).data('maxMarks')):"";
+	var empSub = $(src).data('empSub')!=null && $(src).data('empSub')!=undefined?eval($(src).data('empSub')):"";
+	var batchSem = $(src).data('batchSem')!=null && $(src).data('batchSem')!=undefined?eval($(src).data('batchSem')):"";
+	var isEQBAuthority = $(src).data('isEQBAuthority')!=null && $(src).data('isEQBAuthority')!=undefined?eval($(src).data('isEQBAuthority')):"";
+	var empId = $(src).data('empId')!=null && $(src).data('empId')!=undefined?$(src).data('empId'):"";
+	var employeeName = $(src).data('employeeName')!=null && $(src).data('employeeName')!=undefined?$(src).data('employeeName'):"";
+	var employeeNames = $(src).data('employeeNames')!=null && $(src).data('employeeNames')!=undefined?$(src).data('employeeNames'):"";
+	globalEmployeeSubjectIdShortcutLink = empSub;
+	
+	var isFreezed = $(src).data('isFreezed')!=null && $(src).data('isFreezed')!=undefined?eval($(src).data('isFreezed')):"";
+	var strengthId = $(src).data('strengthId')!=null && $(src).data('strengthId')!=undefined?eval($(src).data('strengthId')):"";
+	var subjectShortName = $(src).data('subjectShortName')!=null && $(src).data('subjectShortName')!=undefined?$(src).data('subjectShortName'):"";
+	var dispInstCurs = $(src).data('dispInstCurs')!=null && $(src).data('dispInstCurs')!=undefined?$(src).data('dispInstCurs'):"";
+	
+	var f = $('<form></form>').attr({method:'post', action:'EmployeeCourseFile.htm', target:'_blank'}).appendTo(document.body);
+	
+	$('<input>').attr({type:'hidden',name:'instCourse',value:instCourse}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'dept',value:dept}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'sem',value:sem}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'semName',value:semName}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'sub',value:sub}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subName',value:subName.gemsEncode()}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subBatch',value:subBatch}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'parentSubBatchId',value:parentSubBatchId}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'division',value:division}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subYear',value:subYear}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'intMarks',value:intMarks}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'maxMarks',value:maxMarks}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'empSub',value:empSub}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'isFreezed',value:isFreezed}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'strengthId',value:strengthId,id:'instituteCourseStrengthId'}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'subjectShortName',value:subjectShortName}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'dispInstCurs',value:dispInstCurs}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'batchSem',value:batchSem}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'isEQBAuthority',value:isEQBAuthority}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'empId',value:empId}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'employeeName',value:employeeName}).appendTo(f);
+	$('<input>').attr({type:'hidden',name:'employeeNames',value:employeeNames}).appendTo(f);
+	
+	f[0].submit();
+	f.remove();
+	
+}Ó˜ÀÙ   •        ¸O€      document   ¢„
+      ready      Ëuöi      hdnUserRole    _lhº      #hdnUserRole   &Ú›      val    ÿØšù      student    ã%>(      Student    \?Ü      getCourseFileShortCut      „ÙEÙ      onkeyup	    
+@¥&      ctrlKey
+    ™,Ø      shiftKey   Å¸0      which       å¼´      [href="fas_AccountEntries.htm"]    ø2‡‰      window     —x5      open   ‚q%S      fas_AccountEntries.htm     9Ò×^      _blank     óÙ·#      globalEmployeeSubjectIdShortcutLink    àù†Ç      globdispInstCurs   ®¼      divID      M`      #ulShortcut    è¸0      empId      ¾\-a      employeeName   èÛù      callback   aÚ'      redirectStatusHideMenu     ï²3"      #redirectStatusHideMenu    Ú£      today      %kâ5      getFullYear    "Ÿ      getMonth   ¶­      getDate    ÄLª      subjectwiseBatchId     p¡‰µ      TempSubjectwiseBatchId      “z      #TempSubjectwiseBatchId!    ù‹P      allowForAll"    iƒfY      #allowForAllShortCutVal#    É5Áˆ"      empRunningOrHistoryCourseFile.json$     A›Ô2&      stu_empRunningOrHistoryCourseFile.json%     ¾dÈ      ajax&   6—(      data'   Do€w      dataType(   Å™ü
+      GET)    „Ğÿ
+      beforeSend*     qm+ï      startCommonAjaxSpinner+     D•È‡      complete,   †*ğF      stopCommonAjaxSpinner-      É©\9      success.    Üqt:      replay/     *X,      insCourseList0      œ~0|      employeeSubList1    04j      semName2    ¾–ı      division3   ğ„u2      push4   Z]_	      startDate5      7°ã      endDate6    ğÂÏ      employeeNames7      °­ØG      inArray8    -·G÷      dispInstCurs9   É”Dç	      [^a-zA-Z]:      1ïfÊ      boiler=     #Ñ\³	      </a></li>>      ÜB-      append?     }Qr®	      isFreezed@      Å[ğØ:      <li><a href="javascript:void(0);" class="j-fa fa-files-o">A     Hb•¾      dispSubNameB    L|
+      gemsDecodeC     7‰\©       : D    °–$       (E     ÔÚ$È      #customerHelperF    Ç©5      XLRIG   ùÖ}ÖD      &nbsp;&nbsp;<b style="color:red">Course file is freezed</b></a></li>H   *adCd      <li><a href="javascript:void(0);" class="courseFileShortCut j-fa fa-files-o" id="courseFileShortCut_I   ÿ—iÎ      subBatchJ   +¨¢      ">K     °xÃ      .courseFileShortCut:lastL   £h•#      empSubM     øş¤?
+      instCourseN     â      deptO   €uçÙ      semP    sc      subQ    *İ)      subNameR    bPô      intMarksS   Xé      maxMarksT   mLD      subYearU    –d      parentSubBatchIdV   ¤A\)
+      strengthIdW     $ÉèW      batchSemX   úB      subjectShortNameY   ú¨U      isEQBAuthorityZ     ÖË+      #hdIsEQBAuthority[      »b      #hdAllEmployeeNames\    üÜ%&      onLoadEmployeeRunningSubjectCourseFile]     Æ \      .courseFileShortCut^    ŸªâX      click_      á.+…      redirectRequest`    şQ1      consolea    =Xû      logb    Òï¢Z      alertc      µı      In loadYear()d      rF¥‚      checkNameStatuse    Ljá§      glosubInstCoursef   z2­:      glosubShortNameg    5šÌ      subjIdh     ppÄL      glosubIdi   &Sh±      gloemployeeNamesj   »ÕF
+      glosubNamek     HúÜ      #cmdloadsubject option:selectedl    ˆ3Àµ      textm   qæ¡ã      glosemesterNamen    ÔÂç       #cmdloadsemester option:selectedo   X‘«n      glodivisionp    .úv      #cmdloadbatch option:selectedq      €˜      parentSubIdr    ¾˜      #hdEmpParentSubIds      ¾(/¾
+      currentURlt     0+QA      locationu   »©`X      hrefv   ˜m]ë      isCommonEmployeeCourseFilew     ?h      commonEmployeeCourseFile.htmz   ßy„      <br>{   qÜş      #thSubDetail|   ÔãX      html}   ÔTª      #spnBack~   t=HÍ      #divSubjectCourseFile      Ÿvô}      hide€   J^´      blind      @è(      #divSubjectList‚    H‡’K      showƒ   I™ké      #divCurrentSubjectList„     é§è      #showCourseFileTabs…    œ·È›      src†    mm:×      <form></form>‡      A¢½      attrˆ   ßb+      post‰   	àì      actionŠ     mt§      EmployeeCourseFile.htm‹      çãV      appendToŒ   ˜h;      body   ÑŞÎâ      <input>    „ÛèW      hidden     ÅOBœ
+      gemsEncode     ÆpŞè      instituteCourseStrengthId‘      dô¶      submit’     *N·Æ      remove“     4ğ´¬¦      <li class="divider"></li><li class="disabled"><a href="javascript:void(0)" class="disabled-link" style="font-size: 11px;float:right; font-weight: bold; color: #777;">”     • Š‘      <span style="float:left;cursor:pointer;" id="spnBack" class="badge badge-inverse" ><i class="icon-arrow-left icon-white"></i> Back</span><br><br>•      È‰×Y      document.onkeyup™   Ñ;*Ÿ      getCourseFileShortCut/success/<›    úc÷Ô      checkNameStatus/<œ      ü0      checkNameStatus/</<                          ï%,‰                                                                                                                                                                                        	      
+                
+           
+                                                                           ³OŒc           P  P  Ğd  Ğ_  Ğ              P  P  P  P          P    !    ó                                              .  /  i  1  2  4  5  6              e                w               e                                i  g  q  s  v  :              e                                               …  PP  PU  PM  P  P8  Ps  `R  PW  PO  P  `2  PT  P?  PL  PY  PQ  Pf `w  `I  PV  PN  P1  PS  P  P6  PX  P                             e  ¯Â0°9     9     9     9     9     9     9     9     Iô$KE®úš   (      ó  &  '  ä  )  +  -  †                !                     ‰  Å        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú            ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú        ä  =  ú  ‡&Õª!«!   |    ÿ<~¢|   @                 
+        ß   ¾       u æL   éo   y äº   Í   äº	   j    Í	   ä§eP
+ÿÿÿúPD+e'eK€  P€¤   3dÂW¤   k                         ¾       u æL   éu  Ğ   äÁ         ™   äÁ      ™   œ   ™   ¾    y  ä™
+   ¾   o   N	   ä§ `P
+P(`® `O`0P¸   úPq¸                            ¿  L   )   ™   ä¿  L      ™   ä¿  L   V™   œC   ™   ¾       u L    œ$   ™   ¾   æL   é	   
+   y ä™   § `À `P” `– PIP€€H  ôb8                 C       ³¶    ¶    ¶    ¶    ä¿  æ œ   ™   ä   ™   ¶    ä¿ ¶    ä¿ ¶    ä¿ ¶    äÙ   º   j    Í   ä¾       u æL   éu  Ğ   ä¾   ‚è  ƒ  Ñ    äÄ    æL   éu  	   (Ä    æL
+   éu  ((	   (Ä    æL   éu  (Ñ    äÁ    œ   ™    ¤™   Ğ  ä¾       u æL   éu  Ğ  äÁ   œ   ™   Á  Ğ  ä™   Ğ  ä¾       u  )   ™!   ä¾       u æL   éu     ™&   œ   ™'   Ğ  ä™'   ¾       u æL   éu  Ğ  ä   Ğ  äÁ     Ÿ   ™-   äÁ     ™.   œ   ™/      Ğ  ä™/   ¾   æL   é;   Á  >   ;   Ä   >   Á  >   Á  >   >      >      >   o    >!   o"   >#   o$   >%   o&   >'   y ä§à ` `P
+P(`” `P	PP+`,`1sF`&`P
+P(`,`N`&`P˜ P
+P˜ `K`P
+P(`*`® `O`%)	&.**JJ!JoJP4sP€€H     `   Ÿÿÿÿÿÿÿÿ4   ìÊã­4                             ¾    y  ä§ `*P€€4   ìÊã­4                             ¾    y  ä§ `*P€€  12<uÄ  u                9     $¾   ‚è  ƒ  Ğ   äĞ  äš   Á  ¿  L   L   œ  ™   ¿  L   Á  ML   Ğ  ä¿  L   Á  ML   Ğ  ä¾   æL   é¿  L   Á  My ä¿  L   Á  ML   Ğ  ä¿  L   Á  ML	   Ğ  ä¿  L   Á  ML
+   Ğ  ä¾   æL   é¿  L   Á  ML   Á   u ÿı   ™"   äÄ    æL   én      u Á  æL   én      u  >   ™(   äÄ    æL   én      u Á  æL   én      u ™-   Ÿ|   ™.   äÄ    æL   én      u Á  æL   én      u Ÿ>   ™4   äÄ    æL   én      u Á  æL   én      u ™9   œy   ™:   º      ¿  L   Á  ML   (   (Í   ä¾    Ä   ¸   u æL   é¾   y äÁ   æL   é¿  L   Á  ML   y ä™K   ¿  L   Á  ML   œ¸   ™O   º      ¿  L   Á  ML   æL   éu  (    (Á  (!   (Á  ("   (Í   ä¾    #   u æL$   éu  %   œ&   ™b   º   ¾       Á  ((0Í   ä™g   º   ¾   &   (0Í   ä›Ì   ™k   º   '   ¿  L   Á  ML(   ()   (¿  L   Á  ML   æL   éu  (    (Á  (!   (Á  ("   (Í   ä¾    #   u æL$   éu  %   œ&   ™ƒ   º   ¾       Á  ((0Í   ä™ˆ   º   ¾      (0Í   ä™Œ   ¾    Ä   ¸   u æL   é¾   y ä¾    *   u æL+   é,   ¿  L   Á  ML,      ™™   ä¿  L   Á  ML,    ™   œ!   ™   ¿  L   Á  ML,   ›   ™¡      ™¡   y ä¾    *   u æL+   é-   ¿  L   Á  ML-      ™ª   ä¿  L   Á  ML-    ™®   œ!   ™¯   ¿  L   Á  ML-   ›   ™²      ™²   y ä¾    *   u æL+   é.   ¿  L   Á  ML.      ™»   ä¿  L   Á  ML.    ™¿   œ!   ™À   ¿  L   Á  ML.   ›   ™Ã      ™Ã   y ä¾    *   u æL+   é/   ¿  L   Á  ML/      ™Ì   ä¿  L   Á  ML/    ™Ğ   œ!   ™Ñ   ¿  L   Á  ML/   ›   ™Ô      ™Ô   y ä¾    *   u æL+   é   ¿  L   Á  ML      ™İ   ä¿  L   Á  ML    ™á   œ!   ™â   ¿  L   Á  ML   ›   ™å      ™å   y ä¾    *   u æL+   é0   ¿  L   Á  ML0      ™î   ä¿  L   Á  ML0    ™ò   œ!   ™ó   ¿  L   Á  ML0   ›   ™ö      ™ö   y ä¾    *   u æL+   é1   ¿  L   Á  ML1      ™ÿ   ä¿  L   Á  ML1    ™  œ+   ™  ¿  L   Á  ML1   æL   éu  ›   ™	     ™	  y ä¾    *   u æL+   é(   ¿  L   Á  ML(      ™  ä¿  L   Á  ML(    ™  œ!   ™  ¿  L   Á  ML(   ›   ™     ™  y ä¾    *   u æL+   é   ¿  L   Á  ML      ™#  ä¿  L   Á  ML    ™'  œ!   ™(  ¿  L   Á  ML   ›   ™+     ™+  y ä¾    *   u æL+   é2   ¿  L   Á  ML2      ™4  ä¿  L   Á  ML2    ™8  œ!   ™9  ¿  L   Á  ML2   ›   ™<     ™<  y ä¾    *   u æL+   é3   ¿  L   Á  ML3      ™E  ä¿  L   Á  ML3    ™I  œ!   ™J  ¿  L   Á  ML3   ›   ™M     ™M  y ä¾    *   u æL+   é4   ¿  L   Á  ML4      ™V  ä¿  L   Á  ML4    ™Z  œ!   ™[  ¿  L   Á  ML4   ›   ™^     ™^  y ä¾    *   u æL+   é   ¿  L   Á  ML      ™g  ä¿  L   Á  ML    ™k  œ!   ™l  ¿  L   Á  ML   ›   ™o     ™o  y ä¾    *   u æL+   é5   ¿  L   Á  ML5      ™x  ä¿  L   Á  ML5    ™|  œ!   ™}  ¿  L   Á  ML5   ›   ™€     ™€  y ä¾    *   u æL+   é6   ¿  L   Á  ML6      ™‰  ä¿  L   Á  ML6    ™  œ!   ™  ¿  L   Á  ML6   ›   ™‘     ™‘  y ä¾    *   u æL+   é7   ¿  L   Á  ML7      ™š  ä¿  L   Á  ML7    ™  œ!   ™Ÿ  ¿  L   Á  ML7   ›   ™¢     ™¢  y ä¾    *   u æL+   é6   ¿  L   Á  ML6      ™«  ä¿  L   Á  ML6    ™¯  œ!   ™°  ¿  L   Á  ML6   ›   ™³     ™³  y ä¾    *   u æL+   é8   ¿  L   Á  ML8      ™¼  ä¿  L   Á  ML8    ™À  œ+   ™Á  ¿  L   Á  ML8   æL   éu  ›   ™Æ     ™Æ  y ä¾    *   u æL+   é   ¿  L   Á  ML      ™Ï  ä¿  L   Á  ML    ™Ó  œ+   ™Ô  ¿  L   Á  ML   æL   éu  ›   ™Ù     ™Ù  y ä¾    *   u æL+   é9   ¿  L   Á  ML9      ™â  ä¿  L   Á  ML9    ™æ  œ!   ™ç  ¿  L   Á  ML9   ›   ™ê     ™ê  y ä¾    *   u æL+   é:   Ä   ¸   y ä¾    *   u æL+   é;   Ä   ¸   y ä¾    *   u æL+   é
+   ¿  L   Á  ML
+      ™û  ä¿  L   Á  ML
+    ™ÿ  œ!   ™   ¿  L   Á  ML
+   ›   ™     ™  y ä¾    <   u æL$   é¿  L   Á  ML9      ™  ä¿  L   Á  ML9    ™  œ!   ™  ¿  L   Á  ML9   ›   ™     ™  y ä¾    =   u æL$   é¿  L   Á  ML
+      ™  ä¿  L   Á  ML
+    ™!  œ!   ™"  ¿  L   Á  ML
+   ›   ™%     ™%  y äÁ  2*Ğ  ä›nïÿÿ™(  ®¾>    œ   ™+  ¾>    ¿  L   y ä™.  ›   ™.   ¦°³´  ä´  äÕ™.  ¾    @   u æLA   éoB   y ä®Ä   ¸    œ   ™5  Ä    y  ä™6  ›-   ™6   ¦°³´  ä´  ä¾D   æLE   éÁ  y äÕ™9  § `’  `f˜ `— `— `ÿÿÿûP$`— `— `—@
+`
+’ 'ÿÿÿÑP W
+ÿÿÿøP
+ÿÿÿøPœ +
+ÿÿÿøP
+ÿÿÿøP¡ ,
+ÿÿÿøP
+ÿÿÿøPœ +
+ÿÿÿøP
+ÿÿÿøP“ `%€  —Ÿ `ÿÿÿÿP
+ÿÿÿùPD`’ ÿÿÿûPI`œ `
+E™ &P
+‘ 	`P
+P“ `’@`¡ `
+o™ (™ &P
+‘ 	`P
+P“ `’@`œ@!`ÿÿÿÿP
+ÿÿÿùP$`P+± L· ÿÿÿ¦P$`P/± T· ÿÿÿšP$`P)± H· ÿÿÿ¬P$`P(± F· ÿÿÿ¯P$`P,± N· ÿÿÿ£P$`P(± F· ÿÿÿ¯P$`P,± Nª ,P— ÿÿÿwP$`P-± P· ÿÿÿ P$`P-± P· ÿÿÿ P$`P-± P· ÿÿÿ P$`P-± P· ÿÿÿ P$`P,± N· ÿÿÿ£P$`P.± R· ÿÿÿP$`P5± `· ÿÿÿˆP$`P/± T· ÿÿÿšP$`P-± P· ÿÿÿ P$`P/± T· ÿÿÿšP$`P5± `ª 5P— ÿÿÿSP$`P1± Xª 1P— ÿÿÿcP$`P3± \· ÿÿÿP$`P*ÿÿÿóP$`P1ÿÿÿìP$`P2± Z· ÿÿÿ‘P$`P
+± `· ÿÿÿœP$`P
+± ^· ÿÿÿPD0`•0=!`(,`'ÿÿÿÿP–@A‘ `P
+ÿÿÿúP4F!`
+,`@J+`ÿÿÿüPJMP€€  ä  ?   ê     ÿÿÿÿC   O      ÿÿÿÿ          —          µ  -             -   D   YkD                           ãĞ   ä¾    Á   y ä§&`ÿÿÿÿP$P<   ;íD~<                             ¾       y ä§ `P$P€€´  6´ğ,„  V                œ       $®¾      Ÿ   ™   ä¾      ™   œŸ  ™   Ğ   äš   Á   ¾   L   œz  ™
+   ¾   Á   ML   Ğ  äÁ  ¾   œ]   ™   º   ¾   Á   ML   Í   äº   ¾   Á   ML	   Í   äº
+   ¾   Á   ML   Í
+   ä›å   ™   ¾      œĞ   ™"   º   ¾   Á   ML   Í   äº   ¾   Á   ML	   Í   äº
+   ¾   Á   ML   Í
+   äº   ¾       u æL   éu  Í   äº   ¾       u æL   éu  Í   äº   ¾       u æL   éu  Í   äº   Á  Í   ä™E   Á   2*Ğ   ä›vşÿÿ™G   ›‰   ™G    ¦°³´  ä´  äº      Í   äº      Í   äº      Í   äº      Í   äº      Í   äº      Í   äº
+      Í
+   äÕ™U   ¾       u æL   éu  Ğ  ä¾   L   L   Ğ  äĞ  äÁ  æL   é   u œ   ™_   Ğ  ä™_      Ğ  äÁ  œ   ™a      Ğ  ä™a   Á     œ’   ™c   Á  ¾      (¾   (   (¾   (   (¾   (   (¾   ((0Ğ  ä¾       u æL   éu      œ    ™w   Á     ¾
+   ((0Ğ  ä™z   ›ˆ   ™z   Á  ¾      (¾   (   (¾   (   (¾   (   (¾   ((0Ğ  ä¾       u æL   éu      œ    ™   Á     ¾
+   ((0Ğ  ä™‘   ¾    !   u æL"   éÁ  y äÁ  œ(   ™—   ¾    #   u æL$   éo%   y ä™œ   §!`°  `f• `” `
+ `š `š `¤ `• `š `š `š ` P
+%P)` P
+&P)` P
+#P)`”@,`¢@+` ` ` ` ` ` `–@`P
+P(`” #`F"` P-`K&`*` `O,`” `!-`P
+P“ `	œ01 `!-`P
+P“ `	’@7`P
+ÿÿÿûP$` `P
+ÿÿÿúP9AP€´  ”     Ø  |   ÿÿÿÿ       7                Ï  d   Ö@Ûd   ,                          ¾       u æL   é   ;   èo   y ä§ `P(
+ÿÿÿèPDP€€€Œ   ì¿Ú6Œ   L                          ¾       u æL   éy  ä¾       u æL   éy  ä¾       u æL   éy  ä§ `P
+P$`P
+P$`P
+P$P€<  —(]<  ¼  "              v      À  Ñ    äáÑ    äãÑ    ä7Ñ    ä½    Ä    u æL   é   u /   ™   ä½    Ä    u æL   é   u ½   ™   œ-   ™   ½    Ä    u æL   é   u ›   ™      ™   Ñ    ä½    Ä    u æL   é   u /   ™   ä½    Ä    u æL   é   u ½   ™   œ-   ™   ½    Ä    u æL   é   u ›   ™"      ™"   Ñ    ä½    Ä    u æL   é   u /   ™(   ä½    Ä    u æL   é   u ½   ™.   œ-   ™/   ½    Ä    u æL   é   u ›   ™3      ™3   Ñ    ä½    Ä    u æL   é   u /   ™9   ä½    Ä    u æL   é   u ½   ™?   œ-   ™@   ½    Ä    u æL   é   u ›   ™D      ™D   Ñ    ä½    Ä    u æL   é	   u /   ™J   ä½    Ä    u æL   é	   u ½   ™P   œ-   ™Q   ½    Ä    u æL   é	   u ›   ™U      ™U   Ñ    ä½    Ä    u æL   é
+   u /   ™[   ä½    Ä    u æL   é
+   u ½   ™a   œ-   ™b   ½    Ä    u æL   é
+   u ›   ™f      ™f   Ñ    ä½    Ä    u æL   é   u /   ™l   ä½    Ä    u æL   é   u ½   ™r   œ-   ™s   ½    Ä    u æL   é   u ›   ™w      ™w   Ñ    ä½    Ä    u æL   é   u /   ™}   ä½    Ä    u æL   é   u ½   ™ƒ   œ-   ™„   ½    Ä    u æL   é   u ›   ™ˆ      ™ˆ   Ñ    ä½    Ä    u æL   é   u /   ™   ä½    Ä    u æL   é   u ½   ™”   œ-   ™•   ½    Ä    u æL   é   u ›   ™™      ™™   Ñ    ä½    Ä    u æL   é   u /   ™Ÿ   ä½    Ä    u æL   é   u ½   ™¥   œ-   ™¦   ½    Ä    u æL   é   u ›   ™ª      ™ª   Ñ    ä½    Ä    u æL   é   u /   ™°   ä½    Ä    u æL   é   u ½   ™¶   œ;   ™·   ½    ½    Ä    u æL   é   u | íÖ   ›   ™½      ™½   Ñ  	  ä½    Ä    u æL   é   u /   ™Ã   ä½    Ä    u æL   é   u ½   ™É   œ;   ™Ê   ½    ½    Ä    u æL   é   u | í×   ›   ™Ğ      ™Ğ   Ñ    ä½    Ä    u æL   é   u /   ™Ö   ä½    Ä    u æL   é   u ½   ™Ü   œ;   ™İ   ½    ½    Ä    u æL   é   u | íØ   ›   ™ã      ™ã   Ñ    ä½    Ä    u æL   é   u /   ™é   ä½    Ä    u æL   é   u ½   ™ï   œ;   ™ğ   ½    ½    Ä    u æL   é   u | íÙ   ›   ™ö      ™ö   Ñ  
+  ä½    Ä    u æL   é   u /   ™ü   ä½    Ä    u æL   é   u ½   ™  œ;   ™  ½    ½    Ä    u æL   é   u | íÚ   ›   ™	     ™	  Ñ    ä½    Ä    u æL   é   u /   ™  ä½    Ä    u æL   é   u ½   ™  œ-   ™  ½    Ä    u æL   é   u ›   ™     ™  Ñ    ä½    Ä    u æL   é   u /   ™   ä½    Ä    u æL   é   u ½   ™&  œ-   ™'  ½    Ä    u æL   é   u ›   ™+     ™+  Ñ    ä½    Ä    u æL   é   u /   ™1  ä½    Ä    u æL   é   u ½   ™7  œ-   ™8  ½    Ä    u æL   é   u ›   ™<     ™<  Ñ    ä»   Ä    Ë   ä½    Ä    u æL   é   u /   ™D  ä½    Ä    u æL   é   u ½   ™J  œ;   ™K  ½    ½    Ä    u æL   é   u | íà   ›   ™Q     ™Q  Ñ    ä½    Ä    u æL   é   u /   ™W  ä½    Ä    u æL   é   u ½   ™]  œ;   ™^  ½    ½    Ä    u æL   é   u | íá   ›   ™d     ™d  Ñ    ä½    Ä    u æL   é   u /   ™j  ä½    Ä    u æL   é   u ½   ™p  œ-   ™q  ½    Ä    u æL   é   u ›   ™u     ™u  Ñ    ä½    Ä    u æL   é   u /   ™{  ä½    Ä    u æL   é   u ½   ™  œ-   ™‚  ½    Ä    u æL   é   u ›   ™†     ™†  Ñ    ä½       u æL   é;       >!   "   >#   $   >%   u æL&   é½'   L(   u Ñ    ä½    )   u æL   é;*   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;/   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;0   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;1   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;2   +   >,   	   >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;3   +   >,   
+   >-   Ä    æL4   éu  >.   u æL&   éÄ    y ä½    )   u æL   é;5   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;6   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;7   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;8   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;9   +   >,      >-   Ä  	  >.   u æL&   éÄ    y ä½    )   u æL   é;:   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;;   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;<   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;=   +   >,      >-   Ä    >.   >   >?   u æL&   éÄ    y ä½    )   u æL   é;@   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;A   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;B   +   >,      >-   Ä  
+  >.   u æL&   éÄ    y ä½    )   u æL   é;C   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;D   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;E   +   >,      >-   Ä    >.   u æL&   éÄ    y ä½    )   u æL   é;F   +   >,      >-   Ä    >.   u æL&   éÄ    y äÄ    MæLG   éy  äÄ    æLH   éy  ä§¢ `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– $ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– "ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP–  ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP– !ÿÿÿşPP› ÿÿÿşPP `‘@`ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– ÿÿÿşPP› ÿÿÿşPPÿÿÿôP£ `ÿÿÿÿPP– $ÿÿÿşPP› ÿÿÿşPP `ÿÿÿÿPP–  ÿÿÿşPP› ÿÿÿşPP@
+`P
+
+
+!
+ÿÿÿÊP
+Q
+ÿÿÿ÷PJ`P
+
+
+ÿÿÿÚP
+Bÿÿÿ÷P$`P
+
+
+ÿÿÿàP
+6ÿÿÿ÷P$`P
+
+
+ÿÿÿáP
+4ÿÿÿ÷P$`P
+
+
+ÿÿÿİP
+<ÿÿÿ÷P$`P
+
+
+ÿÿÿáP
+4ÿÿÿ÷P$`P
+
+
+PÿÿÿÏP
+Iÿÿÿ÷P$`P
+
+
+ÿÿÿÜP
+>ÿÿÿ÷P$`P
+
+
+ÿÿÿÔP
+Nÿÿÿ÷P$`P
+
+
+ÿÿÿÜP
+>ÿÿÿ÷P$`P
+
+
+ÿÿÿİP
+<ÿÿÿ÷P$`P
+
+
+ÿÿÿÜP
+>ÿÿÿ÷P$`P
+
+
+ÿÿÿÜP
+>ÿÿÿ÷P$`P
+
+
+ÿÿÿŞP
+:ÿÿÿ÷P$`P
+
+
+ÿÿÿÛP
+@ÿÿÿ÷P$`P
+
+
+
+ÿÿÿÉP
+aÿÿÿ÷P$`P
+
+
+ÿÿÿÔP
+Nÿÿÿ÷P$`P
+
+
+ÿÿÿØP
+Fÿÿÿ÷P$`P
+
+
+ÿÿÿÜP
+>ÿÿÿ÷P$`P
+
+
+ÿÿÿÖP
+Jÿÿÿ÷P$`P
+
+
+ÿÿÿßP
+8ÿÿÿ÷P$`P
+
+
+ÿÿÿØP
+Fÿÿÿ÷P$`P
+
+
+ÿÿÿ×P
+Hÿÿÿ÷PD3`P$`P46P3õØ  `*    `,    `_    `*  0    1  2    3  4  5  6  $  7  8  ˆ     Pz     P  P  P  P  P  P  P:  “  =  >  ?  @  A  B  C  D  )  E    F  G  H  I  J  K  &  L  M  N  O  P  Q  R  S  T  U  V  W  X  Y      Z  [  \    `]  ^    p  ``  a  	  `b  c    `    `  $      -    -         "  á    #      $  %     @ó    @    !  &    '  (  ä    p)    p+    p-    p†     `$    ‚  ƒ  „    `$  ~    €    @  p
+  `e  z   f      P  h  8  X  i  6  j  $  k  l  m  n  o  p    `r      t  u  ×   w  ”  0  z  E  F  {  |  }  ^  
+  p  `$  &  M    z   N  O  1  P  Q  I  U  2  T  R  Š   S  L  W  Y      6    ?  V  X  8  †  ‡    @ˆ    Š  ‰    Å  ‹     Œ      @  ä  =  ú    @  @  @  @	  @  
+  @  @  @  @  @  @  @  @  @     @  @  @  @  @  @  @‘  ’    `	  
+    $                `$                 p     `  p	  p  p$         p    ÿX„  
+              ş   
+             ó      •        O   (                  )              +           F   -              ™        L      †         „   &   d        }      ›        w      œ        ª   I   _        H©À      É;      É;                    ä     ä                  4  á  ,  á               €N  !  0  !                 +  P  #  P  .                f  Š  ^  Š  1                 Ğ   –  Ğ   4              =   `   5   `   v   +             â   !  Ú   !  ‚               %!  ‘)  !  ‘)  ˆ               Ì(  Š)  Ä(  Š)  Á                )  „)  )  „)  Â   ?           ƒ.«)  É;  “)  É;  Ë             5¡İ*<ŞáÀƒˆö-      iÕÂ]iÕÂ]I]åOiÖèĞ   u    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/employeeJs/CourseFile/CourseFileShortCut.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"15305-1774862312000"
+Last-Modified: Mon, 30 Mar 2026 09:18:32 GMT
+Content-Type: text/javascript
+Content-Length: 15305
+Date: Wed, 08 Apr 2026 02:49:20 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"15305-1774862312000"
+Last-Modified: Mon, 30 Mar 2026 09:18:32 GMT
+Content-Type: text/javascript
+Content-Length: 15305
+Keep-Alive: timeout=5, max=90
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 262 net-response-time-onstop 262 alt-data 1;15305,javascript/moz-script-bytecode-20260309231353-8l alt-data-from-child 1   Õü

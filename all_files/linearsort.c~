@@ -1,0 +1,17 @@
+#include<stdio.h>
+int main()
+{
+int k,n,a;
+printf("enter the key value");
+scanf("%d",&k);
+printf("enter the elements");
+scanf("%d",&n);
+printf("enter the number to find the key value");
+scanf("%d",&a);
+for(int i=0;i<k-1;i++)
+{
+   if(k[i]==a)
+      printf("key found in array");
+}
+}
+

@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<application-state>
+  <context id="">
+    <application id="libreoffice-calc.desktop" score="115" last-seen="1773136903"/>
+    <application id="libreoffice-startcenter.desktop" score="0" last-seen="1773136583"/>
+    <application id="org.gnome.Nautilus.desktop" score="431.5198974609375" last-seen="1773725181"/>
+    <application id="org.gnome.FileRoller.desktop" score="0" last-seen="1773636356"/>
+    <application id="firefox_firefox.desktop" score="8415.5259717584122" last-seen="1773728333"/>
+    <application id="org.gnome.Terminal.desktop" score="25611.672637939453" last-seen="1773728692"/>
+    <application id="org.gnome.gedit.desktop" score="1694.1376017494285" last-seen="1773638230"/>
+    <application id="org.gnome.eog.desktop" score="2" last-seen="1773137195"/>
+    <application id="libreoffice-writer.desktop" score="77" last-seen="1773137362"/>
+    <application id="gnome-control-center.desktop" score="5" last-seen="1773636263"/>
+    <application id="update-manager.desktop" score="1" last-seen="1773633535"/>
+  </context>
+</application-state>

@@ -1,0 +1,795 @@
+var globalPostType = "";
+$(document).ready(function () {
+  $('#postHome').show();
+});
+function getAlumniPost(limit) {
+  ReactDOM.render( /*#__PURE__*/React.createElement(AlumniPost, {
+    isUpadationRequired: true,
+    limit: limit
+  }), document.getElementById('divalumpost'));
+}
+$('#post-alum').click(function () {
+  globalPostType = $('.shareType').val();
+  var alumniTextPost = '';
+  let emailSubject = "";
+  if (globalPostType == 'status') {
+    try {
+      alumniTextPost = encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData()); //$('#alumniTextPost').val();
+      if (alumniTextPost == '') return jAlert("Please enter a message!");
+    } catch (Exception) {
+      alumniTextPost = "";
+    }
+  } else if (globalPostType == 'videos') {
+    try {
+      var textPost = encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData()); //$('#alumniTextPost').val();
+    } catch (Exception) {
+      alumniTextPost = "";
+    }
+    var url = $('div.liveurl div.inner div.url').html();
+    var urlboiler = '<a href="' + url + '" target="_blank">' + url + '</a>';
+    $('div.liveurl div.inner div.url').html(urlboiler);
+    var title = $('div.liveurl div.inner div.title').html();
+    var titleBoiler = '<b>' + title + '</b>';
+    $('div.liveurl div.inner div.title').html(titleBoiler);
+    //$('div.liveurl div.inner').html()
+    alumniTextPost = textPost + encodeURIComponent('<div class="row-fluid">' + $('#alumniLinkPost').val() + '</div>');
+  } else if (globalPostType == 'photos') {
+    try {
+      alumniTextPost = encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData()); //$('#alumniTextPost').val();
+      if (alumniTextPost == '') return jAlert("Please enter some text or upload file!");
+    } catch (Exception) {
+      alumniTextPost = "";
+    }
+  } else if (globalPostType == 'location') {
+    try {
+      alumniTextPost = encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData()); //$('#alumniTextPost').val();
+    } catch (Exception) {
+      alumniTextPost = "";
+    }
+    var lng = $("input[name='lng']").val();
+    var lat = $("input[name='lat']").val();
+    if (lat != undefined && lng != undefined && lat != 0 && lng != 0 && lat != '' && lng != '') {
+      alumniTextPost += '<br><strong>' + $('#geocomplete').val() + '</strong><br/>';
+      alumniTextPost += '<img class="img-responsive" src="http://maps.googleapis.com/maps/api/staticmap?size=500x150&maptype=roadmap\&markers=size:mid%7Ccolor:red%7C' + lat + ',' + lng + '&zoom=15&sensor=false" />';
+    }
+  } else if (globalPostType == 'sms') {
+    try {
+      alumniTextPost = $('#alumniTextPost').val();
+    } catch (Exception) {
+      alumniTextPost = "";
+    }
+  } else if (globalPostType == 'email') {
+    try {
+      if (ckeditorFlag != undefined) ckeditorFlag = false;
+      emailSubject = $("#emailSubject").val();
+      alumniTextPost = encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData()); //$('#alumniTextPost').val();
+      $("#emailSubject").val('');
+      if (alumniTextPost == '') return jAlert("Please enter email text!");
+    } catch (Exception) {
+      alumniTextPost = "";
+    }
+  }
+  var alumUserId = '';
+  var selfPostFlag = false;
+  if ($('#postScope').val() != '' && $('#postScope').val() != undefined) {
+    alumUserId = $('#postScope').val();
+    $('#postScope').focus();
+    selfPostFlag = true;
+  } else {
+    selfPostFlag = false;
+  }
+  var isProductionEnvironment = $('#txtIsProduction').val() != undefined ? $('#txtIsProduction').val() : false;
+
+  /*var urlStr='addAlumniPost.json';
+  if(isProductionEnvironment.toString()=='false')*/
+  var urlStr = 'addAlumniPostNew.json';
+  if (selfPostFlag) {
+    $.ajax({
+      url: urlStr,
+      dataType: 'json',
+      type: 'POST',
+      data: {
+        alumUserId: alumUserId,
+        alumniTextPost: alumniTextPost,
+        postType: globalPostType,
+        emailSubject: emailSubject
+      },
+      async: false,
+      beforeSend: function () {
+        startCommonAjaxSpinner();
+      },
+      complete: function () {
+        stopCommonAjaxSpinner();
+        try {
+          CKEDITOR.instances.alumniTextPost.setData("");
+        } catch (Exception) {}
+        //$('#alumniTextPost').val("");
+        $('#alumniLinkPost').val("");
+        $('#alumniDocumentPostText').val('');
+        $('#showAluminiPostUploadDiv').html('');
+        $('#postScope').tokenInput("clear");
+        $('.liveurl').hide();
+        //$('#alumniTextPost').focus();
+        /*for(name in CKEDITOR.instances){
+            CKEDITOR.instances[name].destroy(true);
+        }*/
+        $('#post-alum').focus();
+        //changeMessageType(globalPostType);
+      },
+      success: function (jArray) {
+        ReactDOM.render( /*#__PURE__*/React.createElement(AlumniPost, {
+          isUpadationRequired: true
+        }), document.getElementById('divalumpost'));
+      },
+      error: function () {}
+    });
+  }
+});
+class AlumniPost extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      isLoaded: false,
+      isError: false,
+      isUpdated: false,
+      posts: [],
+      shown: true,
+      isUpadationRequired: false,
+      limit: 5,
+      customer: $('#customerHelper').val()
+    };
+    this.fetchPosts = this.fetchPosts.bind(this);
+    this.deleteCommentThread = this.deleteCommentThread.bind(this);
+    this.saveEditComment = this.saveEditComment.bind(this);
+  }
+  fetchPosts(limit) {
+    var hdnUserRole = $('#showCommentHide').val();
+    var url = 'getAlumniPost.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+      url = 'stu_getAlumniPost.json';
+    }
+    $.ajax({
+      url: url,
+      data: {
+        limit: limit
+      },
+      dataType: 'json',
+      headers: {
+        'security-helper-prop': true
+      },
+      beforeSend: function () {
+        if (limit > 5) {
+          $('#divalumpost').append('<div style="text-align:center;" class="faSpinner"><i class="fa fa-spinner fa-pulse fa-fw fa-3x" style="color:#0b4971"></i></div>');
+          scrollToDom($('#divalumpost .faSpinner'));
+        }
+      },
+      complete: function () {
+        $('#divalumpost .faSpinner').remove();
+      },
+      success: function (jArray) {
+        $(".tComment").val("");
+        this.setState({
+          isLoaded: true,
+          posts: jArray,
+          isUpdated: true
+        });
+      }.bind(this),
+      error: function () {}
+    });
+  }
+  componentDidMount() {
+    this.fetchPosts(this.state.limit);
+  }
+  static getDerivedStateFromProps(nextProps, prevState) {
+    if (nextProps.isUpadationRequired !== prevState.isUpadationRequired) {
+      return {
+        isUpadationRequired: nextProps.isUpadationRequired,
+        limit: nextProps.limit != undefined ? nextProps.limit : prevState.limit
+      };
+    } else if (nextProps.isUpadationRequired == prevState.isUpadationRequired) {
+      return {
+        isUpadationRequired: false,
+        limit: nextProps.limit != undefined ? nextProps.limit : prevState.limit
+      };
+    } else {
+      return null;
+    }
+  }
+  shouldComponentUpdate(newProps, newState) {
+    if (newState.isUpdated == true) {
+      return true;
+    }
+    return false;
+  }
+  componentDidUpdate(prevProps, prevState) {
+    if (prevProps.isUpadationRequired !== this.state.isUpadationRequired) {
+      let postLimit = this.state.limit;
+      this.fetchPosts(postLimit);
+    }
+    if (prevState.isUpdated == true) {
+      return true;
+    }
+    return false;
+  }
+  showPostofUser(userId, e) {
+    window.location.href = "alumniPost.htm?type=other&id=" + userId;
+  }
+  showHiddenComment(alumniRingPostId) {
+    $('.hiddenComment-' + alumniRingPostId).show();
+    $('#tr_showComments-' + alumniRingPostId).hide();
+    $('#tr_hideComments-' + alumniRingPostId).show();
+  }
+  hideShownComment(alumniRingPostId) {
+    $('.hiddenComment-' + alumniRingPostId).hide();
+    $('#tr_showComments-' + alumniRingPostId).show();
+    $('#tr_hideComments-' + alumniRingPostId).hide();
+  }
+  editComment(id) {
+    let textVal = $('#actionEdit-' + id).text();
+    if (textVal == "edit") {
+      let data = $('#commentData-' + id).text();
+      ReactDOM.render( /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+        id: 'actionSave-' + id
+      }, /*#__PURE__*/React.createElement("a", {
+        onClick: e => this.saveComment(id)
+      }, /*#__PURE__*/React.createElement("i", {
+        style: {
+          float: 'right',
+          marginLeft: '5px'
+        }
+      }, "save"))), /*#__PURE__*/React.createElement("span", {
+        id: 'actionCancle-' + id
+      }, /*#__PURE__*/React.createElement("a", {
+        onClick: e => this.cancleComment(id, data)
+      }, /*#__PURE__*/React.createElement("i", {
+        style: {
+          float: 'right',
+          marginLeft: '5px'
+        }
+      }, "cancel")))), document.getElementById('actionEdit-' + id));
+      ReactDOM.render( /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
+        type: "text",
+        style: {
+          width: '80%',
+          margin: '5px',
+          borderRadius: '0px',
+          display: 'inline'
+        },
+        id: 'txtCommentEdit-' + id,
+        defaultValue: data
+      })), document.getElementById('commentData-' + id));
+      document.getElementById('txtCommentEdit-' + id).focus();
+    }
+  }
+  cancleComment(id, data) {
+    ReactDOM.render( /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+      id: 'actionEdit-' + id
+    }, /*#__PURE__*/React.createElement("a", {
+      onClick: e => this.editComment(id)
+    }, /*#__PURE__*/React.createElement("i", {
+      style: {
+        float: 'right',
+        marginLeft: '5px'
+      }
+    }, "edit")))), document.getElementById('actionEdit-' + id));
+    ReactDOM.render(data, document.getElementById('commentData-' + id));
+  }
+  deleteCommentThread(commentThreadId) {
+    $.ajax({
+      url: 'deleteCommentThread.json?__commentThreadId=' + commentThreadId,
+      dataType: 'text',
+      headers: {
+        'security-helper-prop': true
+      },
+      async: false,
+      beforeSend: function () {
+        startCommonAjaxSpinner();
+      },
+      complete: function () {
+        stopCommonAjaxSpinner();
+      },
+      success: function (text) {
+        this.fetchPosts(this.state.limit);
+      }.bind(this),
+      error: function () {
+        alert("error in deleteCommentThread");
+      }
+    });
+  }
+  saveComment(id) {
+    this.saveEditComment(id);
+    var editedComment = $('#txtCommentEdit-' + id).val();
+    var boiler = '' + editedComment;
+    ReactDOM.render( /*#__PURE__*/React.createElement(React.Fragment, null, "boiler"), document.getElementById('commentData-' + id));
+    ReactDOM.render( /*#__PURE__*/React.createElement("a", {
+      onClick: e => this.editComment(id)
+    }, /*#__PURE__*/React.createElement("i", {
+      style: {
+        float: 'right',
+        marginLeft: '5px'
+      }
+    }, "edit")), document.getElementById('actionEdit-' + id));
+  }
+  saveEditComment(commentThreadId) {
+    var comment = $("#txtCommentEdit-" + commentThreadId).val().trim();
+    if (comment == "") {
+      jAlert("Please Enter Comment");
+      return;
+    }
+    $.ajax({
+      url: 'editCommentThread.json',
+      dataType: 'json',
+      headers: {
+        'security-helper-prop': true
+      },
+      data: {
+        __commentThreadId: commentThreadId,
+        comment: comment
+      },
+      async: false,
+      beforeSend: function () {
+        startCommonAjaxSpinner();
+      },
+      complete: function () {
+        stopCommonAjaxSpinner();
+      },
+      success: function (commentjArray) {
+        this.fetchPosts(this.state.limit);
+      }.bind(this),
+      error: function () {
+        jAlert("Error posting your comment, Please try after some time");
+      }
+    });
+  }
+  savePostComment(alumniRingPostId) {
+    var comment = $("#txtNewCommen-" + alumniRingPostId).val().trim();
+    if (comment == "") {
+      jAlert("Please Enter Comment");
+      return;
+    }
+    $.ajax({
+      url: 'savePostCommentThread.json?comment=' + escape(comment) + '&__alumniRingPostId=' + alumniRingPostId,
+      dataType: 'json',
+      headers: {
+        'security-helper-prop': true
+      },
+      async: false,
+      beforeSend: function () {
+        startCommonAjaxSpinner();
+      },
+      complete: function () {
+        stopCommonAjaxSpinner();
+      },
+      success: function (commentjArray) {
+        this.fetchPosts(this.state.limit);
+      }.bind(this),
+      error: function () {
+        jAlert("Error posting your comment, Please try after some time");
+      }
+    });
+  }
+  removePost(alumnipostDetailId) {
+    $.ajax({
+      url: 'removeAlumniPost.json?__alumnipostDetailId=' + alumnipostDetailId,
+      headers: {
+        'security-helper-prop': true
+      },
+      beforeSend: function () {},
+      complete: function () {},
+      success: function (jArray) {
+        this.fetchPosts(this.state.limit);
+      }.bind(this),
+      error: function () {}
+    });
+  }
+  removeAllPost(alumnipostDetailId, alumniRingPostId) {
+    $.ajax({
+      url: 'removeAllAlumniPost.json?__alumnipostDetailId=' + alumnipostDetailId + '&__alumniRingPostId=' + alumniRingPostId,
+      headers: {
+        'security-helper-prop': true
+      },
+      beforeSend: function () {},
+      complete: function () {},
+      success: function (jArray) {
+        this.fetchPosts(this.state.limit);
+      }.bind(this),
+      error: function () {}
+    });
+  }
+  render() {
+    const {
+      isError,
+      isLoaded,
+      posts,
+      isUpdated,
+      isHidden,
+      customer
+    } = this.state;
+    const noPosts = {
+      textAlign: "center",
+      fontSize: "var(--juno-font-size-heading)"
+    };
+    const PostStyle = {
+      backgroundColor: "#FFF",
+      border: "1px solid #C0C0C0",
+      fontSize: "var(--juno-font-size-regular)",
+      marginBottom: "5px"
+    };
+    const ImgStyle = {
+      marginRight: "10px",
+      height: "25px",
+      width: "25px"
+    };
+    const styleButton = {
+      borderRadius: 50 + 'px !important',
+      float: 'right',
+      marginLeft: '0px',
+      display: 'inline'
+    };
+    if (isError) {
+      return /*#__PURE__*/React.createElement("div", null, "Error");
+    } else if (!isLoaded) {
+      return /*#__PURE__*/React.createElement("div", {
+        id: "divPostLoading",
+        style: {
+          textAlign: 'center',
+          width: '100%'
+        }
+      }, /*#__PURE__*/React.createElement("img", {
+        src: "img/loading-image.gif"
+      }));
+    } else {
+      let noRecord;
+      let replyid = 1;
+      $('#displayBoxes').show();
+      if (posts.length == 0) {
+        noRecord = /*#__PURE__*/React.createElement("p", {
+          style: noPosts
+        }, "No Details found");
+        $("#divalumpost").hide();
+      }
+      $("#divalumpost").show();
+      const RawHTML = ({
+        children,
+        className = ""
+      }) => /*#__PURE__*/React.createElement("div", {
+        className: className,
+        dangerouslySetInnerHTML: {
+          __html: children
+        }
+      });
+      return /*#__PURE__*/React.createElement(React.Fragment, null, posts.map((post, i) => {
+        let id = post.alumniRingPostDetailId;
+        let des = post.description;
+        let postId = 'alumPost' + post.alumniRingPostDetailId;
+        let latestPostStyle;
+        let share;
+        let Description;
+        try {
+          Description = decodeURIComponent(post.description);
+        } catch (e) {
+          Description = post.description;
+        }
+        if (!post.latestPost) {
+          latestPostStyle = "#F7F7F7";
+        } else {
+          latestPostStyle = "#E7F7E7";
+        }
+        const latestPost = {
+          padding: "5px",
+          backgroundColor: latestPostStyle,
+          borderBottom: "1px solid #F0F0F0"
+        };
+        let sharwith = "shared this with";
+        if (!post.selfPost) {
+          share = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, " ", post.name, " "), sharwith, " ", /*#__PURE__*/React.createElement("strong", null, " You "));
+        } /*else if(post.userId == post.userToId && post.sharedWith1 =='none'){
+                share =  <React.Fragment><strong>Admin</strong> {sharwith} <strong>You</strong> </React.Fragment>;
+            }*/else {
+          share = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("strong", null, " You "), " ", sharwith, " ", /*#__PURE__*/React.createElement("strong", null, " ", dangerouslySetHtml(post.sharedWith1), "  "), " ");
+        }
+        let isStudent = false;
+        let person = $('#hdnUserRole').val();
+        if (person.toLowerCase() == 'student' || person == 'alumnistudent') {
+          isStudent = true;
+        }
+        let Comments;
+        let commentjArray = eval(post.commentjArray);
+        if (customer != "INDIRA_PUNE") {
+          Comments = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+            style: {
+              width: '100%',
+              display: 'block'
+            },
+            className: "commentbox"
+          }, /*#__PURE__*/React.createElement("div", {
+            id: 'divNewCommen-' + post.alumniRingPostId
+          }, /*#__PURE__*/React.createElement("input", {
+            type: "text",
+            id: 'txtNewCommen-' + post.alumniRingPostId,
+            style: {
+              width: '93%',
+              margin: '5px',
+              borderRadius: '0px',
+              display: 'inline'
+            },
+            placeholder: "Enter Comment...",
+            className: "tComment"
+          }), /*#__PURE__*/React.createElement("button", {
+            id: 'btnNewCommen-' + post.alumniRingPostId,
+            onClick: e => this.savePostComment(post.alumniRingPostId, e),
+            className: "btn btn-mini btn-primary",
+            style: styleButton
+          }, /*#__PURE__*/React.createElement("i", {
+            className: "fa fa-share-square-o fa-lg"
+          }))), /*#__PURE__*/React.createElement(CommentBox, {
+            comments: commentjArray,
+            posts: post,
+            state: this
+          })));
+        }
+        return /*#__PURE__*/React.createElement("div", {
+          id: 'alumPost' + post.alumniRingPostDetailId,
+          style: PostStyle,
+          key: i
+        }, /*#__PURE__*/React.createElement("div", {
+          style: latestPost
+        }, /*#__PURE__*/React.createElement("img", {
+          src: post.ImageURL,
+          style: ImgStyle,
+          onClick: e => this.showPostofUser(post.userId, e)
+        }), share), /*#__PURE__*/React.createElement("div", {
+          style: {
+            padding: '10px',
+            marginLeft: '10px'
+          }
+        }, /*#__PURE__*/React.createElement(RawHTML, {
+          className: "ignoreGEMSStyling"
+        }, Description), /*#__PURE__*/React.createElement("div", {
+          id: 'attachment-' + post.alumniRingPostId
+        })), /*#__PURE__*/React.createElement("div", {
+          style: {
+            padding: '5px',
+            backgroundColor: '#FAFAFA',
+            borderBottom: '1px solid #F0F0F0',
+            fontSize: 'var(--juno-font-size-regular)'
+          }
+        }, !isStudent && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("a", {
+          onClick: e => this.removePost(post.alumniRingPostDetailId)
+        }, "Remove  "), /*#__PURE__*/React.createElement("a", {
+          onClick: e => this.removeAllPost(post.alumniRingPostDetailId, post.alumniRingPostId)
+        }, "Remove All")), /*#__PURE__*/React.createElement("span", {
+          style: {
+            float: 'right'
+          }
+        }, post.date, " ", '   ', post.time)), Comments, (() => {
+          let docArray = post.attachments;
+          $('#attachment-' + post.alumniRingPostId).html("");
+          if (docArray.length > 0) {
+            let isCreator = false;
+            if (post.selfPost) {
+              isCreator = true;
+            }
+            var person = $('#hdnUserRole').val();
+            if (person.toLowerCase() != 'student' && person != 'alumnistudent') {
+              person = 'Employee';
+            } else if (person == 'alumnistudent') {
+              person = 'Student';
+            }
+            setTimeout(function () {
+              showAluminiPostAttachment(docArray, 'attachment-' + post.alumniRingPostId, isCreator, person, "thumbnail");
+            }, 100);
+          }
+          replyid++;
+        })());
+      }));
+    }
+  }
+}
+$(document).ready(function () {
+  ReactDOM.render( /*#__PURE__*/React.createElement(AlumniPost, null), document.getElementById('divalumpost'));
+});
+function CommentBox(props) {
+  let commentArr = props.comments;
+  let postArr = props.posts;
+  let commentLength = commentArr.length;
+  let shown = commentLength > 3 ? "block" : "none";
+  const ShowHideTable = () => /*#__PURE__*/React.createElement("table", {
+    id: 'tableShowHideComment-' + postArr.alumniRingPostId,
+    style: {
+      marginLeft: '5%',
+      display: shown,
+      marginTop: '3px',
+      width: '94%',
+      backgroundColor: '#F3F3F3'
+    },
+    className: $('#showCommentHide').attr('showhide')
+  }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", {
+    id: 'tr_showComments-' + postArr.alumniRingPostId
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    onClick: e => props.state.showHiddenComment(postArr.alumniRingPostId)
+  }, "Show all comments(", commentArr.length, ")"))), /*#__PURE__*/React.createElement("tr", {
+    id: 'tr_hideComments-' + postArr.alumniRingPostId,
+    style: {
+      display: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    onClick: e => props.state.hideShownComment(postArr.alumniRingPostId)
+  }, "Hide comments")))));
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ShowHideTable, null), commentArr.map((comment, i) => {
+    let Ownertbl;
+    if (comment.isOwner) {
+      Ownertbl = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+        id: "parentAction"
+      }, /*#__PURE__*/React.createElement("span", {
+        id: 'actionRemove-' + comment.commentThreadId
+      }, /*#__PURE__*/React.createElement("a", {
+        href: "#linkDiv",
+        title: "Remove",
+        onClick: e => props.state.deleteCommentThread(comment.commentThreadId)
+      }, /*#__PURE__*/React.createElement("i", {
+        style: {
+          float: 'right',
+          marginLeft: '5px'
+        }
+      }, "remove"))), /*#__PURE__*/React.createElement("span", {
+        id: 'actionEdit-' + comment.commentThreadId
+      }, /*#__PURE__*/React.createElement("a", {
+        onClick: e => props.state.editComment(comment.commentThreadId)
+      }, /*#__PURE__*/React.createElement("i", {
+        style: {
+          float: 'right',
+          marginLeft: '5px'
+        }
+      }, "edit")))));
+    }
+    if (commentLength > 3 && i < commentLength - 3) {
+      return /*#__PURE__*/React.createElement("table", {
+        className: 'hiddenComment-' + postArr.alumniRingPostId,
+        key: i,
+        style: {
+          display: 'none',
+          marginLeft: '5%',
+          marginTop: '3px',
+          width: '94%',
+          backgroundColor: '#F3F3F3'
+        }
+      }, /*#__PURE__*/React.createElement("tbody", {
+        id: 'tr-' + comment.commentThreadId
+      }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+        rowSpan: "2",
+        style: {
+          verticalAlign: 'top',
+          padding: '4px',
+          width: '30px'
+        }
+      }, /*#__PURE__*/React.createElement("img", {
+        src: comment.ImageURL,
+        style: {
+          height: '20px',
+          width: '20px'
+        }
+      })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("p", {
+        style: {
+          display: 'inline'
+        }
+      }, /*#__PURE__*/React.createElement("b", null, comment.name, " : ")), /*#__PURE__*/React.createElement("p", {
+        style: {
+          display: 'inline',
+          float: 'right'
+        },
+        className: "muted"
+      }, moment(comment.commentDateTime).fromNow()))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("p", {
+        className: "muted"
+      }, /*#__PURE__*/React.createElement("span", {
+        id: 'commentData-' + comment.commentThreadId,
+        key: comment.commentThreadId
+      }, comment.comment), Ownertbl)))));
+    } else {
+      return /*#__PURE__*/React.createElement("table", {
+        className: 'comment-' + postArr.alumniRingPostId,
+        key: i,
+        style: {
+          marginLeft: '5%',
+          marginTop: '3px',
+          width: '94%',
+          backgroundColor: '#F3F3F3',
+          display: 'table'
+        },
+        className: $('#showCommentHide').attr('showhide')
+      }, /*#__PURE__*/React.createElement("tbody", {
+        id: 'tr-' + comment.commentThreadId
+      }, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+        rowSpan: "2",
+        style: {
+          verticalAlign: 'top',
+          padding: '4px',
+          width: '30px'
+        }
+      }, /*#__PURE__*/React.createElement("img", {
+        src: comment.ImageURL,
+        style: {
+          height: '20px',
+          width: '20px'
+        }
+      })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("p", {
+        style: {
+          display: 'inline'
+        }
+      }, /*#__PURE__*/React.createElement("b", null, comment.name, "(", comment.rollNo, ") : ")), /*#__PURE__*/React.createElement("p", {
+        style: {
+          display: 'inline',
+          float: 'right'
+        },
+        className: "muted"
+      }, moment(comment.commentDateTime).fromNow()))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("p", {
+        className: "muted"
+      }, /*#__PURE__*/React.createElement("span", {
+        id: 'commentData-' + comment.commentThreadId,
+        key: comment.commentThreadId
+      }, comment.comment), Ownertbl)))));
+    }
+  }));
+}
+function dangerouslySetHtml(str) {
+  return /*#__PURE__*/React.createElement("span", {
+    dangerouslySetInnerHTML: {
+      __html: '' + str
+    }
+  });
+}
+function showAllPostedToUser(alumniRingPostId) {
+  $.ajax({
+    url: 'showAllPostedToUser.json?__alumniRingPostId=' + alumniRingPostId,
+    dataType: 'json',
+    headers: {
+      'security-helper-prop': true
+    },
+    beforeSend: function () {
+      startCommonAjaxSpinner();
+    },
+    complete: function () {
+      stopCommonAjaxSpinner();
+    },
+    success: function (jArray) {
+      var modalBoiler = '			<div id="divSharedWithModal" class="modal hide fade">' + '				<div class="modal-header">' + '					<button type="button" class="close" data-dismiss="modal">x</button>' + '					<h3>You shared the post with...</h3>' + '				</div>' + '				<div class="modal-body">' + '					<div id="divSharedWithModalBody"></div>' + '				</div>' + '				<div class="modal-footer">' + '					<input type="button" class="btn btn-inverse btn-mini"' + '						data-dismiss="modal" value="Close" />' + '				</div>' + '			</div>';
+      $('#sharedWithModalDiv').html(modalBoiler);
+      var boiler = '<table class="table">';
+      for (var i = 0; i < jArray.length; i++) {
+        boiler += '<tr>';
+        boiler += '<td><img src="' + jArray[i]["ImageURL"] + '"/></td>';
+        boiler += '<td><strong>' + jArray[i]["name"] + '</strong></td>';
+        boiler += '</tr>';
+      }
+      boiler += '</table>';
+      $('#divSharedWithModalBody').html(boiler);
+      $('#divSharedWithModal').modal('show');
+    },
+    error: function () {}
+  });
+}
+function scrollToDom(idOrClass, timeout) {
+  if (document.getElementById('tabResult') != null) {
+    ReactDOM.unmountComponentAtNode(document.getElementById('tabResult'));
+  }
+  $([document.documentElement, document.body]).animate({
+    scrollTop: $(idOrClass).offset().top - 50
+  }, timeout != undefined ? timeout : 500);
+}m€´K‰M      iÕÂ0iÕÂ0I\†ŽiÖÞ`   o    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scriptReactCompiled/alumni/alumnipostReact.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"28175-1774889034000"
+Last-Modified: Mon, 30 Mar 2026 16:43:54 GMT
+Content-Type: text/javascript
+Content-Length: 28175
+Date: Wed, 08 Apr 2026 02:49:20 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"28175-1774889034000"
+Last-Modified: Mon, 30 Mar 2026 16:43:54 GMT
+Content-Type: text/javascript
+Content-Length: 28175
+Keep-Alive: timeout=5, max=92
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 248 net-response-time-onstop 249   n

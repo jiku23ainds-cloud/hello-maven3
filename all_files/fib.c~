@@ -1,0 +1,43 @@
+#include <stdio.h>
+#include <omp.h>
+#include <time.h>
+int ser_fib(int n) {
+    if (n < 2) return n;
+    return ser_fib(n - 1) + ser_fib(n - 2);
+}
+int par_fib(int n) {
+    if (n < 2) return n;
+    int x, y;
+    #pragma omp task shared(x)
+    x = par_fib(n - 1);
+    #pragma omp task shared(y)
+    y = par_fib(n - 2);
+    #pragma omp taskwait
+    return x + y;
+}
+int main() {
+    int n, result;
+    clock_t start, end;
+    double cpu_time;
+    printf("Enter the value of n: ");
+    scanf("%d", &n);
+    // Parallel Fibonacci execution
+    start = clock();
+    #pragma omp parallel
+    {
+        #pragma ooperating systemmp single
+        result = par_fib(n);
+    }
+    end = clock();
+    cpu_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("\nParallel Fibonacci(%d) = %d", n, result);
+    printf("\nTime taken in parallel mode: %f seconds", cpu_time);
+    // Serial Fibonacci execution
+    start = clock();
+    result = ser_fib(n);
+    end = clock();
+cpu_time = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("\n\nSerial Fibonacci(%d) = %d", n, result);
+printf("\nTime taken in serial mode: %f seconds\n", cpu_time);
+    return 0;
+}

@@ -1,0 +1,68 @@
+//Take input
+//no.of node
+//cost[][] - cost adjacency matrix
+//sourse  - source vertex
+ 
+#include<stdio.h>
+ 
+int main()
+{
+   int n,source;
+ 
+   printf("Enter the number of nodes : ");
+   scanf("%d",&n);
+   int cost[n][n];
+   int parent[n];
+   int distance[n];
+   int visited[n];
+   for(int i=0;i<n;i++)
+   {
+     for(int j=0;j<n;j++)
+     {
+       scanf("%d",&cost[i][j]);
+      }
+    }
+ 
+   printf("Enter source vertex:");
+   scanf("%d",&source);
+ 
+   for(int i=0;i<n;i++)
+   {
+     visited[i] = 0;
+     parent[i] = source;
+     distance[i] = cost[source][i];
+   }
+ 
+   visited[source] = 1;
+ 
+   //Identify next vertex
+ 
+   for(int i =0 ;i<n;i++)
+   {
+     int min=99,u;
+     for(int j = 0;j<n;j++)
+     {
+        if((visited[j]!=1)&&(distance[j]!=0)&&(distance[j]<min))
+        {
+           min = distance[j];
+           u = j;
+         }
+     }
+     visited[u] = 1;
+     for(int v=0;v<n;v++)
+     {
+       if(visited[v]!=1&&(cost[u][v]!=0))
+       {  
+          if(distance[u]+cost[u][v]<distance[v])
+          {
+             distance[v] = distance[u]+cost[u][v];
+             parent[v] = u;
+ 
+             }
+         }
+      }
+ }
+ for(int i =0;i<n;i++){
+ printf("\n%d -> %d= %d",source,i,distance[i]);
+ }
+ }

@@ -1,0 +1,37 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+void main()
+{
+int a[q],q,i,n,key,flag=0,pos;
+double time;
+clock_t start,end;
+printf("enter size of array: ");
+scanf("%d",&q);
+for(i=0;i<q;i++)
+{
+printf(" %d ",a[i]=random()%998);
+}
+printf("enter element to search: ");
+scanf("%d",&key);
+start=clock();
+for (i=0;i<q;i++)
+{
+if(key==a[i])
+{
+flag=1;
+pos=i+1;
+}
+}
+if(flag)
+{
+printf("key found at %d",pos);
+}
+else
+{
+printf("key not found");
+}
+end=clock();
+time=(double)(end-start)/(double)(CLOCKS_PER_SEC);
+printf("time taken: %f",time);
+}

@@ -1,0 +1,40 @@
+#include<stdio.h>
+
+struct node{
+      int expo,coef;
+      struct node *ptr;
+}*t1=NULL,*new=NULL,*t2=NULL,*poly=NULL,*poly2=NULL,*sum=NULL;
+  
+  
+  
+  
+  
+  
+  
+  void add(){
+   int count1=0,count2=0;
+   t1=poly1;
+   t2=poly2;
+   while(t1->next==NULL||t2->next==NULL){
+   if(t1->expo==t2->expo){
+   new->coef=t1->expo+t2->expo;
+   }
+   else if(t1->expo>t2->expo){
+   new->coef=t1->coef;
+   t1=t1->next;
+   }
+   else{
+   new->coef=t2->coef;
+   t2=t2->next;
+   }
+   }
+   if(t1){
+   for(t=t1;t;t=t->next)
+   new=t;
+   }
+   if(t2){
+   for(t=t2;t;t=t->next)
+   new=t;
+   }
+   
+   

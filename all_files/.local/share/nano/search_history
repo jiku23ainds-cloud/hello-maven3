@@ -1,0 +1,4 @@
+
+
+mpicc sr.c -o sr
+

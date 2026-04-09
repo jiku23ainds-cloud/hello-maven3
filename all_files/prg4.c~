@@ -1,0 +1,28 @@
+#include<stdio.h>
+#define SIZE 10
+int top=0;
+char stack[SIZE];
+
+void push(int a){
+
+if (top>=SIZE-1){
+printf("Overflow");
+}
+else{
+stack[top]=a;
+top++
+}
+}
+
+void pop(){
+
+if (top<=-1){
+printf("Overflow");
+}
+else{
+printf("Element %d is popped",stack[top]);
+top--;
+}
+
+
+

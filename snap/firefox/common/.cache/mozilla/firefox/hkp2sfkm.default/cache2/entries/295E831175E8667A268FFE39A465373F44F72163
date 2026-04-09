@@ -1,0 +1,1643 @@
+var monthArray = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+var days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday' ];
+	
+
+
+
+$(document).ready(function(){
+	
+	  $("#txtFromDate1").datepicker({
+			dateFormat:"M dd,yy",
+			showWeek: true,
+			changeMonth: true,
+			changeYear: true,
+			yearRange : "-60:+0",
+
+		});
+
+		$("#txtToDate1").datepicker({
+			dateFormat:"M dd,yy",
+			showWeek: true,
+			changeMonth: true,
+			changeYear: true,
+			yearRange : "-60:+0",
+
+		});
+
+	  
+});
+
+function todaysDate(dt)
+{
+	monthArray = ["Jan","Feb","Mar", "Apr", "May", "Jun", "Jul", "Aug","Sep","Oct","Nov", "Dec"];
+	var today = new Date();
+	if(dt)
+	{
+		today = new Date(dt);
+	}
+	
+    //var today = new Date();
+    var strDay = today.getDate();
+    var strMonth = today.getMonth();
+    var strYear = today.getYear();
+
+    if (strYear < 1000)
+        strYear += 1900;
+    strMonth = monthArray[strMonth];
+    return strMonth + " " +strDay + "," + strYear;
+}
+
+function showTodaysTimetableForStudent()
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getTodaysScheduleForStudentLoggedIn.json?date='+ todaysDate();
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getTodaysScheduleForStudentLoggedIn.json?date='+ todaysDate();
+	}
+	$.ajax({
+		//url:'getTodaysWorkloadByStudentLoggedin.json?date='+ todaysDate() ,
+		url:url,
+		dataType:'json',
+		beforeSend:function() {
+//			$('#viewTimetable').html('<div style="width:100%; text-align:center;"><i class="fa fa-spinner fa-pulse fa-fw fa-4x"></i></div>');
+		},
+		complete: function() {
+		
+		},
+		success:function(mainjArray){
+			
+			var jArray = mainjArray[0]["timetable"];
+			/*var TodaysWorloadBoiler = '<table  id="schedule1" class="table table-bordered table-condensed" style="font-family:Source Sans Pro;border-top: 2px solid rgb(127, 127, 127);border-bottom: 2px solid rgb(127, 127, 127);border-left:2px solid rgb(127, 127, 127);border-right:2px solid rgb(127, 127, 127);">';
+
+			TodaysWorloadBoiler += '<tr style="height:2px;"><td colspan="10"><div style="text-align:center"><b>Today\'s Schedule</b>'+*/
+			
+			
+			var TodaysWorloadBoiler = '<fieldset class="custom-fieldset" style="boarder:1px solid #bfbdbd !important"><legend style="font-size:11px"><i class="fa fa-clock-o"></i> TODAY\'S  SCHEDULE</legend><div><table  id="schedule1" class="table table-condensed alert-info">';
+
+			TodaysWorloadBoiler += '<div style="text-align:center;background-color:#BDC3C7;"></div>'+
+			
+			//'<a class="pull-right" href="stu_timetableStudent.htm">View All</a>'+
+			
+			'</div></td></tr><tr>';
+         
+			if(jArray.length > 0 )
+			{
+				$('#viewTimetable').show();
+				var j=jArray.length;
+				
+				//alert(j);
+				
+				TodaysWorloadBoiler += '<tr>';
+				for(var i=0 ; i<j;i++)
+				{
+					if(jArray[i]["subjectWisebatchId"]!=undefined)
+					{
+						TodaysWorloadBoiler +='';
+            TodaysWorloadBoiler +='<td style="text-align:center;font-size:11px;"><div> <i>'+ jArray[i]["startTimeHHMMA"] +'-'+ jArray[i]["endTimeHHMMA"] +'</i></td></div>';
+						
+					}	
+					
+				}	
+				TodaysWorloadBoiler += '</tr><tr>';
+				for(var i=0 ; i<j;i++)
+				{
+					if(jArray[i]["subjectWisebatchId"]!=undefined)
+					{
+						
+						TodaysWorloadBoiler +='';
+						if(jArray[i]["recess"]=="")
+						{
+							TodaysWorloadBoiler +='<td style="text-align:center;font-size:11px;">'+jArray[i]["subShortName"].gemsDecode();
+							if(jArray[i]["documents"].length>0 || jArray[i]["documentUpl"].length>0){
+								TodaysWorloadBoiler +='&nbsp;&nbsp;<i title="Attachment" class="fa fa-paperclip fa-lg" id="showAttachment-paperclip-'+i+'" onclick="showAttachmentFromStudentScheduler(this)"></i>';
+							}
+							TodaysWorloadBoiler +='</td></div>';
+						}
+						else
+						{
+							TodaysWorloadBoiler += '<td style="text-align:center;font-size:11px;">'+jArray[i]["recess"]+'</td></div>';
+						}
+						
+					}	
+					
+				}	
+				TodaysWorloadBoiler += '</tr><tr>';
+				
+				for(var i=0 ; i<j;i++)
+				{
+					if(jArray[i]["subjectWisebatchId"]!=undefined)
+					{
+						TodaysWorloadBoiler +='';
+						if(jArray[i]["recess"]=="")
+						{
+							if(jArray[i]["infraName"]==undefined)
+								TodaysWorloadBoiler +='<td>-</td></div>';
+							else
+                TodaysWorloadBoiler +='<td style="text-align:center;font-size:11px;">'+ jArray[i]["infraName"]+'</td></div>';
+						}
+						
+						
+						else
+						{
+							TodaysWorloadBoiler += '<td></td></div></fieldset>';
+						}
+						
+					}	
+					
+				}	
+				
+				//TodaysWorloadBoiler += '<div style="text-align:center;"><span style="width:100%; font-style: ; font-size:12px; color:#7f7f7f;">(no lectures)</span></div>';
+				$('#viewTimetable').html(TodaysWorloadBoiler);
+				
+				
+				/*TodaysWorloadBoiler += '</tr>'+
+					'</tbody></table>'; 					
+				$('#viewTimetable').html(TodaysWorloadBoiler);	*/
+				/*$('#containerTimeTable').slimScroll({
+				    //position: 'bottom',
+					start: 'bottom',
+				    width: '780px',
+				    height:'auto',
+		    		scrollBy: '10px',
+		    		railVisible: true,
+		    		wheelStep: 6,
+		    	    alwaysVisible: true
+				});*/
+			}	
+			else{
+				if(mainjArray[0]["holiday"]!='' && mainjArray[0]["holiday"]!=undefined)
+					TodaysWorloadBoiler += '<tr><td colspan="10" style="text-align:center;background-color:;"><span style="width:100%;color:#7f7f7f;">(No schedule for Today) <i class="icon icon-calendar"></i> Holiday: </span><span style="width:100%;color:#ff6666;font-weight:bold;">'+(mainjArray[0]["holiday"])+'</span></td></tr>';
+				else
+					TodaysWorloadBoiler += '<tr><td colspan="10" style="text-align:center;background-color:;"><span style="width:100%; color:#7f7f7f;">(No schedule for Today)</span></td></tr>';
+			}
+			$('#viewTimetable').html(TodaysWorloadBoiler);
+			
+			
+			for(var i=0 ; i<j;i++)
+			{
+				$('#showAttachment-paperclip-'+i).data('sub',jArray[i]["subShortName"]);
+				$('#showAttachment-paperclip-'+i).data('textFiles',jArray[i].documents);
+				$('#showAttachment-paperclip-'+i).data('uploded',jArray[i].documentUpl);
+			}
+			/***************Swapnil Raut* Weekly Task**************/
+			
+			var date = new Date();
+			var day = date.getDay();
+
+			while(day>0)
+			{
+				date = new Date(date.getTime()-86400000);
+				day--;
+			}
+			fromDate = date;
+			//weeklyWorkload();
+			
+			/***************Swapnil Raut* Weekly Task**************/
+		},
+		error:function(){
+			
+		}
+	});
+}
+
+var fromDate = new Date();
+
+function weeklyWorkload(){
+	$.ajax({
+		url:'getDailyWorkloadForStudent.json',
+		dataType:'json',
+		beforeSend:function() {
+			$('#viewWorkload').html('<div style="width:100%; text-align:center;"><img src="img/ajax.gif"/></div>');
+		},
+		complete: function() {
+			
+		},
+		success:function(jArray){
+			
+			var j=jArray.length;
+			
+			if(j>0){
+				var boiler ='<table id="schedule1" class="table table-bordered table-condensed">';
+				for(var i=0; i<j; i++)
+				{
+					var fromDate = new Date(jArray[i][3]);
+					var toDate = new Date(jArray[i][4]);
+					
+					var frDayOfMonth = fromDate.getDate();
+					var frMonth = fromDate.getMonth();
+					var frYear = fromDate.getFullYear();
+					
+					var toDayOfMonth = toDate.getDate();
+					var toMonth = toDate.getMonth();
+					var toYear = toDate.getFullYear();
+					
+					var evalTypeName = jArray[i][5];
+					var evalUni = jArray[i][6];
+	
+					boiler +=   '<tr><td><div style="font-size: 11px; font-weight: 600;">'+evalTypeName+'</div>'+
+								'<div>'+evalUni+' - '+jArray[i][7]+'</div>'+
+								'<div>'+monthArray[frMonth]+' '+frDayOfMonth+','+frYear+' - '+monthArray[toMonth]+' '+toDayOfMonth+','+toYear;
+								if(jArray[i][8]!=undefined)
+									boiler +=	'your\'s on'+jArray[i][8];
+								
+					boiler +=	'</div></td></tr>';
+					
+				}
+				
+				boiler+='</table></div>';
+				$('#viewWorkload').html(boiler);
+			}else{
+				
+			/*	boiler+='</table>';
+				$('#viewWorkload').html(boiler);
+			}else{*/
+				$('#viewWorkload').html('<span style="width:100%; font-style: italic; font-size:medium; color:#C4C3C3;">(no workload)</span>');
+			}
+		},
+		error:function(){
+			
+		}
+	});
+}
+
+/*function dates(){
+	
+	var someDate = new Date();
+	var dd = someDate.getDate();
+	var mm = [someDate.getMonth()+1];
+	var yy = someDate.getFullYear();
+
+	var IssueDate = yy + '-'+ mm + '-'+ dd;
+	$("#txtIssueDate").val(IssueDate);
+
+	someDate.setDate(someDate.getDate() + parseInt(maxNoOfDays)); 
+	var dd = someDate.getDate();
+	var mm = [someDate.getMonth()+1];
+	var yy = someDate.getFullYear();
+
+	var ReturnDate = yy + '-'+ mm + '-'+ dd;
+	$("#txtReturnDate").val(ReturnDate); 
+	
+}*/
+var dates = {
+ 		convert:function(d) {
+ 			// Converts the date in d to a date-object. The input can be:
+ 			//   a date object: returned without modification
+ 			//  an array      : Interpreted as [year,month,day]. NOTE: month is 0-11.
+ 			//   a number     : Interpreted as number of milliseconds
+ 			//                  since 1 Jan 1970 (a timestamp) 
+ 			//   a string     : Any format supported by the javascript engine, like
+ 			//                  "YYYY/MM/DD", "MM/DD/YYYY", "Jan 31 2009" etc.
+ 			//  an object     : Interpreted as an object with year, month and date
+ 			//                  attributes.  **NOTE** month is 0-11.
+ 			return (
+ 					d.constructor === Date ? d :
+ 						d.constructor === Array ? new Date(d[0],d[1],d[2]) :
+ 							d.constructor === Number ? new Date(d) :
+ 								d.constructor === String ? new Date(d) :
+ 									typeof d === "object" ? new Date(d.year,d.month,d.date) :
+ 										NaN
+ 			);
+ 		},
+ 		compare:function(a,b) {
+ 			// Compare two dates (could be of any type supported by the convert
+ 			// function above) and returns:
+ 			//  -1 : if a < b
+ 			//   0 : if a = b
+ 			//   1 : if a > b
+ 			// NaN : if a or b is an illegal date
+ 			// NOTE: The code inside isFinite does an assignment (=).
+ 			return (
+ 					isFinite(a=this.convert(a).valueOf()) &&
+ 					isFinite(b=this.convert(b).valueOf()) ?
+ 							(a>b)-(a<b) :
+ 								NaN
+ 			);
+ 		},
+ 		inRange:function(d,start,end) {
+ 			// Checks if date in d is between dates in start and end.
+ 			// Returns a boolean or NaN:
+ 			//    true  : if d is between start and end (inclusive)
+ 			//    false : if d is before start or after end
+ 			//    NaN   : if one or more of the dates is illegal.
+ 			// NOTE: The code inside isFinite does an assignment (=).
+ 			return (
+ 					isFinite(d=this.convert(d).valueOf()) &&
+ 					isFinite(start=this.convert(start).valueOf()) &&
+ 					isFinite(end=this.convert(end).valueOf()) ?
+ 							start <= d && d <= end :
+ 								NaN
+ 			);
+ 		}
+ };
+
+
+
+var months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+var days = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+var academicYrStDate = new Date();
+var academicYrEndDate = new Date();
+var header = '';
+
+function getAcademicCalendarDetails()
+{
+	$.ajax({
+		url:'getActualAcademicCalendarForHomePage.json', 
+		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+
+			var currDate = new Date();
+			currDate.setHours(0, 0, 0, 0);
+
+			/********************To check entry for date is available or not***************/
+			var holidayDateArray = new Array();
+			var eventDateArray = new Array();
+
+			var minStDate =  dates.convert(jArray[0][0]);
+			var maxEndDate = dates.convert(jArray[0][1]);
+
+			$('#fromDate').datepicker("option", "minDate", minStDate);
+			var minMonth = minStDate.getMonth();
+			var maxMonth = maxEndDate.getMonth();
+			var minYear = minStDate.getFullYear();
+			var maxYear = maxEndDate.getFullYear();
+
+			var monthCol = eval(maxMonth - minMonth);
+			if(monthCol<0)
+				monthCol = eval(12 + monthCol);
+
+
+			header = $('#department :selected').text()+"<br/>"+$('#semester :selected').text();
+
+			var boiler = '<thead id="thead"><tr><th style="display:none;" colspan="'+(((monthCol+1)*3)+1)+'" id="calendarHeader"></th></tr>'+
+			'<tr><th style="width:100px;"> Academic<br/>Calendar</th></tr></thead>'+
+			'<tbody id="tbody">'+
+			'<tr><th style="width:100px;">1</th></tr><tr><th style="width:100px;">2</th></tr><tr><th style="width:100px;">3</th></tr>'+
+			'<tr><th style="width:100px;">4</th></tr><tr><th style="width:100px;">5</th></tr><tr><th style="width:100px;">6</th></tr>'+
+			'<tr><th style="width:100px;">7</th></tr><tr><th style="width:100px;">8</th></tr><tr><th style="width:100px;">9</th></tr>'+
+			'<tr><th style="width:100px;">10</th></tr><tr><th style="width:100px;">11</th></tr><tr><th style="width:100px;">12</th></tr>'+
+			'<tr><th style="width:100px;">13</th></tr><tr><th style="width:100px;">14</th></tr><tr><th style="width:100px;">15</th></tr>'+
+			'<tr><th style="width:100px;">16</th></tr><tr><th style="width:100px;">17</th></tr><tr><th style="width:100px;">18</th></tr>'+
+			'<tr><th style="width:100px;">19</th></tr><tr><th style="width:100px;">20</th></tr><tr><th style="width:100px;">21</th></tr>'+
+			'<tr><th style="width:100px;">22</th></tr><tr><th style="width:100px;">23</th></tr><tr><th style="width:100px;">24</th></tr>'+
+			'<tr><th style="width:100px;">25</th></tr><tr><th style="width:100px;">26</th></tr><tr><th style="width:100px;">27</th></tr>'+
+			'<tr><th style="width:100px;">28</th></tr><tr><th style="width:100px;">29</th></tr><tr><th style="width:100px;">30</th></tr>'+
+			'<tr><th style="width:100px;">31</th></tr></tbody>';
+
+			//$('#commonDialogHeading').html('Academic Calendar');
+			$('#scheduler').html(boiler);
+			$('#homeSchedulerContent').show();
+			$('#homeContent').hide();
+			/*$('#commonDialog').css({
+				width:'75%','margin-left':function(){
+					return -($(this).width()/2);
+				},
+			}).modal('show');*/
+			
+
+			var tbl = document.getElementById('scheduler');
+			for(var c= 1; c<=31; c++)
+				$(tbl.rows[c].cells[0]).attr('class', 'headlabel');
+
+
+			academicYrStDate.setFullYear(minYear, minMonth, 1);
+			academicYrStDate.setHours(0, 0, 0, 0);
+
+			academicYrEndDate.setFullYear(maxYear, (maxMonth+1), 0);	// get last day of maxMonth
+			academicYrEndDate.setHours(0, 0, 0, 0);
+
+			for(var col=0; col<=monthCol; col++)
+			{
+				var month = (minMonth+col)%12;
+				if(col>0 && month==0)
+					minYear++;
+				addMonthCol(month, minYear);
+			}
+
+			/************************To Add Holidays **********************/
+
+			for(var h=0; h<jArray[1].length; h++)
+			{
+				var holidayDate = dates.convert(jArray[1][h][0]);		//"holidayDate"
+				holidayDate.setHours(0, 0, 0, 0);
+				holidayDate = holidayDate.toString().split("00")[0].split(" ").join("_");
+
+				var holidayBoiler = '';
+				if($.inArray(holidayDate.toString(),holidayDateArray)<0)
+				{
+					holidayDateArray.push(holidayDate);
+					holidayBoiler = '<br/><div id="div-'+holidayDate+'" style="color:#0033cc" title="Holiday">'+jArray[1][h][1];
+					$('#'+holidayDate).append(holidayBoiler);		//"holidayReason"
+				}
+				else
+				{
+					holidayBoiler = ' &<br/>'+jArray[1][h][1];
+					$('#div-'+holidayDate).append(holidayBoiler);		//"holidayReason"
+				}
+			}
+
+			/********************************To Add Events *******************************/
+
+			/*for(var e=0; e<jArray[2].length; e++)
+			{
+				var eventDate = dates.convert(jArray[2][e][0]);
+				eventDate.setHours(0, 0, 0, 0);
+
+				var color="#cc0000";
+				alert(e+"============"+jArray[2][e][5]);
+
+				alert(jArray[2][e][5]=="true");
+				if(jArray[2][e][5]=="true")
+				{
+					alert("In true");
+					color="#006600";
+				}
+				else
+					alert("In else");
+
+				eventDate = eventDate.toString().split("00")[0].split(" ").join("_");
+
+				var eventBoiler = '';
+				if($.inArray(eventDate.toString(),eventDateArray)<0)
+				{
+					eventDateArray.push(eventDate);
+					eventBoiler = '<div id="div-'+eventDate+'" style="color:'+color+'"><u>Event</u> :-<br/>'+jArray[2][e][0]+'</div>';
+					$('#'+eventDate).append(eventBoiler);
+				}
+				else
+				{
+					eventBoiler = ' &<br/>'+jArray[2][e][0];
+					$('#div-'+eventDate).append(eventBoiler);
+				}*/
+
+				var milestoneDates = new Array();
+				
+				for(var m=0; m<jArray[2].length; m++)
+				{
+					var color="red";
+
+					if(jArray[2][m][5]=="true")
+						color="green";
+					
+					var milestoneDate = dates.convert(jArray[2][m][0]);
+					milestoneDate.setHours(0, 0, 0, 0);
+					milestoneDate = milestoneDate.toString().split("00")[0].split(" ").join("_");
+
+					var uniqMilestone = milestoneDate+"-"+jArray[2][m][2];
+					if($.inArray(uniqMilestone,milestoneDates)<0)
+					{
+						milestoneDates.push(uniqMilestone);
+						var roleType = $('#roleType').val();
+						if(roleType!="nonteaching" && roleType!="empadmin")
+						{
+							var milestoneBoiler = ' <br/><div id="div-'+milestoneDate+"-"+jArray[2][m][2]+'" style="color:'+color+'"><span id="'+milestoneDate+"-"+jArray[2][m][2]+'">'+
+							jArray[2][m][1]+':-<br/>'+jArray[2][m][3]+'</span></div>';
+							$('#'+milestoneDate).append(milestoneBoiler);
+						}
+						else
+						{
+							var milestoneBoiler = ' <br/><div id="div-'+milestoneDate+"-"+jArray[2][m][2]+'" style="color:'+color+'"><a id="'+milestoneDate+"-"+jArray[2][m][2]+'">'+
+							jArray[2][m][1]+':-<br/>'+jArray[2][m][3]+'</a></div>';
+							$('#'+milestoneDate).append(milestoneBoiler);
+						}
+					}
+					else
+						$('#'+milestoneDate+"-"+jArray[2][m][2]).append(' & '+jArray[2][m][3]);
+				}
+			//}
+
+			/********************************To Add evaluation schemas *******************************/
+			for(var e=0; e<jArray[3].length; e++)
+			{
+
+				var evalDate = dates.convert(jArray[3][e][0]);
+				evalDate.setHours(0, 0, 0, 0);
+
+				evalDate = evalDate.toString().split("00")[0].split(" ").join("_");
+				var evalBoiler = '<br/><a onclick="viewConductionSchema('+jArray[3][e][3]+',\''+evalDate+'\')">'+
+				jArray[3][e][1]+' of '+jArray[3][e][2]+'</a><br/>';
+				$('#'+evalDate).append(evalBoiler);
+			}
+
+			$('#planTable').show();
+		},
+		error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+	});
+}
+
+function getBackToHome()
+{
+	$('#scheduler').html('');
+	$('#homeSchedulerContent').hide();
+	$('#homeContent').show();
+}
+
+function addMonthCol(month, year)
+{
+
+	var tbl = document.getElementById('scheduler'); // table reference
+	var header = tbl.rows[1].insertCell(tbl.rows[1].cells.length);
+	var name = months[month]+" "+year; 
+	header.setAttribute('class', 'headlabel');
+	header.setAttribute('colspan','3');
+	var div = document.createElement('h5'); // create Label element
+	div.setAttribute('id', 'col_'+month);
+	div.setAttribute('style', 'background:#E4F1FC;color: black;');
+	header.appendChild(div);
+	$('#col_'+month).text(name);
+
+	for (var i = 2; i <tbl.rows.length; i++) 				// Creating Cells
+		createCell(month,i);
+}
+
+function createCell(month,i)
+{
+	var tbl = document.getElementById('scheduler'); // table reference
+	var academicYrStMonth = academicYrStDate.getMonth();
+	var cell=tbl.rows[i].insertCell(tbl.rows[i].cells.length);
+
+	if(academicYrStMonth!=month)	//	Date not available in Month
+	{
+		var div = document.createElement('label'); // create DIV element
+		cell.setAttribute('style', 'background-color:#CAC6C6;width:50px;min-width:0px');
+		cell.appendChild(div);
+	}
+	else
+	{
+		var day = academicYrStDate.getDay();
+		var Id=academicYrStDate+"";
+		Id = Id.split("00")[0].split(" ").join("_")+"Day";
+		cell.setAttribute('style', 'width:50px;min-width:0px;text-align:left');
+		cell.setAttribute('id',Id);
+		$('#'+Id).text(days[day]);
+	}
+
+	cell=tbl.rows[i].insertCell(tbl.rows[i].cells.length);
+	cell.setAttribute('colspan','2');
+	var div = document.createElement('label'); // create DIV element
+	if(academicYrStMonth!=month)	//	Date not available in Month
+	{
+		Id = month+"-"+i;
+		div.setAttribute('id', Id);
+		cell.setAttribute('style', 'background-color:#CAC6C6;');
+		div.setAttribute('style', 'background-color:#CAC6C6;margin-bottom:0px;');
+		cell.appendChild(div);
+	}
+	else
+	{
+		Id=academicYrStDate+"";
+		Id = Id.split("00")[0].split(" ").join("_");
+		cell.setAttribute('style', 'margin-bottom:0px;text-align:left;');
+		div.setAttribute('style', 'line-height:13px;font-size:12px;');
+		div.setAttribute('id', Id);
+		cell.appendChild(div);
+
+		academicYrStDate.setTime(academicYrStDate.getTime()+86400000);
+	}
+}
+
+
+function bulletinStatus()
+{
+
+	$('.compose').toggle('slow');
+	$('#divalumpost').hide();
+	$('#divalumpost').fadeIn(2000);
+	/*var anchor=$('#bulletinStatus').attr('bulletintype');
+		if(anchor=="COMPOSE"){
+			$('#bulletinStatus').html('<i class="fa fa-times-circle fa-lg"></i>');
+			$('#bulletinStatus').attr('bulletinType','HIDE')
+		}
+	else{
+		$('#bulletinStatus').html('<i className="fa fa-envelope fa-lg"></i>&nbsp;Compose&nbsp;');
+		$('#divalumpost').hide();
+		$('#divalumpost').fadeIn(2000);
+	}
+		*/
+	$(".timeline").fadeToggle(1000);	
+}
+
+function getAdmissionLink(studentId)
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getAdmissionLink.json?studentId='+studentId;
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getAdmissionLink.json';
+	}
+	$.ajax({
+		url:url,
+		dataType:'text',
+		beforeSend: function() {
+		},
+		complete: function() {
+		},
+		success:function(link){
+			if(link != "NO_LINK")
+			{
+				$('#redirectAdmissionLink').attr('href',link);
+				$('#transDiv').toggle();
+			}
+		},error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+			
+	});
+
+}
+
+function getAcademicInformation(studentId){
+	var customerIdentifiecationObj=$('#customerHelper').val();
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getAcademicInformationNew.json?studentId='+studentId;
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getAcademicInformationNew.json';
+	}
+	$.ajax({
+		//url:'getAcademicInformation.json',
+		url:url,
+		// dataType:'json',
+		beforeSend: function() {
+			$('#rollNo').find('.modal-body').html('<div class="preview-large "></div>');
+			$('#rollNo').find('.preview-large').addClass('loading-large');
+		},
+		complete: function() {
+			$('.studentAcademicInfo').find('.preview-large').removeClass('loading-large');
+		},
+		success:function(jObject){
+			var studUniqueNoLabel=$('#studUniqueNo').val();
+			var studentDashBoardObj = eval('('+jObject+')');
+			var courseName = studentDashBoardObj.AcademicInfo.courseName;
+			var studUniqueNo = studentDashBoardObj.AcademicInfo.studUniqueNo;
+			var rollNo = studentDashBoardObj.AcademicInfo.rollNo;
+			var divisionName = studentDashBoardObj.AcademicInfo.divisionName;
+			var academicBatch = studentDashBoardObj.AcademicInfo.academicBatch;
+			var semesterName = studentDashBoardObj.AcademicInfo.semesterName;
+			var houseName=studentDashBoardObj.AcademicInfo.houseName;
+			var parentProgramName = studentDashBoardObj.AcademicInfo.parentProgramName;
+			var studentUniqueId = studentDashBoardObj.AcademicInfo.studentUniqueId;
+			var enrollmentNo = studentDashBoardObj.AcademicInfo.enrollmentNo;
+			var textToDisplay='';
+			if(customerIdentifiecationObj !='' && customerIdentifiecationObj == 'RCOEM'){
+				textToDisplay = "Enrollment No. :"+enrollmentNo+"<br>";
+			}
+			if(customerIdentifiecationObj !=''&& (customerIdentifiecationObj == 'CHANAKYA'||customerIdentifiecationObj == 'INDIRA_PUNE')){
+				textToDisplay+=studUniqueNoLabel+":"+studUniqueNo;
+			}
+			else if (customerIdentifiecationObj =='JGI' ){
+				textToDisplay += juno.labelByCustomer('l.Customerwise.RollNo.Label')+": "+studUniqueNo;				
+			}
+			else if (customerIdentifiecationObj =='CMR_UNIVERSITY'){
+				textToDisplay += juno.labelByCustomer('l.Customerwise.RollNo.Label')+": "+rollNo;				
+			}
+			else {
+				if( customerIdentifiecationObj == 'MIT'){
+					textToDisplay += studUniqueNo+ "<br>Roll No. :"+rollNo;
+				}else if( customerIdentifiecationObj == 'VCET' && parentProgramName!=''){
+					textToDisplay += "Roll No. :"+rollNo;
+					courseName = courseName +" [ "+parentProgramName+" ]";
+				}else if($('#studDashboardLblStudSide').val() == true || $('#studDashboardLblStudSide').val() == "true"){
+					textToDisplay += "Enrollment No. :"+rollNo;
+				}else if(customerIdentifiecationObj == 'SRM_UNIVERSITY'){
+					textToDisplay += "Register No. :"+rollNo;
+				}else{
+					textToDisplay += "Roll No. :"+rollNo;
+				}
+				
+			}
+			if($('#studentUniqueNumber').val()==true || $('#studentUniqueNumber').val()=="true"){
+				textToDisplay+="<br>Student Unique Id : "+studentUniqueId;
+			}
+			textToDisplay+="<br>"+semesterName+"<br>"+courseName+"<br>"+divisionName;
+			if(houseName!='')
+				textToDisplay+="<br/>House: "+houseName;
+			$('#rollNo').html(textToDisplay);
+			
+		},error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+			
+	});
+}
+
+function calculteAttendence()
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getStudentAttendancePercentageSP.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getStudentAttendancePercentageSP.json';
+	}
+	$.ajax({
+	//		url:'getStudentAttendancePercentage.json',
+		url: url,	
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+		},
+		complete: function() {
+		},
+		success:function(per){
+			if(per != "Problem"){
+				$("#attendencePer").text(per+"%");
+			}else{
+				$("#attendencePer").text("-");
+			}
+			getAssignments();
+		},
+		error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+	});
+
+}
+function studentSubjectCount()
+{
+	try {
+		var hdnUserRole = $('#hdnUserRole').val();
+		var url = 'getCurrentSubjectCount.json';
+		if(hdnUserRole == "student" || hdnUserRole == "Student"){
+			url = 'stu_getCurrentSubjectCount.json';
+		}
+		$.ajax({
+			url:url, // StudentCourseFileSubjectList.json
+			dataType:'text',
+			async:false,
+			beforeSend: function() {
+			},
+			complete: function() {
+			},
+			success:function(subjectCount){			
+				$("#subjectListCountNew").text(subjectCount);
+				//$("#companyCount").text(subjectCount);
+			},
+			error:function(){
+				getCustomAlertMessage("alert_error");
+			}
+		});
+	} catch (e) {
+		getCustomAlertMessage("alert_error");
+	}
+}
+
+function getAssignments()
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getStudentAssignments.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getStudentAssignments.json';
+	}
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+		
+		},
+		complete: function() {
+			
+		},
+		success:function(jArray){
+			if(jArray != null){
+				$("#assignmentCount").text(jArray["CountAssignment"]);
+				$("#assignmentPostIds").val(jArray["postIds"]);
+			
+				//alert(jArray["postIds"]);
+			}
+			else
+				{
+				$("#assignmentCount").text('-');
+				}
+			
+			getPlacementDetail('');
+				
+		},
+		error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+	});
+
+}
+
+function showAttendencePage()
+{/*	var customerIdentifiecationObj=$('#customerHelper').val();
+
+	if(customerIdentifiecationObj !=''&& customerIdentifiecationObj != 'IMT_NAGPUR' && customerIdentifiecationObj != 'IMT_GAZIABAD'  && customerIdentifiecationObj != 'IMT_HYDERABAD'){
+		window.open("stu_studentPersonalAttendance.htm","_self");
+	}else*/
+	console.log($('#studentSideNewCourseUI').val());
+	if ($('#studentSideNewCourseUI').val() == true || $('#studentSideNewCourseUI').val() == 'true') {
+		window.open("studentCourses.htm?shwA='00A'", "_self");
+	} else {
+		window.open("studentCourseFileNew.htm?shwA='00A'", "_self");
+	}
+}
+function showAssignmentPage()
+{
+	/*var customerIdentifiecationObj=$('#customerHelper').val();
+	if(customerIdentifiecationObj !=''&& customerIdentifiecationObj != 'IMT_NAGPUR' && customerIdentifiecationObj != 'IMT_GAZIABAD'  && customerIdentifiecationObj != 'IMT_HYDERABAD'){
+		$('#tabResult').show();
+		var alumniRingPostIds=$('#assignmentPostIds').val();
+		getSpecificAlumniPost(alumniRingPostIds);
+	}else*/
+		//window.open("studentCourseFileNew.htm?shwA='00ASN'","_self");
+	// 	window.open("studentAssessmentUI.htm'","_self");
+	if($('#studentSideNewCourseUI').val() == true || $('#studentSideNewCourseUI').val() == 'true'){
+		window.open("studentCourses.htm?shwA='00ASN'", "_self");
+	}else if($('#tailWindNewUICourseFile').val() == "true" || $('#tailWindNewUICourseFile').val() ==true){
+
+		const form = document.createElement("form");
+		form.method = "POST";
+		form.action = "studentAssessmentUI.htm";
+		form.target = "_blank";
+
+		const studentInput = document.createElement("input");
+		studentInput.type = "hidden";
+		studentInput.name = "subjectwiseStudentIdsString";
+		studentInput.value = $('#subjectwiseStudentIdsString').val();
+
+		const batchInput = document.createElement("input");
+		batchInput.type = "hidden";
+		batchInput.name = "subjectwiseBatchIdsString";
+		batchInput.value =  $('#subjectwiseBatchIdsString').val();
+
+		form.appendChild(studentInput);
+		form.appendChild(batchInput);
+
+		document.body.appendChild(form);
+		    form.submit();
+		document.body.removeChild(form);
+		
+	}else{
+		window.open("studentCourseFileNew.htm?shwA='00ASN'","_self");
+	}
+}
+
+
+function getbooksIssuedCount()
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getbooksIssuedCount.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getbooksIssuedCount.json';
+	}
+	$.ajax({
+		url:url,
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+		
+		},
+		complete: function() {
+			
+		},
+		success:function(count){
+			
+			if(count != null){
+				
+				$("#bookIssueCount").html(count+' <span style="font-size:11px;text-transform:none;">Issued</span>');
+				//alert(jArray["postIds"]);
+			}
+			else
+				{
+				$("#bookIssueCount").text('-');
+				}
+				
+		},
+		error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+	});
+	
+}
+
+function getPlacementDetail(flag)
+{
+	$("#divalumpost").hide();
+	$('#tabResult').show();
+	//alert(flag);
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'GetPlacementAndProjectPlacementListforStudent.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_GetPlacementAndProjectPlacementListforStudent.json';
+	}
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+		//	$("#tabResult").html('<p style="text-align:center;"><img src="img/loading-image.gif"></p>');
+		},
+		complete: function() {
+			
+		},
+		success:function(jArray){
+			var boiler='<table class="table table-bordered table-condensed">'+
+			'<tr><th colspan=5  style="text-align:center;background-color:#e5f2fc;">Placement</th></tr>'+
+			'<tr style="text-align:center;"><th>Company Name</th><th>Post</th><th>Job Type</th><th>Register</th></tr>';
+			
+			if(jArray.length==0)
+			{
+				$("#tabResult").html('');
+			}
+			
+			if(jArray != null)
+			{
+				if(flag==''){
+				$("#companyCount").text(jArray.length);
+				
+				if($("#companyCountPlc") != undefined && $("#companyCountPlc") != 'undefined')
+					$("#companyCountPlc").text(jArray.length);
+				//alert(jArray["postIds"]);
+				}
+				else
+				{
+					if(jArray.length==0)
+					{
+						$("#tabResult").html('<p style="text-align:center;">No Details found</p>');
+					}
+					else
+					{
+					for(var i=0;i<jArray.length;i++)
+					{
+						boiler+= '<tr><td>'+jArray[i]["companyName"]+'</td>';
+						boiler+= '<td>'+jArray[i]["post"]+'</td>';
+						boiler+= '<td>'+jArray[i]["type"]+'</td>';
+						/*boiler+= '<td><a href="javascript:void(0);" onclick=fetchCriteria('+jArray[i]["projPlacId"]+','+jArray[i]["jobTypeId"]+')>View</a></td>';*/
+						if(jArray[i]["registeredStatus"]=='1')
+							boiler+= '<td>Registered</td></tr>';
+						else
+							boiler+= '<td><a href="javascript:void(0);" onclick=openPlacement('+jArray[i]["jobTypeId"]+')>Apply</a></td></tr>';
+					}
+					boiler+= '</table>';
+					$("#tabResult").html(boiler);
+					}
+					
+				}
+			}
+			else
+			{
+				$("#companyCount").text('-');
+			}	
+		},
+		error:function(){
+			jAlert("Something went wrong, Please try after some time","Error");
+		}
+	});
+
+}
+
+
+
+function fetchCriteria(placementId,type)
+{
+	var boiler = '<table class="table table-bordered">'+
+						'<tr>'+
+							'<th style="background-color:#dfeffc;">HSC & SSC Criteria</th>' +
+							'<td>'+
+									'<table>'+
+										'<tr>'+
+											'<th>10th Percentage :</th>'+
+											'<td><lable id="ssclbl'+placementId+'"></lable></td>'+
+										'</tr>'+
+										'<tr>'+
+											'<th>12th Percentage :</th>'+
+											'<td><lable id="hsclbl'+placementId+'"></lable></td>'+
+										'</tr>'+
+										'<tr>'+
+											'<th>Gap :</th>'+
+											'<td><lable id="sscHscGaplbl'+placementId+'"></lable></td>'+
+										'</tr>'+
+									'</table>'+
+							'</td>'+
+						'</tr>'+
+						'<tr>'+
+								'<th style="background-color:#dfeffc;">Qualification Criteria :</th>'+
+								'<td>'+
+									'<table id="tlbDegreeCriteria'+placementId+'" class="table-bordered">'+
+									'</table>'+
+								'</td>'+
+						'</tr></table>';
+	$("#tabResult").html(boiler);
+	
+	$.ajax({
+		url : 'fetchSscHscCriteriaForCreatePlacement.json',
+		data : "placementId=" + placementId,
+		dataType : 'json',
+		async:false,
+		beforeSend : function() {
+			
+		},
+		complete : function() {
+			
+		},
+		success : function(jArray) {
+			if(jArray.length > 0)
+			{
+				if(jArray[0]["sscPercent"] != undefined)
+					{
+						$("#ssclbl"+placementId).html(jArray[0]["sscPercent"] + " %");
+					}
+				else
+				{
+					$("#ssclbl"+placementId).html("-");
+				}
+				
+				if(jArray[0]["hscPercent"] != undefined)
+					{
+						$("#hsclbl"+placementId).html(jArray[0]["hscPercent"] + " %");
+					}
+				else
+					{
+						$("#hsclbl"+placementId).html("-");
+					}
+				
+				if(jArray[0]["gap"] != undefined)
+				{
+					$("#sscHscGaplbl"+placementId).html(jArray[0]["gap"] + " Yrs");
+				}
+				else
+				{
+					$("#sscHscGaplbl"+placementId).html("-");
+				}
+			}
+			else
+			{
+				$("#ssclbl"+placementId).html("-");
+				$("#hsclbl"+placementId).html("-");
+				$("#sscHscGaplbl"+placementId).html("-");
+			}
+			
+			
+			
+		},
+		error : function() {
+			jAlert("Error in job SSC HSC CRITERIA", "Error");
+		}
+	});
+	
+	showDegreeCriteria(placementId,type);
+}
+
+function openPlacement(type)
+{
+	if(type==1)
+	{
+		window.open("viewPlacements.htm?placementFlag=INTERN","_self");
+	}
+	else
+	{
+		window.open("registerforPlacements.htm","_self");
+	}
+}
+
+function getAnnouncementCount(){
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getUnreadStudentAnnouncement.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getUnreadStudentAnnouncement.json';
+	}
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend:function() {
+			
+		},
+		complete: function() {
+			
+		},
+		success:function(jArray){
+				if(jArray.length > 0 ){
+					$("#announcementCount").text(jArray[0]["count"]);
+					$("#countAnnouncement").text(jArray[0]["count"]);
+				}
+				
+			},
+		error:function(){
+			return;
+		}
+	});
+}
+
+function getTransportDetail()
+{
+	//window.open("stu_studentTransportRequisitions.htm","_self");
+}
+
+function setEulaValue()
+{
+	$.ajax({
+		url:'setEulaValue.json',
+		dataType:'text',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(msg){
+					$('#myModal').modal('hide');
+					//jAlert("You have accepted the declaration");
+		},
+		error:function(){
+		}
+	});
+}
+
+function getNextYearAdmission()
+{
+	//window.open('subjectChoice.htm');
+	
+	$.ajax({
+		url:'getNextYearAdmission.json',
+		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+					if(jArray[0]["linkOpen"]=='Preference')
+					{
+						window.location.replace('stu_studentSubjectPreferance.htm');
+					}
+					else if(jArray[0]["linkOpen"]=='SubjectChoice')
+					{
+						window.location.replace('subjectChoice.htm');
+					}
+					else if(jArray[0]["linkOpen"]=='WithoutSubjectChoice')
+					{
+						window.location.replace('stu_studentSubjectChoiceAndMarkEntry.htm');
+					}
+					else if(jArray[0]["linkOpen"]=='NoAdmissionProcess')
+					{
+						jAlert("Admission Process Not Started","Message");
+					}
+					else if(jArray[0]["linkOpen"]=='Connection Error')
+					{
+						jAlert("Connection Error","Message");
+					}
+		},
+		error:function(){
+		}
+	});
+}
+
+function getStudentSubjectList()
+{
+   window.location.replace('stu_studExamForms.htm');
+}
+
+function getAdmNxtYr()
+{
+   window.location.replace('subjectChoice.htm');
+}
+function getAdmNxtYrWithoutChoice()
+{
+   window.location.replace('stu_studentSubjectChoiceAndMarkEntry.htm');
+}
+
+function PrintPdfOfCalendar()
+	{
+	$.ajax({
+		url:'getActualAcademicCalendarForHomePage.json',
+		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			window.location.replace('getCalendarPdf.json?jArray='+JSON.stringify(jArray));
+		},
+		error:function(){
+		}
+	});
+	}
+
+function showTranscriptDetails()
+{
+		window.open("stu_studentPersonalAttendance.htm","_self");
+
+}
+function showSubjectDetails()
+{
+		window.open("studentCourseFileNew.htm?shwA='00'","_self");
+	
+}
+
+
+function loadCourses()
+{
+//	var selectedCourseId = $('#cmbloadCourse').val();
+	$.ajax({
+		url:'courseListAttributeForCourseCoordinator.json?linkURL='+ window.location.toString(),
+		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray)
+		{
+			var size=jArray.length;
+			if(size>0)
+			{
+				type=jArray[0]["level"];
+				var typepfmapped='<option value="0">Select</option>';
+				for(var i=0;i<jArray.length;i++)
+				{
+					//if(selectedCourseId!=jArray[i]["instituteCourseId"])
+						typepfmapped += '<option value = "'+jArray[i]["instituteCourseId"]+'">'+jArray[i]["instituteName"]+'</option>';
+				}
+				$('#cmbCourseId').html(typepfmapped);
+			}
+		},
+		error:function(){
+		}
+	});
+}
+
+function getSemesterReport()
+{
+	var instituteCourseId = $('#cmbCourseId').val();
+
+	if(instituteCourseId>0)
+	{
+		$.ajax({
+			url:'getRunningSemestersByInstituteCourseId.json'+'?instituteCourseId='+instituteCourseId, 
+			dataType:'json',
+			beforeSend:function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				var j=jArray.length;
+				var semesterBoiler = '<option value="0">Select</option>';
+				for(var i=0;i<j;i++)
+					semesterBoiler +='<option value="'+jArray[i]["semesterId"]+'_'+jArray[i]["strengthId"]+'">'+jArray[i]["semesterName"]+'</option>';
+
+				$('#cmbBatchId').html(semesterBoiler);
+			},
+			error:function(){
+				jAlert("Something went wrong, Please try after some time","Error");
+			}
+		});
+	}
+	else
+		requiredMessageShow("department", "Please select correct Programme");
+}
+
+function getAllBatchesByStrength()
+{
+	var instituteCourseStrengthId = $('#cmbBatchId').val().split("_")[1];
+	var semesterId = $('#cmbBatchId').val().split("_")[0];
+	
+	
+	$.ajax({
+		url:'batchSemesterCapacityListByStrengthIdAndSemesterId.json?instituteCourseStrengthId='+instituteCourseStrengthId+'&semesterId='+semesterId,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+
+			var html = '<option value="0">Select</option>';
+			var len = jArray.length;
+			for ( var i = 0; i < len; i++)
+				html += '<option value="'+jArray[i]["semesterBatchIdId"]+'">'+jArray[i]["semesterBatchName"]+ '</option>';
+
+			$("#cmbCapacity").html(html);
+		},
+		
+	});
+}
+
+function getSectionWiseTimeTableContent()
+{
+	var startDate = $('#txtFromDate').val();
+	var endDate = $('#txtToDate').val();
+	
+	/*if(startDate == ""){
+		jAlert("Please select from date");
+		return;
+	}
+	if(endDate == ""){
+		jAlert("Please select to date");
+		return;
+	}*/
+	
+	$.ajax({
+		url : 'getBetweenDatesTimetableForStudent.json',
+			dataType : 'json',
+			data : {startDate:startDate,endDate:endDate},
+			async : false,
+			beforeSend : function() {
+				startCommonAjaxSpinner();
+
+			},
+			complete : function() {
+				stopCommonAjaxSpinner();
+			},
+			success : function(jArray) {
+				var day = "";
+				var weekDays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+				var boiler = '<table class="table table-bordered" id="tbl_SubjectwiseTimetable"><tr><th>Date & Day</th><th>Session No.</th>'+
+					'<th>Course Name</th><th>Start Time</th><th>End Time</th><th>Faculty Name</th>'+
+					'<th>Class Room / Lab</th></tr><tbody id="tbodyTimeTable"></tbody></table>';
+				$('#viewSectionTable').html(boiler);
+				if(jArray != undefined && jArray.length > 0){
+					for(var i = 0; i < jArray.length; i++){
+						var temboiler = '<tr></td>';
+						if(day != jArray[i].day){
+							temboiler +='<td id="tdLectureDate_'+jArray[i].day+'" rowspan="1" style="background-color:#E1F5A9">'+jArray[i].lectureDate+" ("+(jArray[i].day != undefined ? weekDays[jArray[i].day] : "")+')</td>';
+						day = jArray[i].day;
+						}
+						else
+						{
+							var rowspan = $('#tdLectureDate_'+day).attr('rowspan');
+							rowspan = eval(rowspan) + 1;
+							$('#tdLectureDate_'+day).attr('rowspan', rowspan);
+						}
+						temboiler +='<td>'+jArray[i].sessionCount+'</td><td>'+jArray[i].sub+'</td>';
+						temboiler +='<td>'+jArray[i].lStartTime+'</td>'+
+						'<td>'+jArray[i].lEndTime+'</td><td>'+jArray[i].allocatedEmployeeNameList+'</td>'+
+						'<td>'+(jArray[i].infraDisplayName).split('$')[1]+'</td>'+
+						'</tr>';
+						$('#tbodyTimeTable').append(temboiler);
+					}
+				}
+				else
+					boiler += '<tr><td colspan="9">No data found!!!</td></tr>';
+				
+				
+				$('#btnExcel').remove();
+				$('<br><input type="button" id="btnExcel" class="btn btn-mini btn-inverse" value="Export to Excel" onclick="tableToExcel(\'tbl_SubjectwiseTimetable\', \'test\');" >').insertAfter($('#divTimetableReport'));
+			},
+			error : function() {
+				alert("error in fetching Course");
+			}
+	});
+}
+
+function getTimeTableDetails(){
+	if ($('#studentSideNewCourseUI').val() == true || $('#studentSideNewCourseUI').val() == 'true') {
+		window.open("studentCourses.htm?shwA='00TimeTable'", "_self");
+	}else{
+		window.location.replace('stu_StudentTimeTable.htm');
+	}
+}
+
+function showTodaysConflictTimetableForStudent()
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getCurrentConlictScheduleDetailsForstudent.json?date='+ todaysDate();
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getCurrentConlictScheduleDetailsForstudent.json?date='+ todaysDate();
+	}
+	$.ajax({
+		url:url,
+		dataType:'json',
+		beforeSend:function() {
+			
+		},
+		complete: function() {
+
+		},
+		success:function(jArray){
+			if(jArray.length>0)
+			{
+				var todaysConflictSchedule='<table class="table table-condensed alert-info"> <tbody><tr><td style="text-align:center;" colspan="'+jArray.length+'">Session conflict Details</td></tr>';
+				todaysConflictSchedule+='<tr style="text-align:center;">';
+				for(var i=0 ; i<jArray.length;i++)
+				{
+
+					if(jArray[i]["subjectName"]!=undefined)
+					{
+						todaysConflictSchedule +='<td style="text-align:center;"><i>'+ jArray[i]["startTime"] +'-'+ jArray[i]["endTime"] +'</i></td>';
+					}	
+				}	
+				todaysConflictSchedule +='</tr><tr>';
+				for(var i=0 ; i<jArray.length;i++)
+				{
+					if(jArray[i]["subjectName"]!=undefined)
+					{
+						todaysConflictSchedule +='<td style="text-align:center;">'+jArray[i]["shortName"]+'</td>';
+					}	
+
+				}	
+				todaysConflictSchedule += '</tr><tr>';
+
+				for(var i=0 ; i<jArray.length;i++)
+				{
+					if(jArray[i]["subjectName"]!=undefined)
+					{
+
+						todaysConflictSchedule +='<td style="text-align:center;">'+ jArray[i]["infra"]+'</td>';
+					}
+					else
+					{
+						todaysConflictSchedule += '<td></td>';
+					}
+
+				}
+				todaysConflictSchedule +='</tr></tbody></table>';
+				$('#viewTimetable').append(todaysConflictSchedule);
+			}
+
+		},
+		error:function(){
+			getCustomAlertMessage('alert_error');
+		}
+	});
+}
+function showAttachmentFromStudentScheduler(src){
+	var docArr = $(src).data('uploded');
+	var textFileseArr = $(src).data('textFiles');
+	var sub = $(src).data('sub');
+	var boiler = '';
+	var boilernew = '';
+	
+	for(var i in textFileseArr){
+		var iconPath = gFileTypeIcon[textFileseArr[i].dext];
+		var downloadLinkTmp = '<a title="View" href="javascript:void(0)" onclick="showTextDocumentForAlumini(\''+textFileseArr[i].eDocId+'\',\''+textFileseArr[i].user+'\')"><i class="fa fa-files-o fa-2x" />  '+textFileseArr[i].dName+'</a><br>';
+		boiler+=downloadLinkTmp;
+	}
+	for(var i in docArr){
+		var iconPath = gFileTypeIcon[docArr[i].dext];
+		var downloadLinkTmp = (juno.label['a.download.json'].setIndexedArgs((docArr[i].eDocPathId),"UPLOADED", encodeURIComponent(docArr[i].dName),'<img src="'+iconPath+'" width="25px" height="25px"/>'+docArr[i].dName+'<br>'));
+		boiler+=downloadLinkTmp;
+	}
+	
+	boilernew = '<table class="table table-bordered table-condensed"><tr><th style="width:150px;">Attachment</th><td>'+boiler+'</td></tr></table>';
+	
+	$('#gemsCommonDialogModal .modal-header').html(sub);
+	$('#gemsCommonDialogModal .modal-body').html(boilernew);
+	$('#gemsCommonDialogModal').modal('show');
+}
+
+function checkStudentProfileImage()
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'checkProfileImage.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_checkProfileImage.json';
+	}
+	$.ajax({
+			url:url,
+			dataType:'json',
+			async:false,			
+			success:function(jArray){	
+				if(jArray['isImage'] == false){		
+					var boiler=	'<div class="thumbnail" id="studProfileImage2342" style="height:120px;width:120px;margin-left:20px"><img src="getStudentProfileImage.json?id=-1249993431" alt="Photo" name="Photo" style="background-color: #FFFFFF" width="120px" height="120px" border="1" align="right"><br></div>';
+					boiler+='&nbsp&nbsp&nbsp&nbsp&nbsp<div class="btn btn-info" style="width:110px;height:20px">Upload Image<input style="margin-top:-40px;margin-left:-35px;opacity:0;" type="file" name="fileData" id="profilePictureUpload" onclick="studProfilePic();" accept="image/*"></div>';	
+					$('#profileImgModalBodyDiv').html(boiler);
+					$('#profileImgModal').modal('show');
+	}
+			},
+			error:function(){
+			}
+		});
+}
+
+function base64ToBlob(base64, mime) 
+{
+    mime = mime || '';
+    var sliceSize = 1024;
+    var byteChars = window.atob(base64);
+    var byteArrays = [];
+
+    for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+        var slice = byteChars.slice(offset, offset + sliceSize);
+
+        var byteNumbers = new Array(slice.length);
+        for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        var byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, {type: mime});
+}
+function studProfilePic(){
+	var Maxsize =  5242880;	
+	$image_crop = $('#image_demo').croppie({
+		enableExif: true,
+		enableOrientation: true,
+		viewport: {
+			width:200,
+			height:200,
+			type:'square' //circle
+		},
+		boundary:{
+			width:300,
+			height:300
+		}
+	});
+
+	$('#profilePictureUpload').on('change', function(){
+		var reader = new FileReader();
+		reader.onload = function (event) {
+			$image_crop.croppie('bind', {
+				url: event.target.result
+			}).then(function(){
+				console.log('jQuery bind complete');
+			});
+		}
+		reader.readAsDataURL(this.files[0]);
+		$('#uploadimageModal').modal('show');
+	});
+
+	$(function() {
+		$('.vanilla-rotate').on('click', function(ev) {
+			$image_crop.croppie('rotate', parseInt($(this).data('deg')));
+		});
+	});
+
+	$('.crop_image').click(function(event){
+		$image_crop.croppie('result', {
+			type: 'canvas',
+			size: 'viewport'
+		}).then(function(response){
+			console.log(response);
+			var base64ImageContent = response.replace(/^data:image\/(png|jpg);base64,/, "")
+			var blob = base64ToBlob(base64ImageContent, 'image/png');                
+			var formData = new FormData();
+			formData.append('fileData', blob);
+			$.ajax({
+				url:"uploadStudentProfileImage.json",
+				type: "POST",
+				contentType: false,
+				processData: false,
+				data: formData,
+			name : 'fileData',
+			size: Maxsize,
+			onSubmit : function(data) {
+				//if(extension.toString().toLowerCase() == 'png' || extension.toString().toLowerCase() == 'jpg',extension.toString().toLowerCase() == 'jpeg'){
+					startLoading();
+					this.setData({
+						'fileSize':Maxsize
+					});
+			},
+			success:function(data)
+			{
+				$('#uploadimageModal').modal('hide');
+
+				if(isNaN(data)){
+					//showErrorMessage('File size is larger than specified',10000);
+					jAlert("File size is larger than specified !!");
+				} else {
+					var imageBoiler = 
+						'<img src="getStudentProfileImage.json?type=profile&someparam='+data+'" alt="Photo" name="Photo" width="120px" height="120px" border="1" align="right" style="background-color: #FFFFFF" />';
+
+					$('#studProfileImage2342').html(imageBoiler);	
+					jAlert("Image uploaded successfully !!!");					
+					imageStatus = true;
+					showSuccessMessage('Image uploaded. ',10000); 
+					$('#profileImgModal').modal('hide');
+				}
+				//$('#uploaded_image').html(data);
+				$image_crop.croppie('destroy');
+			}
+		});
+});
+	
+});
+}¬È°6*       iÕÂ0iÕÂ0I\†ŽiØvz   `    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/student/studentHome.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"48964-1772026450000"
+Last-Modified: Wed, 25 Feb 2026 13:34:10 GMT
+Content-Type: text/javascript
+Content-Length: 48964
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"48964-1772026450000"
+Last-Modified: Wed, 25 Feb 2026 13:34:10 GMT
+Content-Type: text/javascript
+Content-Length: 48964
+Keep-Alive: timeout=5, max=91
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 213 net-response-time-onstop 214   ¿D

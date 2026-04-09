@@ -1,0 +1,966 @@
+
+$('document').ready(function(){
+	//clock();
+	
+	$('#replayToStudentMessageModal').modal({
+		keyboard:false,
+		show:false
+	}).css({
+		width:'700px',
+		'margin-left':function(){
+			return -($(this).width()/2);
+		},
+	});
+
+});
+
+
+
+function showMessage(cmbBox){
+
+	if(cmbBox=="Roster"){
+		if($('#empName').val()!=0 && $('#empName').val()!=null){
+			var employeeId = $('#empName option:selected').attr("id");
+			sendMessage(employeeId,$('#empName option:selected').text());
+		}
+		else{
+
+			jAlert("Select Employee");
+		}
+	}
+
+	else if($('#'+cmbBox).val()!=0 && $('#'+cmbBox).val()!=null){
+		var employeeId = $('#'+cmbBox).val();
+		sendMessage(employeeId,$('#'+cmbBox+' option:selected').text());
+
+	}
+	else{
+
+		jAlert("Select Employee");
+	}
+
+
+}
+
+var int='';
+function sendMessage(empId,empName){
+	
+	$('#viewMessagePopUp').modal('show').css({
+		width: '700px',
+		'margin-left': function () {
+			return -($(this).width() / 2);
+		}
+	});
+	if(empName!=undefined)
+		$('#sendEmployeeName').html('to '+empName);
+	$("#msgBox").html('');
+
+	var boiler='';
+
+	boiler += '<table class="table-bordered" align="center"><tr><thead><th>Message Body</th></thead></tr><tr><td>'+
+	'<textarea id="comment" class="commentMark" cols="60" style="background-color: rgb(255, 255, 255); overflow: hidden; width:615px; height:60px" name="commentMark" wrap="hard"></textarea></td></tr><tr><td align="center" >'+
+	'<input type="button" class="btn btn-inverse btn-mini  " value="Send" onclick="saveMessage(\''+empId+'\');scrollToBottom(\'#viewMessageDetails\');" /></td></tr></table><br><br><div class="well" id="viewMessageDetails" style="overflow-y: auto; height:200px;"></div>';
+	$("#msgBox").html(boiler);
+	getMessageOfTwoEmployee(empId);
+	var cntTime=0;
+	
+	var flag=true;
+	interval =setInterval( function() {
+		if (flag==true) {
+			scrollToBottom('#viewMessageDetails');
+			flag=false;
+		}else {
+			clearInterval( interval );
+		}
+	}, 200 );
+
+	int=self.setInterval(function(){clock()},30000);
+	function clock()
+	{
+		window.load=getMessageOfTwoEmployee(empId);
+	} 
+}
+function scrollToBottom(id) {
+	
+	var objDiv = document.querySelector(id);
+	objDiv.scrollTop = objDiv.scrollHeight;
+}
+
+function sendBirthdayMessage(empId,empName){
+	$('#viewMessagePopUp').modal('show').css({
+		width: '900px',
+		'margin-left': function () {
+			return -($(this).width() / 2);
+		}
+	});
+	if(empName!=undefined)
+		$('#sendEmployeeName').html('to '+empName);
+	$("#msgBox").html('');
+
+
+
+
+
+
+	var boiler='';
+
+	boiler += '<table class="table-bordered" align="center"><tr><thead><th style="font-size:12px">Message</th></thead></tr><tr><td>'+
+	'<textarea id="comment" class="commentMark" cols="60" style="background-color: rgb(255, 255, 255); overflow: hidden; width:400px; height:80px" name="commentMark" wrap="hard">'+
+	'many many happy returns of the day'+
+	'</textarea></td></tr><tr><td align="center" >'+
+	'<input type="button" class="btn btn-inverse btn-mini  " value="Send" onclick="saveMessage(\''+empId+'\');" /></td></tr></table><br><br><div class="well" id="viewMessageDetails"></div>';
+	$("#msgBox").html(boiler);
+	getMessageOfTwoEmployee(empId);
+	var cntTime=0;
+
+
+	int=self.setInterval(function(){clock()},30000);
+	function clock()
+	{
+		window.load=getMessageOfTwoEmployee(empId);
+	} 
+
+
+
+}
+
+function getMessageOfTwoEmployee(empId){
+	var link = '';
+
+	link +=  '<table class="table table-striped table-bordered table-condensed">';
+
+
+
+	$.ajax({
+		url:'getMessageOfTwoEmployee.json?employeeId='+empId,
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+
+			if(jArray.length>0)	{
+				//alert(jArray.length);
+				for(var i=0;i<jArray.length;i++){
+					
+					if(jArray[i]["employeeId"]==empId)
+					{
+
+					link+= '<div class=" alert alert-success pull-left" id="'+jArray[i]["employeeMessageId"]+'-'+i+'" style="width:400px;">';
+					if(jArray[i]["profileImageStatus"]=='notdefined') 
+						link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'" src="'+jArray[i]["profileImage"]+'" style="border-radius:20px;float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+					else
+						link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'"  id="cmtempimg_'+i+'" src="getEmployeeProfileImageById.json?id='+jArray[i]["employeeId"]+'" style="float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+
+					link+='<b style="font-size:0.8rem;margin-left:5px;margin-top:5px;">'+jArray[i]["sentBy"]+'<a href="#"></a></b><br>'+
+					'<span style="margin-bottom:10px;margin-left:5px;">'+jArray[i]["date"]+' at '+jArray[i]["time"].split(" ")[1].split(".")[0]+'</span>'+
+					'<h1 style="font-size: 18px; padding-bottom: 10px; margin-bottom: 10px; line-height: 22px; border-bottom: 1px solid #E5E5E5;"></h1>'+
+					'<div class="name" style="">'+
+					'<em>'+jArray[i]["message"]+'</em>'+
+
+					'</div>'+
+					'<br clear="all" />'+
+					'<br clear="all" />'+
+					'<div  class="name" align="center" style="width:350px;float:right; ">'+
+					'<div class="name" style="float:left;">';
+					link+='</div>'+
+					'</div>'+
+					'</div>';
+					}
+					else
+					{
+						link+= '<div class=" alert alert-info pull-right" id="'+jArray[i]["employeeMessageId"]+'-'+i+'" style="width:400px;">';
+						
+
+						if(jArray[i]["profileImageStatus"]=='notdefined') 
+							link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'" src="'+jArray[i]["profileImage"]+'" style="border-radius:20px;float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+						else
+							link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'"  id="cmtempimg_'+i+'" src="getEmployeeProfileImageById.json?id='+jArray[i]["employeeId"]+'" style="float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+
+						link+='<b style="font-size:0.8rem;margin-left:5px;margin-top:5px;">'+jArray[i]["sentBy"]+'<a href="#"></a></b><br>'+
+						'<span style="margin-bottom:10px;margin-left:5px;">'+jArray[i]["date"]+' at '+jArray[i]["time"].split(" ")[1].split(".")[0]+'</span>'+
+						'<h1 style="font-size: 18px; padding-bottom: 10px; margin-bottom: 10px; line-height: 22px; border-bottom: 1px solid #E5E5E5;"></h1>'+
+						'<div class="name" style="">'+
+						'<em>'+jArray[i]["message"]+'</em>'+
+
+						'</div>'+
+						'<br clear="all" />'+
+						'<br clear="all" />'+
+						'<div  class="name" align="center" style="width:350px;float:right; ">'+
+						'<div class="name" style="float:left;">';
+						link+='</div>'+
+						'</div>'+
+						'</div>';
+					}
+					
+				}
+				link += '</table>';
+				$('#viewMessageDetails').html(link);
+			}
+			else{
+				$('#viewMessageDetails').html('<div class = "alert alert-info">No messages</div>');
+
+			}
+
+		},
+		error:function(){
+		}
+	});
+
+}
+
+
+function saveMessage(employeeId){
+	if($("#comment").val()==''){
+		jAlert("Enter message.");
+
+	}
+	else{
+		$.ajax({      
+			url:'sendMessageToEmployee.json?employeeId='+employeeId+'&message='+$("#comment").val(),
+			dataType:'text',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(type){	
+
+				if(type=="not saved"){
+
+					jAlert("you cannot send message to yourself");
+
+				}
+				else{
+					$('#comment').val('');
+					jAlert(" message sent successfully");
+					getMessageOfTwoEmployee(employeeId);
+				}
+			},
+			error:function(){
+				alert("Error");
+			}
+		});
+	}
+
+}
+
+
+function setReadMessage(){
+	$.ajax({      
+		url:'setReadMessage.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type){	
+
+			getUnreadMessage();
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+
+}
+
+function closeDialog(){
+
+	$('#viewMessagePopUp').modal("hide");
+	if(int!='')
+		clearInterval(int);
+
+
+}	
+
+
+function getAllStudentMessage()
+{
+	$('#message').val('');
+	$.ajax({
+		url:'getAllStudentMessage.json',
+		dataType:'json',
+		async:false,
+
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			var subcnt=1;
+			var j=jArray.length;
+			var boiler='';
+			boiler+='<table id="dMtbl1" cellpadding="0" cellspacing="0" border="1" class="table table-striped table-bordered table-condensed" style="width: 100%"><thead>'+
+			'<tr><th>Sr No.</th><th>Date</th><th>Time</th><th>Message</th>'+
+			'<th>Sent By</th><th>Reply</th><th style="display:none">studentMessageId</th></tr></thead><tbody>';
+
+			for( var i=0; i<j; i++)
+			{
+				if(jArray[i]["empCommStatus"]==undefined){
+					var studentMessageId = jArray[i]["studentMessageId"];
+					if(jArray[i]["status"]==false){
+						boiler+='<tr id="'+studentMessageId+'" style="font-weight:bold">';
+					}
+					else{
+						boiler+='<tr id="'+studentMessageId+'">';
+					}
+
+					boiler+='<td>'+subcnt+'</td>'+
+					'<td>'+jArray[i]["date"]+'</td>'+
+					'<td>'+jArray[i]["time"].split(" ")[1].split(".")[0]+'</td>'+
+					'<td>'+jArray[i]["message"]+'</td>'+
+					'<td>'+jArray[i]["sentBy"]+'</td>'+
+					'<td style="text-align:center">'+
+					'<input type="button" value="Reply" class="btn btn-inverse btn-mini  " onclick="sendStudentMessage(\''+jArray[i]["sentBystudentId"]+'\' ,\''+jArray[i]["sentBy"]+'\')"></td>'+
+					'<td style="display:none">'+studentMessageId+'</td></tr>';
+					subcnt++;
+				}
+			}
+			boiler+='</tbody></table><br /><div id="divMeetingForCoordinator"></div>';
+
+			$("#studentMessageDiv").html(boiler);
+
+
+			$('#dMtbl1').dataTable( {
+				"sDom": "<'row'<'margin-left-22'l><'pull-right'f>r>t<'row'<'margin-left-22'i><'pull-right'p>>",
+				"sPaginationType": "bootstrap",
+				"oLanguage": {
+					"sLengthMenu": "_MENU_ records per page"
+				}
+			} );
+
+		},
+	});
+	if($("#countStudMessage").text()!=0){
+		setReadStudMessageByEmployee();
+	}
+}
+
+function getUnreadStudentMessageByEmployee(){
+	$.ajax({
+		url:'getUnreadStudentMessageByEmployee.json',
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			$("#countStudMessage").html(jArray[0]["studMessagecount"]);
+		},
+	});
+}
+
+
+function setReadStudMessageByEmployee(){
+	$.ajax({      
+		url:'setReadStudMessageByEmployee.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type){	
+
+			getUnreadStudentMessageByEmployee();
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+
+}
+
+function sendStudentMessage(studentId,studentName)
+{
+	$('#studName').html('');
+	$('#replayDiv').html('');
+	$('#replayToStudentMessageModal').modal('show');
+	$('#studName').html("Reply To : "+studentName);
+	
+	var boiler ='<table class="table table-bordered"><thead>'+
+					'<tr><th>Reply Message</th></tr></thead>'+
+					'<tr><td><textarea id="replyStudent" style="width:650px"></textarea></td></tr>'+
+					'<tr><td><div align="center">'+
+					'<input type="button" class="btn btn-inverse btn-mini" value="Send Reply" onclick="sendReplayToStudent(\''+studentId+'\')"></div></td></tr>'+
+				'</table>'+
+				'</div>';
+	$('#replayDiv').html(boiler);
+}
+
+function sendReplayToStudent(studentId)
+{
+	var description = $('#replyStudent').val();
+	$.ajax({      
+		url:'sendReplayToStudent.json?studentId='+studentId,
+		dataType:'text',
+		type:'POST',
+		data:{studentId:studentId,description:description.toString()},
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type)
+		{	
+			$('#replayToStudentMessageModal').modal('hide');
+			jAlert("Successfully Send Message","Success");
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+}
+        á  xáÁx   20260309231353-8l˚Ü  ﬂŒ\Ö@   https://erp.cmrit.ac.in/scripts/organizationjs/messageDetails.js      c/  
+$('document').ready(function(){
+	//clock();
+	
+	$('#replayToStudentMessageModal').modal({
+		keyboard:false,
+		show:false
+	}).css({
+		width:'700px',
+		'margin-left':function(){
+			return -($(this).width()/2);
+		},
+	});
+
+});
+
+
+
+function showMessage(cmbBox){
+
+	if(cmbBox=="Roster"){
+		if($('#empName').val()!=0 && $('#empName').val()!=null){
+			var employeeId = $('#empName option:selected').attr("id");
+			sendMessage(employeeId,$('#empName option:selected').text());
+		}
+		else{
+
+			jAlert("Select Employee");
+		}
+	}
+
+	else if($('#'+cmbBox).val()!=0 && $('#'+cmbBox).val()!=null){
+		var employeeId = $('#'+cmbBox).val();
+		sendMessage(employeeId,$('#'+cmbBox+' option:selected').text());
+
+	}
+	else{
+
+		jAlert("Select Employee");
+	}
+
+
+}
+
+var int='';
+function sendMessage(empId,empName){
+	
+	$('#viewMessagePopUp').modal('show').css({
+		width: '700px',
+		'margin-left': function () {
+			return -($(this).width() / 2);
+		}
+	});
+	if(empName!=undefined)
+		$('#sendEmployeeName').html('to '+empName);
+	$("#msgBox").html('');
+
+	var boiler='';
+
+	boiler += '<table class="table-bordered" align="center"><tr><thead><th>Message Body</th></thead></tr><tr><td>'+
+	'<textarea id="comment" class="commentMark" cols="60" style="background-color: rgb(255, 255, 255); overflow: hidden; width:615px; height:60px" name="commentMark" wrap="hard"></textarea></td></tr><tr><td align="center" >'+
+	'<input type="button" class="btn btn-inverse btn-mini  " value="Send" onclick="saveMessage(\''+empId+'\');scrollToBottom(\'#viewMessageDetails\');" /></td></tr></table><br><br><div class="well" id="viewMessageDetails" style="overflow-y: auto; height:200px;"></div>';
+	$("#msgBox").html(boiler);
+	getMessageOfTwoEmployee(empId);
+	var cntTime=0;
+	
+	var flag=true;
+	interval =setInterval( function() {
+		if (flag==true) {
+			scrollToBottom('#viewMessageDetails');
+			flag=false;
+		}else {
+			clearInterval( interval );
+		}
+	}, 200 );
+
+	int=self.setInterval(function(){clock()},30000);
+	function clock()
+	{
+		window.load=getMessageOfTwoEmployee(empId);
+	} 
+}
+function scrollToBottom(id) {
+	
+	var objDiv = document.querySelector(id);
+	objDiv.scrollTop = objDiv.scrollHeight;
+}
+
+function sendBirthdayMessage(empId,empName){
+	$('#viewMessagePopUp').modal('show').css({
+		width: '900px',
+		'margin-left': function () {
+			return -($(this).width() / 2);
+		}
+	});
+	if(empName!=undefined)
+		$('#sendEmployeeName').html('to '+empName);
+	$("#msgBox").html('');
+
+
+
+
+
+
+	var boiler='';
+
+	boiler += '<table class="table-bordered" align="center"><tr><thead><th style="font-size:12px">Message</th></thead></tr><tr><td>'+
+	'<textarea id="comment" class="commentMark" cols="60" style="background-color: rgb(255, 255, 255); overflow: hidden; width:400px; height:80px" name="commentMark" wrap="hard">'+
+	'many many happy returns of the day'+
+	'</textarea></td></tr><tr><td align="center" >'+
+	'<input type="button" class="btn btn-inverse btn-mini  " value="Send" onclick="saveMessage(\''+empId+'\');" /></td></tr></table><br><br><div class="well" id="viewMessageDetails"></div>';
+	$("#msgBox").html(boiler);
+	getMessageOfTwoEmployee(empId);
+	var cntTime=0;
+
+
+	int=self.setInterval(function(){clock()},30000);
+	function clock()
+	{
+		window.load=getMessageOfTwoEmployee(empId);
+	} 
+
+
+
+}
+
+function getMessageOfTwoEmployee(empId){
+	var link = '';
+
+	link +=  '<table class="table table-striped table-bordered table-condensed">';
+
+
+
+	$.ajax({
+		url:'getMessageOfTwoEmployee.json?employeeId='+empId,
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+
+			if(jArray.length>0)	{
+				//alert(jArray.length);
+				for(var i=0;i<jArray.length;i++){
+					
+					if(jArray[i]["employeeId"]==empId)
+					{
+
+					link+= '<div class=" alert alert-success pull-left" id="'+jArray[i]["employeeMessageId"]+'-'+i+'" style="width:400px;">';
+					if(jArray[i]["profileImageStatus"]=='notdefined') 
+						link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'" src="'+jArray[i]["profileImage"]+'" style="border-radius:20px;float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+					else
+						link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'"  id="cmtempimg_'+i+'" src="getEmployeeProfileImageById.json?id='+jArray[i]["employeeId"]+'" style="float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+
+					link+='<b style="font-size:0.8rem;margin-left:5px;margin-top:5px;">'+jArray[i]["sentBy"]+'<a href="#"></a></b><br>'+
+					'<span style="margin-bottom:10px;margin-left:5px;">'+jArray[i]["date"]+' at '+jArray[i]["time"].split(" ")[1].split(".")[0]+'</span>'+
+					'<h1 style="font-size: 18px; padding-bottom: 10px; margin-bottom: 10px; line-height: 22px; border-bottom: 1px solid #E5E5E5;"></h1>'+
+					'<div class="name" style="">'+
+					'<em>'+jArray[i]["message"]+'</em>'+
+
+					'</div>'+
+					'<br clear="all" />'+
+					'<br clear="all" />'+
+					'<div  class="name" align="center" style="width:350px;float:right; ">'+
+					'<div class="name" style="float:left;">';
+					link+='</div>'+
+					'</div>'+
+					'</div>';
+					}
+					else
+					{
+						link+= '<div class=" alert alert-info pull-right" id="'+jArray[i]["employeeMessageId"]+'-'+i+'" style="width:400px;">';
+						
+
+						if(jArray[i]["profileImageStatus"]=='notdefined') 
+							link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'" src="'+jArray[i]["profileImage"]+'" style="border-radius:20px;float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+						else
+							link+='<a href="#"><img onmouseover="showPhotoDialog(\'cmtempimg_'+i+'\',\''+jArray[i]["employeeId"]+'\',\'employee\')" id="cmtempimg_'+i+'"  id="cmtempimg_'+i+'" src="getEmployeeProfileImageById.json?id='+jArray[i]["employeeId"]+'" style="float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>';
+
+						link+='<b style="font-size:0.8rem;margin-left:5px;margin-top:5px;">'+jArray[i]["sentBy"]+'<a href="#"></a></b><br>'+
+						'<span style="margin-bottom:10px;margin-left:5px;">'+jArray[i]["date"]+' at '+jArray[i]["time"].split(" ")[1].split(".")[0]+'</span>'+
+						'<h1 style="font-size: 18px; padding-bottom: 10px; margin-bottom: 10px; line-height: 22px; border-bottom: 1px solid #E5E5E5;"></h1>'+
+						'<div class="name" style="">'+
+						'<em>'+jArray[i]["message"]+'</em>'+
+
+						'</div>'+
+						'<br clear="all" />'+
+						'<br clear="all" />'+
+						'<div  class="name" align="center" style="width:350px;float:right; ">'+
+						'<div class="name" style="float:left;">';
+						link+='</div>'+
+						'</div>'+
+						'</div>';
+					}
+					
+				}
+				link += '</table>';
+				$('#viewMessageDetails').html(link);
+			}
+			else{
+				$('#viewMessageDetails').html('<div class = "alert alert-info">No messages</div>');
+
+			}
+
+		},
+		error:function(){
+		}
+	});
+
+}
+
+
+function saveMessage(employeeId){
+	if($("#comment").val()==''){
+		jAlert("Enter message.");
+
+	}
+	else{
+		$.ajax({      
+			url:'sendMessageToEmployee.json?employeeId='+employeeId+'&message='+$("#comment").val(),
+			dataType:'text',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(type){	
+
+				if(type=="not saved"){
+
+					jAlert("you cannot send message to yourself");
+
+				}
+				else{
+					$('#comment').val('');
+					jAlert(" message sent successfully");
+					getMessageOfTwoEmployee(employeeId);
+				}
+			},
+			error:function(){
+				alert("Error");
+			}
+		});
+	}
+
+}
+
+
+function setReadMessage(){
+	$.ajax({      
+		url:'setReadMessage.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type){	
+
+			getUnreadMessage();
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+
+}
+
+function closeDialog(){
+
+	$('#viewMessagePopUp').modal("hide");
+	if(int!='')
+		clearInterval(int);
+
+
+}	
+
+
+function getAllStudentMessage()
+{
+	$('#message').val('');
+	$.ajax({
+		url:'getAllStudentMessage.json',
+		dataType:'json',
+		async:false,
+
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			var subcnt=1;
+			var j=jArray.length;
+			var boiler='';
+			boiler+='<table id="dMtbl1" cellpadding="0" cellspacing="0" border="1" class="table table-striped table-bordered table-condensed" style="width: 100%"><thead>'+
+			'<tr><th>Sr No.</th><th>Date</th><th>Time</th><th>Message</th>'+
+			'<th>Sent By</th><th>Reply</th><th style="display:none">studentMessageId</th></tr></thead><tbody>';
+
+			for( var i=0; i<j; i++)
+			{
+				if(jArray[i]["empCommStatus"]==undefined){
+					var studentMessageId = jArray[i]["studentMessageId"];
+					if(jArray[i]["status"]==false){
+						boiler+='<tr id="'+studentMessageId+'" style="font-weight:bold">';
+					}
+					else{
+						boiler+='<tr id="'+studentMessageId+'">';
+					}
+
+					boiler+='<td>'+subcnt+'</td>'+
+					'<td>'+jArray[i]["date"]+'</td>'+
+					'<td>'+jArray[i]["time"].split(" ")[1].split(".")[0]+'</td>'+
+					'<td>'+jArray[i]["message"]+'</td>'+
+					'<td>'+jArray[i]["sentBy"]+'</td>'+
+					'<td style="text-align:center">'+
+					'<input type="button" value="Reply" class="btn btn-inverse btn-mini  " onclick="sendStudentMessage(\''+jArray[i]["sentBystudentId"]+'\' ,\''+jArray[i]["sentBy"]+'\')"></td>'+
+					'<td style="display:none">'+studentMessageId+'</td></tr>';
+					subcnt++;
+				}
+			}
+			boiler+='</tbody></table><br /><div id="divMeetingForCoordinator"></div>';
+
+			$("#studentMessageDiv").html(boiler);
+
+
+			$('#dMtbl1').dataTable( {
+				"sDom": "<'row'<'margin-left-22'l><'pull-right'f>r>t<'row'<'margin-left-22'i><'pull-right'p>>",
+				"sPaginationType": "bootstrap",
+				"oLanguage": {
+					"sLengthMenu": "_MENU_ records per page"
+				}
+			} );
+
+		},
+	});
+	if($("#countStudMessage").text()!=0){
+		setReadStudMessageByEmployee();
+	}
+}
+
+function getUnreadStudentMessageByEmployee(){
+	$.ajax({
+		url:'getUnreadStudentMessageByEmployee.json',
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			$("#countStudMessage").html(jArray[0]["studMessagecount"]);
+		},
+	});
+}
+
+
+function setReadStudMessageByEmployee(){
+	$.ajax({      
+		url:'setReadStudMessageByEmployee.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type){	
+
+			getUnreadStudentMessageByEmployee();
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+
+}
+
+function sendStudentMessage(studentId,studentName)
+{
+	$('#studName').html('');
+	$('#replayDiv').html('');
+	$('#replayToStudentMessageModal').modal('show');
+	$('#studName').html("Reply To : "+studentName);
+	
+	var boiler ='<table class="table table-bordered"><thead>'+
+					'<tr><th>Reply Message</th></tr></thead>'+
+					'<tr><td><textarea id="replyStudent" style="width:650px"></textarea></td></tr>'+
+					'<tr><td><div align="center">'+
+					'<input type="button" class="btn btn-inverse btn-mini" value="Send Reply" onclick="sendReplayToStudent(\''+studentId+'\')"></div></td></tr>'+
+				'</table>'+
+				'</div>';
+	$('#replayDiv').html(boiler);
+}
+
+function sendReplayToStudent(studentId)
+{
+	var description = $('#replyStudent').val();
+	$.ajax({      
+		url:'sendReplayToStudent.json?studentId='+studentId,
+		dataType:'text',
+		type:'POST',
+		data:{studentId:studentId,description:description.toString()},
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type)
+		{	
+			$('#replayToStudentMessageModal').modal('hide');
+			jAlert("Successfully Send Message","Success");
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+}
+”ò¿Ÿ◊   õ         ∏OÄ      document   ¢Ñ
+      ready      ≥XVî      #replayToStudentMessageModal    ∫˚      modal      a@      keyboard   HáíK      show   ÎƒJ˚      width      Õ       700px      Ú(:…      margin-left	    Zˆ(™      showMessage
+    ’Ú      cmbBox     AtÚÁ      Roster     ,míÕ      #empName   &⁄õ      val    GZS'
+      employeeId     j|{Ç      #empName option:selected   A¢Ωê      attr   ü∏èæ      sendMessage    à3¿µ      text   Òp^      jAlert     í§L      Select Employee    É¶≠       option:selected   øOø      int    Ëé∏0      empId      ]‹äƒ      empName    ‘«û      #viewMessagePopUp      âùtG      #sendEmployeeName      ‘„X      html   tú<      to     ôzƒy      #msgBox    1Ôf       boiler"     Å·∞ü      ');scrollToBottom('#viewMessageDetails');" /></td></tr></table><br><br><div class="well" id="viewMessageDetails" style="overflow-y: auto; height:200px;"></div>#    'U#      getMessageOfTwoEmployee$    ôÚ±ú      cntTime%    Ä≠•ù      flag&   szÇﬁ      interval'   Ïà       setInterval(    MŒıl      scrollToBottom)     ·ﬁíÿ      #viewMessageDetails*    bPk      clearInterval+      ¡§\l      self,   t4ö$      clock-      ¯2áâ      window.     2áU)      load/   ¬eì£      objDiv0     ÿ1:Ú      querySelector1      ìGÎ	      scrollTop2      LsAø      scrollHeight3   ˘±^      sendBirthdayMessage4    ≤ß_Ø      900px9      |p
+UQ      ');" /></td></tr></table><br><br><div class="well" id="viewMessageDetails"></div>:      ¸IÎ’      link;   º˘ƒUB      <table class="table table-striped table-bordered table-condensed"><     æd»ê      ajax=   ïdC(      getMessageOfTwoEmployee.json?employeeId=>   DoÄw      dataType?   …©\9      success@    ı≤z      jArrayA     ÊöQn0      <div class=" alert alert-success pull-left" id="B    tå      employeeMessageIdC      ]¡œ      " style="width:400px;">D    úö.D      profileImageStatusE     s( 
+      notdefinedF     ›a˘s9      <a href="#"><img onmouseover="showPhotoDialog('cmtempimg_G      ä…®∂      ','H    Ôó¢      ','employee')" id="cmtempimg_I      ód      " src="J    ·ÃÌI      profileImageK   ôh~u      " style="border-radius:20px;float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>L      è!@’      "  id="cmtempimg_M      Œ–ë+      " src="getEmployeeProfileImageById.json?id=N    §:Ëb      " style="float:left;border:0.5px solid lightgray;" width="40" height="40" border="0" alt="" /></a>O     g§g<      <b style="font-size:0.8rem;margin-left:5px;margin-top:5px;">P   ∏·-ò      sentByS     ⁄+h¶       at ]   »94◊.      <div class=" alert alert-info pull-right" id="^     Á«Ä      </table>_   ‘¢Ÿ1      <div class = "alert alert-info">No messages</div>`      i&Ò)      saveMessagea    Ô‹[π      #commentb   rí ø      Enter message.c     N/0∂&      sendMessageToEmployee.json?employeeId=d     ‡Ãd	      &message=e      Ñ–ˇ
+      beforeSendf     qm+Ô      startCommonAjaxSpinnerg     Dï»á      completeh   Ü*F      stopCommonAjaxSpinneri      ^ıŸÌ	      not savedj      N~·#      you cannot send message to yourselfk    ¬œÎª       message sent successfullyl     “Ô¢Z      alertm      Qz>Õ      setReadMessagen     éØ‡      setReadMessage.jsono    a'í      getUnreadMessagep   Œ‚&      closeDialogq    üvÙ}      hider   ˚V“…      getAllStudentMessages   w@Â7      #messaget   Zl'å      getAllStudentMessage.jsonu      /ª¥;      subcnty     ÄRŸ      empCommStatusz      9¿oà      studentMessageId{   Ô„\9      <tr id="|   êHK#      " style="font-weight:bold">}    +®¢      ">~     ¨˜í      <td>Ç   °n“ﬁ      sentBystudentIdÉ    ¡Zô      ' ,'Ü   ¯ÅÊÛ
+      </td></tr>á     ?ry?      </tbody></table><br /><div id="divMeetingForCoordinator"></div>à    KÅ3ˆ      #studentMessageDivâ     -aËœ      #dMtbl1ä    ¸”8	      dataTableã      y&ﬁy      sDomå   ì¸T      <'row'<'margin-left-22'l><'pull-right'f>r>t<'row'<'margin-left-22'i><'pull-right'p>>ç   ¨∑il      sPaginationTypeé    }~h	      bootstrapè      TmÕ¸	      oLanguageê      ì!.®      sLengthMenuë    Rv8¬      _MENU_ records per pageí    Ãû’      #countStudMessageì      ìıåÏ      setReadStudMessageByEmployeeî   ‹*q!      getUnreadStudentMessageByEmployeeï      ¿‡©q&      getUnreadStudentMessageByEmployee.jsonñ     ¯A)      studMessagecountó   º‹!⁄!      setReadStudMessageByEmployee.jsonò      L:÷Ÿ      sendStudentMessageô     æK˛2	      studentIdö      É:Fˇ      studentNameõ    \È{	      #studNameú      x—v
+      #replayDivù     ç{Ï'      Reply To : §    É≤¥'      sendReplayToStudent•    Ñàö      description¶    –≠      #replyStudentß      Vˆ•Ç#      sendReplayToStudent.json?studentId=®    ﬂ:      POST©   6ó(Å      data™   ‚gÏÀ      Successfully Send Message´      ·V      Success¨    ÄÎé$ó     <table class="table-bordered" align="center"><tr><thead><th>Message Body</th></thead></tr><tr><td><textarea id="comment" class="commentMark" cols="60" style="background-color: rgb(255, 255, 255); overflow: hidden; width:615px; height:60px" name="commentMark" wrap="hard"></textarea></td></tr><tr><td align="center" ><input type="button" class="btn btn-inverse btn-mini  " value="Send" onclick="saveMessage('≠    …ÆjÀÀ     <table class="table-bordered" align="center"><tr><thead><th style="font-size:12px">Message</th></thead></tr><tr><td><textarea id="comment" class="commentMark" cols="60" style="background-color: rgb(255, 255, 255); overflow: hidden; width:400px; height:80px" name="commentMark" wrap="hard">many many happy returns of the day</textarea></td></tr><tr><td align="center" ><input type="button" class="btn btn-inverse btn-mini  " value="Send" onclick="saveMessage('Æ    "ÏËñJ      <a href="#"></a></b><br><span style="margin-bottom:10px;margin-left:5px;">Ø     ﬂQp÷®      </span><h1 style="font-size: 18px; padding-bottom: 10px; margin-bottom: 10px; line-height: 22px; border-bottom: 1px solid #E5E5E5;"></h1><div class="name" style=""><em>∞   vÙ$ô      </em></div><br clear="all" /><br clear="all" /><div  class="name" align="center" style="width:350px;float:right; "><div class="name" style="float:left;">±      —˙p      </div></div></div>≤     ≈ã81     <table id="dMtbl1" cellpadding="0" cellspacing="0" border="1" class="table table-striped table-bordered table-condensed" style="width: 100%"><thead><tr><th>Sr No.</th><th>Date</th><th>Time</th><th>Message</th><th>Sent By</th><th>Reply</th><th style="display:none">studentMessageId</th></tr></thead><tbody>≥      é˛H	      </td><td>¥      =Xä Ü      </td><td style="text-align:center"><input type="button" value="Reply" class="btn btn-inverse btn-mini  " onclick="sendStudentMessage('µ     Sn{"      ')"></td><td style="display:none">∂     lÊ)Ë"     <table class="table table-bordered"><thead><tr><th>Reply Message</th></tr></thead><tr><td><textarea id="replyStudent" style="width:650px"></textarea></td></tr><tr><td><div align="center"><input type="button" class="btn btn-inverse btn-mini" value="Send Reply" onclick="sendReplayToStudent('∑     ±Q‰C"      ')"></div></td></tr></table></div>π     . ÇÃ      sendMessage/interval<∫      II˜s      sendMessage/int<Ω   .Ë8{      sendBirthdayMessage/int<     /   §  /   /              Ô%,â                                                                                                                                        	                 
+                                                                                                                                                                                                                                                                                                                                                                                                            !                 "                 #                  $      "           %      "           &      "           '      "           (                  )                  *      (           +      (           ,      (           -      (           .                        -                 ≥Oåc         	  ê    ê(  ê3  ê#  ê`  êm  êp  êr  êî  êì  êò  ê§  ê            
+                  P    $  %  P,  P                              w                                               ç /                P    $  ,  P                              w                                  P:  P            @  i                                 P                                             ‰                                                                               ‰                                                                                              @  u  j    i  z                                                               @                                                               ‰                              ô  ö                ô  •                                               ‰                                                w   Ø¬0∞IÙ$KEÆ˙ö   
+             
+               Û  >     ?  Ü      #     Û  >     e  g  ?  Ü      #   Û  >     e  g  ?  Ü         Û  >     e  g  ?         ã  ç  è        ê          Û  >     e  g  ?     #    Û  >     e  g  ?  Ü   	   -   Û  >  ‰  ©     e  g  ?  Ü      
+     ô  •     
+           
+        á&’™ç!´!/   l     .3l   4                         ﬂ   æ       u ÊL   Èo   y ‰∫      Õ   ‰ß`P
+ˇˇˇ˙PD,	e;Ä ∞Pê   ’˜ŒÃê   N                          æ       u ÊL   È;   >   >   u ÊL   È;   	   >
+   o   >   y ‰ß@`P
+'%&F$PJ	%*JP4PÄÄX   PôX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄH  °Zí¯H  ó                7       ø     ú√   ô   æ       u ÊL   Èu  û%   ô   ‰æ       u ÊL   Èu  ô   úW   ô   æ       u ÊL   È   u –   ‰æ    ¡   æ       u ÊL	   Èu  y ‰õ   ô   æ
+       y ‰ô   õ    ô   æ       ø  (u ÊL   Èu  û)   ô!   ‰æ       ø  (u ÊL   Èu  ô'   ú`   ô(   æ       ø  (u ÊL   Èu  –   ‰æ    ¡   æ       ø  (   (u ÊL	   Èu  y ‰õ   ô5   æ
+       y ‰ô7   ß@`ì `P
+Põ P
+Pî `PP(`[
+Pˇˇˇ÷P>@	`Pì@
+`ˇˇˇ˚P
+Pñ ˇˇˇ˙P
+Pî `ˇˇˇ˚P
+P(`
+ˇˇˇ˙P
+!Pˇˇˇ”P>@`P9PË  tFË  L  
+             *       ¿  —    ‰o   —    ‰æ       u ÊL   È   u ÊL   È;      >	   o
+   >   y ‰ø  ú,   ô   æ       u ÊL   È   ø (y ‰ô   æ       u ÊL   È   y ‰   –   ‰¡      ƒ    (   ((0–   ‰æ       u ÊL   È¡   y ‰æ    ƒ    y ‰–  ‰—    ‰∫   æ    o   » u Õ   ‰∫   æ   ÊL   Èo   0uu Õ   ‰ßñ@`PP
+%*J'PD`	,`P
+ˇˇˇıP)`PPD`J`Iaî `P
+ˇˇˇ˚P$`ˇˇˇˇP$`F`(`5CPI`ë ˇˇˇÙP9$PX   PôX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄà   öm˝à   H                          ƒ    ú&   ô   æ       y ‰—    ‰õ   ô   æ    æ   y ‰ô   ß `í `P$`í `ˇˇˇ˛PIPÄ4   hjHˇ4                             ƒ     y  ‰ß `PÄL   cÜ≤lL                             æ   æ    ƒ    u N   ‰ß `$ˇˇˇËP)PÄ`   |ú?`   +                        æ   ÊL   Èø  u –   ‰¡   ¡   L   N   ‰ß@`ˇˇˇÚP(`ìPÄÄ¥  É–Al¥  (  
+             %       ¿  —    ‰o   —    ‰æ       u ÊL   È   u ÊL   È;      >	   o
+   >   y ‰ø  ú,   ô   æ       u ÊL   È   ø (y ‰ô   æ       u ÊL   È   y ‰   –   ‰¡      ƒ    (   ((0–   ‰æ       u ÊL   È¡   y ‰æ    ƒ    y ‰–  ‰∫   æ   ÊL   Èo   0uu Õ   ‰ßñ `PP
+%*J'PD`	,`P
+ˇˇˇıP)`PPD`J`Iaî `P
+ˇˇˇ˚P$`ˇˇˇˇP$`F`ë ˇˇˇÙP9$PX   PôX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄ4   E’¡Á4                             ƒ     y  ‰ß `PÄL   cÜ≤lL                             æ   æ    ƒ    u N   ‰ß `$ˇˇˇËP)PÄ∏   ≤9=∏   u   
+                     ¿  —    ‰   —    ‰ƒ       (0—    ‰æ   ÊL   È;      ƒ    (>      >	   >
+   o   >   o   >   y ‰ß*`L`î@`%/,*&JMJP4QP4  ë~±ï$  *                ì      ø  L    ú˜  ô   –   ‰ö   ¡   ø  L   úó  ô   ø  ¡   ML   ƒ    ú∑  ô
+   ƒ       ø  ¡   ML   (   (¡   (   ((0—    ‰ø  ¡   ML      úa   ô   ƒ    	   ¡   (
+   (ø  ¡   ML   (   (¡   (   (ø  ¡   ML   (   ((0—    ‰õg   ô"   ƒ    	   ¡   (
+   (ø  ¡   ML   (   (¡   (   (¡   (   (ø  ¡   ML   (   ((0—    ‰ô1   ƒ       ø  ¡   ML   (   (ø  ¡   ML   (   (ø  ¡   ML   ÊL   È   u MÊL   È   u M(   (ø  ¡   ML   (   ((0—    ‰ƒ       (0—    ‰õ≤  ôI   ƒ       ø  ¡   ML   (   (¡   (   ((0—    ‰ø  ¡   ML      úa   ôT   ƒ    	   ¡   (
+   (ø  ¡   ML   (   (¡   (   (ø  ¡   ML   (   ((0—    ‰õg   ôa   ƒ    	   ¡   (
+   (ø  ¡   ML   (   (¡   (   (¡   (   (ø  ¡   ML   (   ((0—    ‰ôp   ƒ       ø  ¡   ML   (   (ø  ¡   ML   (   (ø  ¡   ML   ÊL   È   u MÊL   È   u M(   (ø  ¡   ML   (   ((0—    ‰ƒ       (0—    ‰ôà   ¡   2*–   ‰õ[¸ˇˇôä   ƒ        (0—    ‰æ!    "   u ÊL#   Èƒ    y ‰õ(   ôè   æ!    "   u ÊL#   È$   y ‰ôì   ß@`î@	 `fì@	`ë@	`:î #î 	`ù `C
+î ;ß@`C
+î ;0¢@`Eî ;î ô Pë PLù@`û0 `8î #î@#
+`ù `C
+î ;ß@&`C
+î ;0¢@(`Eî <î ô Pë PL,ù@3`ô@!`ï@9`î `P
+ˇˇˇ˚P>< `PPIAPÄÄÄ4            ™  $   qŒ™$                               ß (  7∑´(  Œ   
+                     ¿  —    ‰æ       u ÊL   Èu     ú   ô   æ       y ‰õá   ô   æ   ÊL   È;   	   ƒ    (
+   (æ       u ÊL   Èu  (>      >   >   o   >   o   >   o   >   o   >   y ‰ô   ß*`P
+Pì `P> `%-[
+P)*&JJJJP9$PÄÄ4   *¥µ™4                             æ    y  ‰ß `JPÄ4   »∆aÚ4                             æ    y  ‰ß `*PÄÄº   ˝‘(Aº   o                         ø     ú   ô   æ       y ‰õG   ô   æ       u ÊL   È   y ‰æ       y ‰æ	    ƒ    y ‰ô   ß@`ì@`P> `PP$`P$`ˇˇˇˇPIP<   JT<                             æ       y ‰ß `P$PÄÄò   Iﬁµò   X                          æ   ÊL   È;      >      >   >   o	   >
+   o   >   o   >   o   >   y ‰ß `%**&J	JJJP4PÄÄ4   ∑§Qb4                             æ    y  ‰ß `JPÄ4   Ï „≠4                             æ    y  ‰ß `*PÄÄ4   µñ]04                            æ    y  ‰ß@`*PÄ<   ;ÌD~<                             æ       y ‰ß `P$PÄÄà   Xìà   H                  
+        æ       u ÊL   È   y ‰æ      ú   ô   æ    æ   y ‰ô
+   ß@`PP$`ï `ˇˇˇˇP9PÄÄÄÙ   µ2˝íÙ   ü                          æ       u ÊL   È   y ‰æ   ÊL   È;      >   	   >
+   >   o   >   o   >   o   >   y ‰æ       u ÊL   Èu  ú   ô   æ    y  ‰ô   ß `PP$`%**FJJJPD<`P
+P/`??PÄÄ4   ∑§Qb4                             æ    y  ‰ß `JPÄ4   Ï „≠4                             æ    y  ‰ß `*PÄÄ  ˚¸‡  .         
+       J      –   ‰ø  L   –  ‰   –  ‰¡     (0–  ‰–  ‰ö   ¡  ¡  ús  ô   ø  ¡  ML    úE  ô   ø  ¡  ML   –  ‰ø  ¡  ML   ú*   ô   ¡     ¡  (   ((0–  ‰õ%   ô   ¡     ¡  (	   ((0–  ‰ô   ¡  
+   ¡   (   (ø  ¡  ML   (   (ø  ¡  ML   ÊL   È   u MÊL   È   u M(   (ø  ¡  ML   (   (ø  ¡  ML   (   (ø  ¡  ML   (   (ø  ¡  ML   (   (¡  (   ((0–  ‰¡   2*–   ‰ô9   ¡  2*–  ‰õÉ˛ˇˇô;   ¡     (0–  ‰æ       u ÊL   È¡  y ‰æ       u ÊL   È;      >    !   >"   ;#   $   >%   >&   y ‰ß `&
+`-`*`ê@	 `f `,`í 	`ô `	ú0 `	ó@`	+î ô Pë P,î î@mî &î "í `ê@`ï@`ê@ `P
+ˇˇˇ˚PD#`P
+%**%O#PD+P         3   Ç  å   ∞Âk:å   N                          æ   ÊL   È;      >      >   >   o	   >
+   o   >   o   >   y ‰ß `%**&J	JJP4PÄÄÄ4   ∑§Qb4                             æ    y  ‰ß `JPÄ4   Ï „≠4                             æ    y  ‰ß `*PÄÄX   ÃX   $                         æ       u ÊL   Èø  ML   y ‰ß `P
+
+ˇˇˇ˚P$PÄÄò   Iﬁµò   X                          æ   ÊL   È;      >      >   >   o	   >
+   o   >   o   >   o   >   y ‰ß `%**&J	JJJP4PÄÄ4   ∑§Qb4                             æ    y  ‰ß `JPÄ4   Ï „≠4                             æ    y  ‰ß `*PÄÄ4   µñ]04                            æ    y  ‰ß@`*PÄ<   ;ÌD~<                             æ       y ‰ß `P$PÄÄ  ”ä  Æ                        æ       u ÊL   È   y ‰æ       u ÊL   È   y ‰æ       u ÊL   È   y ‰æ       u ÊL   È	   ø (y ‰
+   ø  (   (–   ‰æ       u ÊL   È¡   y ‰ß `PP$`PP$`P!P$`P
+ˇˇˇÌPD`EqO`P
+ˇˇˇ˚PPÄ   ä∂"Ü   ®                        æ       u ÊL   Èu  –   ‰æ   ÊL   È;      ø  (>      >	   
+   >   ;   ø  >   ¡   ÊL   Èu  >   >   >   o   >   o   >   o   >   o   >   y ‰ß `P
+P(`%*)**P-&JJJJP4PÄÄÄ4   ∑§Qb4                             æ    y  ‰ß `JPÄ4   Ï „≠4                             æ    y  ‰ß `*PÄÄh   Vh   3                         æ       u ÊL   È   y ‰æ          y ‰ß `P!P$`ê P$P<   ;ÌD~<                             æ       y ‰ß `P$PÄÄ3ıÿ  `  $          ç         #      `-  #  .    `$      `(  )  *  &    `  `  p$        M      @      p          z   ¨  "  #  &  '    p  +    p  `   0  2  1  	  `-  #  .  
+  `$      `  `  p$        M     @4      p          z   ≠  9  #    +  '    p  `    A  B  -  C  D  E  F  G  H  I  J  K  L  M  N  O  P  Æ  N   S     å     .  Ø    ∞  ±  ]  ^  $  )    _    `  `z   ;  $  <    @=  Û    >       p?    pÜ     `f    `h    `i    j  $  a    z   k  #    `l  2    `$  a    z     b  <    @c  d  Û    >       pe    pg    p?    pÜ     `f    `h    `o    `l  2    `$  <    @n  Û    >       pe    pg    p?    pÜ     `$      q    z   *    `f    `h    `  z   ≤  y  z  º  {  |  }  ~  ≥  N      å     .    P  ¥  Ç  É  µ  Ü  á  $  à    â  ä    @å  ã  é  ç    @ë  ê  è    `$  s    z   <    @t  Û    >       pe    pg    p?  í    ì    `f     `h  !  `$  í    ñ    `$  <    @ï  Û    >     !  pe  "  pg  #  p?  #  `f  $  `h  %  `î  &  `l  2  "  `$  <  	  @ó  Û    >     %  pe  &  pg  '  p?  (  pÜ   '  `$  õ    z   ú        ù  ∂  ∑  )  `f  *  `h  +  `$      q    ™  ´  ,  `l  2  (  `$  ¶    <  
+  @ß  Û    >  ®  ‰    @ô  ◊  •  ©     +  pe  ,  pg  -  p?  .  pÜ   .  `$    -  `$        @    M     @      p     `  p  p	  p
+  p  p  p  p  p  p   p$  p)  p*  p$         p  z   ˇXÑê                É               Ä                    	                                          π              ∫              ,        5      (        B      3        >              A      Ω        :      ,        Ä      #        Z   %   ?              Ü         †      `        è      e        ë      g        ì   
+   ?        ù      Ü         ¿      m        ∑      e        π      g        ª      ?        Ω      Ü         —      p             r        Ÿ      e        €      g        ›   '   ?        "     î             e             g             ?        :     ì        1     e        3     g        5     ?        7     Ü         K     ò        f     §        W     e        Y     g        [     ?        c     Ü         ùH©¿      c/      c/                    ‹      ‹                  ¨   ”   §   ”   
+                ˆ   ﬁ  ‚   ﬁ               Ä   Í  Ï  Í  .              k  ï  b  ï  2                Ê  f  ﬁ  f  D   !             é  ô  Ü  ô  M                ±  Á  £  Á  N                  _  Î  _  S             Ä}  °  a  °  Y              Ê  	  ›  	  \                B  M  :  M  u                e  õ  W  õ  v              Ä√  Å  £  Å     !            ¶  `  û  `  ä               r  y  j  y  Ã              Äò  .  Ñ  .  ”               ì  ª  ã  ª  ›                “  ¯     ¯  ·                  Û    Û  ‰                 "  ˛  "  Ò               H  }  1  }  ˙                ±  ◊  ©  ◊  ˇ                Ì    Â                   %  I    I                [  u  S  u  
+               ì  Â    Â                   Ø'  È  Ø'                 â   Ø   Å   Ø   #               ≈   È   Ω   È   '               ˝   ['  ı   ['  *             €'  )  ±'  )  \  +             Q(  w(  I(  w(  a               ç(  ±(  Ö(  ±(  e               ≈(  )  Ω(  )  h             A)  ï*  )  ï*  o  &             ∏)  ﬁ)  ∞)  ﬁ)  t               Ù)  *  Ï)  *  x               ,*  a*  $*  a*  {              s*  ç*  k*  ç*                 ≤*  -  ó*  -  Ü             <-  b/   -  b/  ó              F.  l.  >.  l.  †               Ç.  ¶.  z.  ¶.  §               ∫.  //  ≤.  //  ß              A/  [/  9/  [/  ¨             5°›tãÑÔ8¯kM      i’¬Fi’¬FI]Qi⁄e   j    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/organizationjs/messageDetails.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"12131-1770966820000"
+Last-Modified: Fri, 13 Feb 2026 07:13:40 GMT
+Content-Type: text/javascript
+Content-Length: 12131
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"12131-1770966820000"
+Last-Modified: Fri, 13 Feb 2026 07:13:40 GMT
+Content-Type: text/javascript
+Content-Length: 12131
+Keep-Alive: timeout=5, max=89
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 272 net-response-time-onstop 272 alt-data 1;12131,javascript/moz-script-bytecode-20260309231353-8l alt-data-from-child 1   ∂í

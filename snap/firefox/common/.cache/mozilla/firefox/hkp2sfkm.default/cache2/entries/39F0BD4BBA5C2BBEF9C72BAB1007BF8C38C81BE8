@@ -1,0 +1,390 @@
+function getmentiFeedBackList(){
+	
+	get_mentorMenteeFeedbackScheduleStatus(function(resArray){
+
+		if(resArray[0].currentPlan==true || resArray[0].currentPlan=="true"){
+
+			var customerCondition = $('#customerHelper').val();
+			var questionnaireType= "menteeFeedback";
+			var feedbackScheduleId =  $('#cmbFeedbackPlanId option:selected').val();
+			if(feedbackScheduleId==0){
+				jAlert("Please select Feedback Schedule");
+				return false;
+			}
+			
+			$.ajax({
+				url:'viewMentiFeedbackOnMentorList.json?questionnaireType='+questionnaireType+'&feedbackScheduleId='+feedbackScheduleId,
+				dataType:'json',
+				beforeSend: function() {
+					startCommonAjaxSpinner();
+				},
+				complete: function() {
+					stopCommonAjaxSpinner();
+				},
+				success:function(jArray){
+					var feedbackBoiler='<table class="table table-bordered table2">';
+					var dateForTh  = new Array();
+					var dateEmployee  = new Array();
+					//if(jArray.length == 0){
+						/*var feedbackBoiler1 ='<div>'+
+						'<input type="button" class="btn btn-mini btn-inverse" value="Add Mentor FeedBack" onclick="feedbackFormMentorList(\'mentiFeedback\');">&nbsp;&nbsp;'+
+						'<input type="button" class="btn btn-mini btn-inverse" style="display:none" value="Generate PDF" onclick="GenerateFollowUpSheetPDF(\''+questionnaireType+'\');"></div><br><br>';
+						$('#StudentMentiFeedBackList').html(feedbackBoiler1);*/
+						//feedbackFormMentorList('menteeFeedback');
+					//}
+					if(jArray.length > 0){
+						var consolidated = '';
+						studentName = jArray[0]["studentname"];
+						EmployeeName= jArray[0]["EmployeeName"];
+						var toNoOfOptions="";
+						var oldfeedbackDate="";
+						var newfeedbackDate="";
+
+						feedbackBoiler +='<div align = "center" style="margin-bottom: 10px;"><b>Name of Student : '+studentName+'</b>'+
+						'</div>';
+
+						for(var k=0;k<jArray.length;k++){
+							newfeedbackDate=jArray[k]["Feedbackdate"];
+							if(k==0){
+								feedbackBoiler+='<table class="table table-bordered table-condensed" style="width: 70%; margin-left: 15%; display: table;">';
+								feedbackBoiler +='<tr><th style="text-align:left;width:500px;">Date :</th>'+
+								'<td style="width:500px;">'+jArray[k]["Feedbackdate"]+'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
+								'<b>Name of the Mentor : '+jArray[k]["EmployeeName"]+'</b></td></tr>';
+							}
+							if(newfeedbackDate==oldfeedbackDate || k==0){
+								feedbackBoiler +='<tr>';
+								if(jArray[k]["Pointer"]!=null && jArray[k]["Pointer"]!="" && jArray[k]["Pointer"]!="undefined"){
+
+									feedbackBoiler+='<th style="text-align:left;width:500px;">'+jArray[k]["Name_OF_Evaluation"]+'</th><td style="width:500px;">'+jArray[k]["Pointer"]+'</td>';
+								}else{
+									feedbackBoiler+='<th style="text-align:left;width:500px;">'+jArray[k]["Name_OF_Evaluation"]+'</th><td style="width:500px;"></td>';
+								}
+								feedbackBoiler +='</tr>';
+								//
+							}else{
+								feedbackBoiler +='</table><br/><table class="table table-bordered table-condensed">';
+								feedbackBoiler +='<tr><th style="text-align:left;width:500px;">Date :</th>'+
+								'<td style="width:500px;">'+jArray[k]["Feedbackdate"]+'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;'+
+								'<b>Name of the Mentor : '+jArray[k]["EmployeeName"]+'</b></td></tr>';
+								feedbackBoiler +='<tr>';
+								if(jArray[k]["Pointer"]!=null && jArray[k]["Pointer"]!="" && jArray[k]["Pointer"]!="undefined"){
+
+									feedbackBoiler+='<th style="text-align:left;width:500px;">'+jArray[k]["Name_OF_Evaluation"]+'</th><td style="width:500px;">'+jArray[k]["Pointer"]+'</td>';
+								}else{
+									feedbackBoiler+='<th style="text-align:left;width:500px;">'+jArray[k]["Name_OF_Evaluation"]+'</th><td style="width:500px;"></td>';
+								}
+								feedbackBoiler +='</tr>';
+								//
+
+
+							}	
+							oldfeedbackDate=newfeedbackDate;
+						}
+						feedbackBoiler +='</table>';
+
+						$('#feedbackFormMentorList').hide();						
+						$('#viewSubmittedFeedback').show();
+						$('#viewSubmittedFeedback').html(feedbackBoiler);
+
+					}else{
+						feedbackFormMentorList('menteeFeedback');
+					}
+
+				}
+
+			});
+		}else{
+			$('#msg_div').show();
+			$('#msg_div').html('<div class="alert alert-info"><b>Mentor feedback plan not active.</b></div>');
+		}
+	});
+}
+	
+function feedbackFormMentorList(questionnaireType)
+{	
+	$('#feedbackFormMentorList').show();
+	$('#viewSubmittedFeedback').hide();
+	var feedbackScheduleId =  $('#cmbFeedbackPlanId option:selected').val();
+	
+	if($('#customerHelper').val()=="STJOHNS" || $('#customerHelper').val()=="REVA_UNIVERSITY")
+		query='getValuesOfFromColumnToColumnMenteeFeedBack.json?questionnaireType='+questionnaireType
+	else
+		query='getValuesOfFromColumnToColumnMentiFeedBack.json?questionnaireType='+questionnaireType+'&feedbackScheduleId='+feedbackScheduleId
+	$.ajax({
+		url: query,
+		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jobject){
+			var jArray=jobject["FromQuetionarriId"];
+			var jArray1=jobject["TExtBoxQuetionArriId"];
+			var jArray2=jobject["Max"];
+			var mentiName = jobject["mentiName"].mentiName;
+			var mentiId = jobject["mentiName"].mentiEmpId; 
+			
+			if($('#customerHelper').val()=="STJOHNS" || $('#customerHelper').val()=="REVA_UNIVERSITY"){
+				
+				var boiler='<div><span class="badge"> <i class="fa fa-user-circle-o" aria-hidden="true"></i>  Mentor Name : '+mentiName+'</span></div><br>'+
+				'<table class="table table-bordered table-condensed"><tr>'+
+				'<td colspan="2" style="text-align:center"><b style="font-size=18px;/*! text-align:left; */font-family: initial;font-size: initial;text-align: justify;">Mentor Questionnaire</b></td>';
+				for(var i=0;i<jArray.length;i++){
+					boiler+='<tr class="trclsinstallmentMentor" >'+
+					'<td style="display:none;" class="trclsinstallmentIdMentor" >'+jArray[i]["QuetionArriId"]+'</td>'+
+					'<th >'+jArray[i]["NAME_OF_EVALUATION"]+'</th>';
+					var optionTxtArry = jArray[i]["optionTxt"].split(',');
+					boiler+= '<td style="text-align:left;"> <table class="table table-bordered table-condensed"><tr>';
+					for(var l=0; l < optionTxtArry.length; l++){
+						boiler+= '<th style="text-align:left;">'+optionTxtArry[l].split('_')[1]+'</th>';
+					}
+					boiler+='</tr><tr class="trclsinstallmentMentor">';
+					for(var k=0;k<jArray[i]["To"];k++){
+						boiler+='<td id="elemnts'+jArray[i]["QuetionArriId"]+'"> <input type="radio" class="behaviour" name="'+jArray[i]["QuetionArriId"]+'" value="'+optionTxtArry[k].split('_')[1]+'" id="RadioBut" /> </td>';
+					}
+					boiler+='</tr></table></td>';
+				}
+				
+				for(var j=0;j<jArray1.length;j++){
+					boiler+='<tr class="trclsinstallmentlmMentor"><td style="display:none;" class="trclsinstallmentIdMentor">'+jArray1[j]["QuetionArriId"]+'</td>'+
+					'<th>'+jArray1[j]["NAME_OF_EVALUATION"]+'</th><td colspan="100%" id="'+jArray1[j]["QuetionArriId"]+'">';
+					if(jArray1[j]["type"]=="Yes_No"){
+						boiler+='<input type="radio" class="yesno" name="'+jArray1[j]["QuetionArriId"]+'" value="Yes" id="" > Yes &nbsp; &nbsp;&nbsp; <input type="radio" class="yesno" name="'+jArray1[j]["QuetionArriId"]+'" value="No" id="" /> No';
+					}else{
+						boiler+='<textarea id="strengthText" name="'+jArray1[j]["QuetionArriId"]+'"></textarea><input class=" trclsinstallmentIdFollowUp trclsinstallmentIdFollowUp" type="hidden" value="'+jArray1[j]["QuetionArriId"]+'" id="Janardan">';
+					}
+					boiler+='</td></tr>';
+				}
+				boiler += '<tr style="display:none;"><td>Date of Feedback:</td><td><input type="text" name=""  id="mentiFeedbackDate" value="" readonly="readonly"></td></tr>'+
+				'<tr><td style="text-align:center" colspan="100%"><input type="button" class= "btn btn-inverse btn-mini  " value="Submit" onclick="submitFeedbackMentor(\''+questionnaireType+'\',\''+mentiId+'\');"/>&nbsp;&nbsp;'+
+				'<input type="button" class="btn btn-mini btn-inverse" id="btnBackId"  value="Back" onclick="getBackMentorList();"></td>'+
+				'</tr>';
+				boiler+= '</table>';
+				
+			}else{
+
+				var boiler='<div><span class="badge"> <i class="fa fa-user-circle-o" aria-hidden="true"></i>  Mentor Name : '+mentiName+'</span></div><br>'+
+				'<table class="table table-bordered table-condensed" style="background-color: #f8f4e8;"><tr>'+
+				'<td colspan="2" style="text-align:center"><b style="font-size=18px;/*! text-align:left; */font-family: initial;font-size: initial;text-align: justify;">Mentor Questionnaire</b></td>';
+				if(jArray2.length>0){
+					boiler+='<tr><td></td>'+
+					'<td style="text-align:left;">';
+					for(var l=1;l<=jArray2[0]["Max"];l++){
+						boiler+=l+'&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+					}
+					boiler+='</td></tr>';
+				}
+				for(var i=0;i<jArray.length;i++){
+					boiler+='<tr class="trclsinstallmentMentor"><td style="display:none" class="trclsinstallmentIdMentor">'+jArray[i]["QuetionArriId"]+'</td>'+
+					'<td>'+jArray[i]["NAME_OF_EVALUATION"]+'</td><td width="40%" id="elemnts'+jArray[i]["QuetionArriId"]+'">';
+					for(var k=0;k<jArray[i]["To"];k++){
+						boiler+='<input type="radio" class="behaviour" name="'+jArray[i]["QuetionArriId"]+'" value="'+eval(k+1)+'" id="RadioBut" />&nbsp;&nbsp;&nbsp;';
+					}		
+					boiler+='</td></tr>';
+				}
+
+				for(var j=0;j<jArray1.length;j++){
+					boiler+='<tr class="trclsinstallmentlmMentor"><td style="display:none" class="trclsinstallmentIdMentor">'+jArray1[j]["QuetionArriId"]+'</td>'+
+					'<td>'+jArray1[j]["NAME_OF_EVALUATION"]+'</td><td colspan="100%" id="'+jArray1[j]["QuetionArriId"]+'">';
+					if(jArray1[j]["type"]=="Yes_No"){
+						boiler+='<input type="radio" class="yesno" name="'+jArray1[j]["QuetionArriId"]+'" value="Yes" id="" > Yes &nbsp; &nbsp;&nbsp; <input type="radio" class="yesno" name="'+jArray1[j]["QuetionArriId"]+'" value="No" id="" /> No';
+					}else{
+						boiler+='<textarea id="strengthText" name="'+jArray1[j]["QuetionArriId"]+'"></textarea><input class=" trclsinstallmentIdFollowUp trclsinstallmentIdFollowUp" type="hidden" value="'+jArray1[j]["QuetionArriId"]+'" id="Janardan">';
+					}
+					boiler+='</td></tr>';
+				}
+				boiler+='<tr style="display:none;"><td>Date of Feedback:</td><td><input type="text" name=""  id="mentiFeedbackDate" value="" readonly="readonly"></td></tr>'+
+				'<tr><td style="text-align:center" colspan="100%"><input type="button" class= "btn btn-inverse btn-mini  " value="Submit" onclick="submitFeedbackMentor(\''+questionnaireType+'\',\''+mentiId+'\');"/>&nbsp;&nbsp;'+
+				'<input type="button" class="btn btn-mini btn-inverse" id="btnBackId"  value="Back" onclick="getBackMentorList();"></td>'+
+				'</tr></table>';
+			}
+			
+			$('#feedbackFormMentorList').html(boiler);
+			
+			var currDate = new Date();
+			//StudentMentorBack
+			$("#mentiFeedbackDate").datepicker({
+				dateFormat:"M dd,yy",
+				maxDate:currDate,
+			}).datepicker("setDate", new Date());
+		}
+	});
+	
+}
+
+
+function submitFeedbackMentor(questionnaireType,mentorId)
+{
+	var followUpFeedbackDate=$('#mentiFeedbackDate').val();
+	if(followUpFeedbackDate==""){
+		jAlert("Please Select Date of Feedback..!");
+		return;
+	}
+
+	$.ajax({ 
+		url:'getFreezeUnfreezeStatusOfMentiFollowUpSheetList.json?followUpFeedbackDate='+followUpFeedbackDate+'&questionnaireType='+questionnaireType+'&mentorId='+mentorId,
+		dataType :'text',
+		type:'GET',
+		async : false,
+		beforeSend : function() {
+			startCommonAjaxSpinner();
+		},
+		complete : function() {
+			stopCommonAjaxSpinner();
+		},
+		success : function(jArray) {
+			if(jArray=="Unfreez"){
+				saveMentorFeedback(questionnaireType,mentorId);
+			}else{
+				jAlert("you have already given feedback of this Date!!!!!");
+				return;
+			}
+		},
+		error:function(e){
+			getCustomAlertMessage("alert_error");
+		}
+	});
+
+}
+
+
+function saveMentorFeedback(questionnaireType,mentorId){
+	date='';
+	var QuetionarryFollowUp='';
+	var Quetionarry1FollowUp='';
+	var QuestionaryYesNofeedback ='';
+	$('.trclsinstallmentMentor').each(function(){
+		var RadioBut  = $(this).find('td').find(':checked').val();
+		if(RadioBut=="")
+		{
+			jAlert("Please Provide Answers According To Questions");
+		}
+		var QuetionarriId=$(this).find('.trclsinstallmentIdMentor').html()==undefined || $(this).find('.trclsinstallmentIdMentor').html()==""?"-1":$(this).find('.trclsinstallmentIdMentor').html();
+		if(QuetionarriId != -1){
+			QuetionarryFollowUp+=QuetionarriId+'@'+RadioBut+'~';
+		}
+	});
+	
+	QuetionarryFollowUp=QuetionarryFollowUp.substring(0,QuetionarryFollowUp.length -1);
+	console.log(QuetionarryFollowUp);
+	$('.trclsinstallmentlmMentor').each(function(){
+		
+		var textAreaone  = $(this).find('#strengthText').val();
+		if(textAreaone==undefined || textAreaone=="undefined"){
+			var QurionarriId=$(this).find('.trclsinstallmentIdMentor').html()==undefined || $(this).find('.trclsinstallmentIdMentor').html()==""?"-1":$(this).find('.trclsinstallmentIdMentor').html();
+			console.log($(this).find('td').find(':checked').val() +" text:::"+textAreaone);
+			var valueofRadio = $(this).find('td').find(':checked').val();
+			if(valueofRadio==""){
+				jAlert("Please Provide Answers According To Questions");
+			}
+			QuestionaryYesNofeedback+=QurionarriId+'@'+valueofRadio+'~';
+		}else{
+			var QurionarriId=$(this).find('.trclsinstallmentIdMentor').html()==undefined || $(this).find('.trclsinstallmentIdMentor').html()==""?"-1":$(this).find('.trclsinstallmentIdMentor').html();
+			date+=textAreaone+'@';
+			if(textAreaone==""){
+				Quetionarry1FollowUp+=QurionarriId+'@'+"null"+'~';
+			}
+			else{
+				Quetionarry1FollowUp+=QurionarriId+'@'+textAreaone+'~';
+			}
+		}	
+	});
+	Quetionarry1FollowUp=Quetionarry1FollowUp.substring(0,Quetionarry1FollowUp.length -1);
+	QuestionaryYesNofeedback=QuestionaryYesNofeedback.substring(0,QuestionaryYesNofeedback.length -1);
+
+	var followUpFeedbackDate=$('#mentiFeedbackDate').val();
+
+	if(followUpFeedbackDate==""){
+		jAlert("Please Select Date of Feedback..!");
+		return;
+	}
+	$.ajax({
+		url:'submitMentorStudentFeedbackbyMenti.json?mentorId='+mentorId+'&QuetionarryFollowUp='+QuetionarryFollowUp.toString()+'&Quetionarry1FollowUp='+Quetionarry1FollowUp.toString()+'&questionnaireType='+questionnaireType+'&followUpFeedbackDate='+followUpFeedbackDate+'&QuestionaryYesNofeedback='+QuestionaryYesNofeedback,
+//		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			jAlert("Thanks for your valuable time.....","Message");
+			getmentiFeedBackList();
+		},
+		error:function(){
+			getCustomAlertMessage("alert_error");
+		}
+	});
+	getBackMentorList()
+}
+
+function getBackMentorList(){
+	$('#feedbackFormMentorList').hide();
+	$('#viewSubmittedFeedback').show();
+}
+
+function get_mentorMenteeFeedbackScheduleStatus(callback){
+		$.ajax({
+			url:'getMentorMenteeFeedbackScheduleStatus.json',
+			dataType:'json',
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				callback(jArray);
+			},
+			error:function(){
+				getCustomAlertMessage("alert_error");
+			}
+		});
+	
+}
+
+function get_mentorFeedbackCycle(){
+	var boiler = '<option value="0">--Select--</option>';
+	$.ajax({
+		url:'getMentorMenteeFeedbackCycle.json',
+		dataType:'json',
+		type:'GET',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			if(jArray.length > 0){
+				for(var i=0; i<jArray.length; i++){
+					boiler += '<option value="'+jArray[i]["scheduleId"]+'">'+jArray[i]["scheduleName"]+'</option>';
+				}
+			}
+			$('#cmbFeedbackPlanId').html(boiler);
+		},
+		error:function(){
+		//	getCustomAlertMessage("alert_error");	
+		}
+	});
+}öıwÏêÈ      i’¬Fi’¬FI\Fgi⁄0   l    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/employeeJs/mentiFeedbackStudent.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 05:09:44 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"15798-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 15798
+ original-response-headers Date: Mon, 06 Apr 2026 05:09:44 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"15798-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 15798
+Keep-Alive: timeout=5, max=97
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 99 net-response-time-onstop 99   =∂

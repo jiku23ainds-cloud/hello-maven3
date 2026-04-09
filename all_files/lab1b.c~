@@ -1,0 +1,13 @@
+#include<stdio.h>
+int main(){
+ int m,n;
+ printf("enter m,n");
+ scanf("%d%d",&m,&n);
+ int GCD(int m,int n){
+ if(n==0)
+  return m;
+ return (GCD(n,m%n));
+ }
+int gcd=GCD(m,n);
+printf("%d",gcd);
+}

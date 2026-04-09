@@ -1,0 +1,327 @@
+$(document).ready(function() {
+      var curImages = new Array();
+      
+     /* $('#alumniLinkPost').liveUrl({
+          loadStart : function(){
+              $('.liveurl-loader').show();
+          },
+          loadEnd : function(){
+              $('.liveurl-loader').hide();
+          },
+          success : function(data) 
+          {                        
+              var output = $('.liveurl');
+              output.find('.title').text(data.title);
+              output.find('.description').text(data.description);
+              output.find('.url').text(data.url);
+              output.find('.image').empty();
+              
+              output.find('.close').one('click', function() 
+              {
+                  var liveUrl     = $(this).parent();
+                  liveUrl.hide('fast');
+                  liveUrl.find('.video').html('').hide();
+                  liveUrl.find('.image').html('');
+                  liveUrl.find('.controls .prev').addClass('inactive');
+                  liveUrl.find('.controls .next').addClass('inactive');
+                  liveUrl.find('.thumbnail').hide();
+                  liveUrl.find('.image').hide();
+
+                  $('textarea').trigger('clear'); 
+                  curImages = new Array();
+              });
+              
+              output.show('fast');
+              
+              if (data.video != null) {                       
+                  var ratioW        = data.video.width  /350;
+                  data.video.width  = 350;
+                  data.video.height = data.video.height / ratioW;
+
+                  var video = 
+                  '<object width="' + data.video.width  + '" height="' + data.video.height  + '">' +
+                      '<param name="movie"' +
+                            'value="' + data.video.file  + '"></param>' +
+                      '<param name="allowScriptAccess" value="always"></param>' +
+                      '<embed src="' + data.video.file  + '"' +
+                            'type="application/x-shockwave-flash"' +
+                            'allowscriptaccess="always"' +
+                            'width="' + data.video.width  + '" height="' + data.video.height  + '"></embed>' +
+                  '</object>';
+                  output.find('.video').html(video).show();
+                  
+               
+              }
+          },
+          addImage : function(image)
+          {   
+              var output  = $('.liveurl');
+              var jqImage = $(image);
+              jqImage.attr('alt', 'Preview');
+              
+              if ((image.width / image.height)  > 7 
+              ||  (image.height / image.width)  > 4 ) {
+                  // we dont want extra large images...
+                  return false;
+              } 
+
+              curImages.push(jqImage.attr('src'));
+              output.find('.image').append(jqImage);
+              
+              
+              if (curImages.length == 1) {
+                  // first image...
+                  
+                  output.find('.thumbnail .current').text('1');
+                  output.find('.thumbnail').show();
+                  output.find('.image').show();
+                  jqImage.addClass('active');
+                  
+              }
+              
+              if (curImages.length == 2) {
+                  output.find('.controls .next').removeClass('inactive');
+              }
+              
+              output.find('.thumbnail .max').text(curImages.length);
+          }
+      });*/
+    
+    
+      $('.liveurl ').on('click', '.controls .button', function() 
+      {
+          var self        = $(this);
+          var liveUrl     = $(this).parents('.liveurl');
+          var content     = liveUrl.find('.image');
+          var images      = $('img', content);
+          var activeImage = $('img.active', content);
+
+          if (self.hasClass('next')) 
+               var elem = activeImage.next("img");
+          else var elem = activeImage.prev("img");
+
+          if (elem.length > 0) {
+              activeImage.removeClass('active');
+              elem.addClass('active');  
+              liveUrl.find('.thumbnail .current').text(elem.index() +1);
+              
+              if (elem.index() +1 == images.length || elem.index()+1 == 1) {
+                  self.addClass('inactive');
+              }
+          }
+
+          if (self.hasClass('next')) 
+               var other = elem.prev("img");
+          else var other = elem.next("img");
+          
+          if (other.length > 0) {
+              if (self.hasClass('next')) 
+                     self.prev().removeClass('inactive');
+              else   self.next().removeClass('inactive');
+         } else {
+              if (self.hasClass('next')) 
+                     self.prev().addClass('inactive');
+              else   self.next().addClass('inactive');
+         }
+      });
+});
+/*var globalPostType='Text';
+function changeMessageType(type){
+	if(globalPostType=='File'){
+		if($('#showAluminiPostUploadDiv table tbody tr').length>0){
+			jConfirm("You have uploaded file(s). Do you want to delete these files ?","Confirm",function(r){
+				if(r==true)
+				{
+					flushSession();
+					$('#showAluminiPostUploadDiv').html('');
+					changeType(type);
+				}else{
+					return;
+				}
+			});	
+		}else{
+			changeType(type);
+		}
+	}else{
+		changeType(type);
+	}
+	
+}
+function changeType(type){
+	if(type =='Text'){
+		globalPostType=type;
+		$('#alumniTextPost').show();
+		$('#alumniLinkPost').hide();
+		$('#alumniDocumentPost').hide();
+		
+		$('#tdText').css('background-color','white');
+		$('#tdLink').css('background-color','lightgrey');
+		$('#tdFile').css('background-color','lightgrey');
+	}else if(type == 'Link'){
+		globalPostType=type;
+		$('#alumniTextPost').hide();
+		$('#alumniLinkPost').show();
+		$('#alumniDocumentPost').hide();
+		$('#tdText').css('background-color','lightgrey');
+		$('#tdLink').css('background-color','white');
+		$('#tdFile').css('background-color','lightgrey');
+	}else if(type == 'File'){
+		globalPostType=type;
+		$('#alumniTextPost').hide();
+		$('#alumniLinkPost').hide();
+		$('#alumniDocumentPost').show();
+		$('#tdText').css('background-color','lightgrey');
+		$('#tdLink').css('background-color','lightgrey');
+		$('#tdFile').css('background-color','white');
+	}
+}*/
+function SaveEmpProfileImg2()
+	{
+		var hdnUserRole = $('#hdnUserRole').val();
+		var url = 'checkProfileImage.json';
+		if(hdnUserRole == "student" || hdnUserRole == "Student"){
+			url = 'stu_checkProfileImage.json';
+		}
+		$.ajax({
+				url:url,
+				dataType:'json',
+				async:false,			
+				success:function(jArray){	
+					if(jArray['isImage'] == false){		
+						var boiler=	'<div class="thumbnail" id="empProfileImage2342" style="height:120px;width:120px;margin-left:20px"><img src="img/boy.gif" alt="Photo" name="Photo" style="background-color: #FFFFFF" width="120px" height="120px" border="1" align="right"><br></div>';
+							boiler+='&nbsp&nbsp&nbsp&nbsp&nbsp<div class="btn btn-info" style="width:110px;height:20px">Upload Image<input style="margin-top:-40px;margin-left:-35px;opacity:0;" type="file" name="fileData" id="profilePictureUpload" onclick="empProfilePic();" accept="image/*"></div>';	
+							$('#profileImgModalBodyDiv').html(boiler);
+							$('#profileImgModal').modal('show');
+					}
+				},
+				error:function(){
+				}
+			});
+	}
+	
+	function base64ToBlob(base64, mime) 
+{
+    mime = mime || '';
+    var sliceSize = 1024;
+    var byteChars = window.atob(base64);
+    var byteArrays = [];
+
+    for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+        var slice = byteChars.slice(offset, offset + sliceSize);
+
+        var byteNumbers = new Array(slice.length);
+        for (var i = 0; i < slice.length; i++) {
+            byteNumbers[i] = slice.charCodeAt(i);
+        }
+
+        var byteArray = new Uint8Array(byteNumbers);
+
+        byteArrays.push(byteArray);
+    }
+
+    return new Blob(byteArrays, {type: mime});
+}
+	
+	function empProfilePic(){
+	var Maxsize =  5242880;	
+	$image_crop = $('#image_demo').croppie({
+		enableExif: true,
+		enableOrientation: true,
+		viewport: {
+			width:200,
+			height:200,
+			type:'square' //circle
+		},
+		boundary:{
+			width:300,
+			height:300
+		}
+	});
+
+	$('#profilePictureUpload').on('change', function(){
+		var reader = new FileReader();
+		reader.onload = function (event) {
+			$image_crop.croppie('bind', {
+				url: event.target.result
+			}).then(function(){
+				console.log('jQuery bind complete');
+			});
+		}
+		reader.readAsDataURL(this.files[0]);
+		$('#uploadimageModal').modal('show');
+	});
+
+	$(function() {
+		$('.vanilla-rotate').on('click', function(ev) {
+			$image_crop.croppie('rotate', parseInt($(this).data('deg')));
+		});
+	});
+
+	$('.crop_image').click(function(event){
+		$image_crop.croppie('result', {
+			type: 'canvas',
+			size: 'viewport'
+		}).then(function(response){
+			console.log(response);
+			var base64ImageContent = response.replace(/^data:image\/(png|jpg);base64,/, "")
+			var blob = base64ToBlob(base64ImageContent, 'image/png');                
+			var formData = new FormData();
+			formData.append('fileData', blob);
+			$.ajax({
+				url:"uploadEmployeeProfileImage.json",
+				type: "POST",
+				contentType: false,
+				processData: false,
+				data: formData,
+			name : 'fileData',
+			size: Maxsize,
+			onSubmit : function(data) {
+				//if(extension.toString().toLowerCase() == 'png' || extension.toString().toLowerCase() == 'jpg',extension.toString().toLowerCase() == 'jpeg'){
+					startLoading();
+					this.setData({
+						'fileSize':Maxsize
+					});
+			},
+			success:function(data)
+			{
+				$('#uploadimageModal').modal('hide');
+
+				if(isNaN(data)){
+					//showErrorMessage('File size is larger than specified',10000);
+					jAlert("File size is larger than specified !!");
+				} else {
+					var imageBoiler = 
+							'<img src="getEmployeeProfileImage.json?type=profile&someparam='+data+'" alt="Photo" name="Photo" width="120px" height="120px" border="1" align="right" style="background-color: #FFFFFF" />';
+ 
+					$('#empProfileImage2342').html(imageBoiler);	
+					jAlert("Image uploaded successfully !!!");
+					imageStatus = true;
+					showSuccessMessage('Image uploaded. ',10000); 
+					$('#profileImgModal').modal('hide');
+				}
+				$('#uploaded_image').html(data);
+				$image_crop.croppie('destroy');
+			}
+		});
+});
+	
+});
+}	
+?ãX,      iÕÂ0iÕÂ0I\†ŽiÚe   ^    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/alumni/alumniPost.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"10306-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 10306
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"10306-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 10306
+Keep-Alive: timeout=5, max=94
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 227 net-response-time-onstop 227   (B

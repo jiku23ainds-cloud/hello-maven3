@@ -1,0 +1,11 @@
+---
+- name: Deploy Artifact to Localhost
+hosts: localhost
+become: true
+become_user: student-devops
+become_method: su
+tasks:
+- name: Copy the artifact to the target location
+copy:
+src: "/home/student/.jenkins/workspace/lab6/target/MyMavenApp-1.0-SNAPSHOT.jar"
+dest: "/home/student/.jenkins/workspace/lab6/t.jar"

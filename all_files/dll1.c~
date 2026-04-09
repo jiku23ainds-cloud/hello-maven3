@@ -1,0 +1,10 @@
+#include<string.h>
+#include<stdio.h>
+#include<stdlib.h>
+struct employee *Employee;
+struct employee
+{ 
+   Employee link;
+   float sal;
+   char ssn[11],name[20],dept[10],desig[20],phno[11];
+}

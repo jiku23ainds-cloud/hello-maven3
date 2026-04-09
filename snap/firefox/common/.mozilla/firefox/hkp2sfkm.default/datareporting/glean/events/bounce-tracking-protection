@@ -1,0 +1,2 @@
+{"timestamp":3623659,"category":"bounce.tracking.protection","name":"purge_action","extra":{"bounce_time":"1775616833","site_host":"youtube.com","glean_timestamp":"1775705925765","success":"true","require_stateful_bounces":"false","is_dry_run":"true"},"execution_counter":30}
+{"timestamp":3623659,"category":"bounce.tracking.protection","name":"purge_action","extra":{"site_host":"google.co.in","require_stateful_bounces":"false","is_dry_run":"true","bounce_time":"1775616833","glean_timestamp":"1775705925765","success":"true"},"execution_counter":30}

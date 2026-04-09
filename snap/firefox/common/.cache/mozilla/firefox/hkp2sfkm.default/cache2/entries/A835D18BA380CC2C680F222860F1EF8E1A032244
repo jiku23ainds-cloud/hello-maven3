@@ -1,0 +1,1319 @@
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : String(i); }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+class SideBarStudentDashboard extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      customer: $('#customerHelper').val(),
+      error: false,
+      CourseType: $('#courseType').val(),
+      studentId: $('#studentId').val(),
+      studentName: $('#studentName').val(),
+      SubCourseType: $('#SubCourseType').val(),
+      studentLockStatus: $('#studentLockStatus').val()
+    };
+  }
+  componentDidMount() {
+    getAcademicInformation(this.state.studentId);
+    getAdmissionLink(this.state.studentId);
+  }
+  render() {
+    const {
+      error,
+      customer,
+      CourseType,
+      studentId,
+      studentName,
+      SubCourseType,
+      studentLockStatus
+    } = this.state;
+    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(ProfileInfo, {
+      studentName: studentName,
+      studentId: studentId,
+      studentLockStatus: studentLockStatus
+    }), /*#__PURE__*/React.createElement(StudentDashboardList1, {
+      customer: customer,
+      CourseType: CourseType,
+      SubCourseType: SubCourseType
+    }));
+  }
+}
+$(document).ready(function () {
+  ReactDOM.render( /*#__PURE__*/React.createElement(SideBarStudentDashboard, null), document.getElementById('sideBarStudentDashboard'));
+});
+const faIcon = (cls, style) => {
+  return /*#__PURE__*/React.createElement("i", {
+    className: cls == 'spinner' ? "fa fa-spinner fa-pulse fa-fw" : cls,
+    "aria-hidden": "true",
+    style: style
+  });
+};
+class MiddleBoxStudentDashboard extends React.Component {
+  constructor() {
+    super();
+    _defineProperty(this, "isProfileUpdated", () => {
+      var hdnUserRole = $('#hdnUserRole').val();
+      var url = 'checkProfileImage.json';
+      if (hdnUserRole == "student" || hdnUserRole == "Student") {
+        url = 'stu_checkProfileImage.json';
+      }
+      $.ajax({
+        url: url,
+        dataType: 'json',
+        junoSpinner: true,
+        success: function (json) {
+          if (!json.isImage) {
+            var boiler = '<div class="thumbnail" id="stdProfileImage2342" style="height:120px;width:120px;margin-left:20px"><img src="getStudentProfileImage.json?id=-1249993431" alt="Photo" name="Photo" style="background-color: #FFFFFF" width="120px" height="120px" border="1" align="right"><br></div>';
+            boiler += '&nbsp&nbsp&nbsp&nbsp&nbsp<div class="btn btn-info" style="width:110px;height:20px">Upload Image<input style="margin-top:-40px;margin-left:-35px;opacity:0;" type="file" name="fileData" id="profilePictureUpload" onclick="stdProfilePic();" accept="image/*"></div>';
+            $('#profileImgModalBodyDiv').html(boiler);
+            $('#profileImgModal').modal('show').css({
+              'margin-left': function () {
+                return -($(this).width() / 2);
+              }
+            });
+          }
+        }.bind(this)
+      });
+    });
+    _defineProperty(this, "handleCloseprofile", () => {
+      this.setState({
+        handleClose: false
+      });
+    });
+    this.state = {
+      isLoaded: false,
+      announcementArr: [],
+      assestmentArr: [],
+      TaskArr: [],
+      placementArr: [],
+      jobTray: [],
+      customer: $('#customerHelper').val(),
+      error: false,
+      CourseType: $('#courseType').val(),
+      studentId: $('#studentId').val(),
+      studentName: $('#studentName').val(),
+      SubCourseType: $('#SubCourseType').val(),
+      isProfileUploadModal: true,
+      handleClose: true
+    };
+    this.fetchAnnouncement = this.fetchAnnouncement.bind(this);
+    this.fetchAttedance = this.fetchAttedance.bind(this);
+    this.fetchAssignments = this.fetchAssignments.bind(this);
+    this.fetchJobTrayForStudent = this.fetchJobTrayForStudent.bind(this);
+  }
+  fetchAnnouncement() {
+    var hdnUserRole = $('#hdnUserRole').val();
+    var url = 'getUnreadStudentAnnouncement.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+      url = 'stu_getUnreadStudentAnnouncement.json';
+    }
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      async: false,
+      beforeSend: function () {},
+      complete: function () {},
+      success: function (jArray) {
+        if (jArray.length > 0) {
+          this.setState({
+            announcementArr: jArray[0]
+          });
+          $("#announcementCount").text(jArray[0]["count"]);
+          $("#countAnnouncement").text(jArray[0]["count"]);
+          if (jArray[0]["count"] == 0) $("#NoticeCounter").hide();else $("#NoticeCounter").html(jArray[0]["count"]).show();
+          $("#countAnnouncement").html(jArray[0]["count"]).show();
+        }
+      }.bind(this),
+      error: function () {
+        return;
+      }
+    });
+  }
+  fetchAttedance() {
+    var hdnUserRole = $('#hdnUserRole').val();
+    var url = 'getStudentAttendancePercentageSP.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+      url = 'stu_getStudentAttendancePercentageSP.json';
+    }
+    $.ajax({
+      //	url:'getStudentAttendancePercentage.json',
+      url: url,
+      dataType: 'text',
+      async: false,
+      beforeSend: function () {},
+      complete: function () {},
+      success: function (per) {
+        if ($('#customerHelper').val() == "NIET" && ($('#studentLockStatus').val() == "true" || $('#studentLockStatus').val() == true)) {
+          $("#attendencePer").text("-");
+        } else if (per != "Problem") {
+          $("#attendencePer").text(per + "%");
+        } else {
+          $("#attendencePer").text("-");
+        }
+        this.fetchAssignments();
+      }.bind(this),
+      error: function () {
+        jAlert("Something went wrong, Please try after some time", "Error");
+      }
+    });
+  }
+  fetchAssignments() {
+    var hdnUserRole = $('#hdnUserRole').val();
+    var url = 'getStudentAssignments.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+      url = 'stu_getStudentAssignments.json';
+      if ($('#tailWindNewUICourseFile').val() == "true" || $('#tailWindNewUICourseFile').val() == true) {
+        url = 'stu_getStudentAssignments_SB_SS.json';
+      }
+    }
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      async: false,
+      beforeSend: function () {},
+      complete: function () {},
+      success: function (jArray) {
+        if (jArray != null) {
+          $("#assignmentCount").text(jArray["CountAssignment"]);
+          $("#assignmentPostIds").val(jArray["postIds"]);
+          if ($('#tailWindNewUICourseFile').val() == "true" || $('#tailWindNewUICourseFile').val() == true) {
+            $("#subjectwiseBatchIdsString").val(jArray["subjectwiseBatchIdsString"]);
+            $("#subjectwiseStudentIdsString").val(jArray["subjectwiseStudentIdsString"]);
+          }
+        } else {
+          $("#assignmentCount").text('-');
+        }
+        getPlacementDetail('');
+      },
+      error: function () {
+        jAlert("Something went wrong, Please try after some time", "Error");
+      }
+    });
+  }
+  fetchJobTrayForStudent() {
+    var hdnUserRole = $('#hdnUserRole').val();
+    var url = 'getStudentJobTrayAlerts.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+      url = 'stu_getStudentJobTrayAlerts.json';
+    }
+    $.ajax({
+      url: url,
+      dataType: 'json',
+      beforeSend: function () {
+        $('#jobTrayRefereshImage').html('Updating...');
+      },
+      complete: function () {
+        $('#jobTrayRefereshImage').html('Reload');
+      },
+      success: function (jArray) {
+        var notificationJArray = jArray[0];
+        if (notificationJArray.length > 0) {
+          $("#taskCount").text(notificationJArray.length);
+        } else {
+          $("#taskCount").text("0");
+        }
+        this.setState({
+          TaskArr: notificationJArray
+        });
+      }.bind(this)
+    });
+  }
+  viewAnnouncemnet() {
+    //alert(flag);
+    $("#divalumpost").hide();
+    let SearchWord = "";
+    let filterFlag = "unread";
+    $('#announcementDetails').html('');
+    getUnreadAnnouncement();
+    getUnreadStudentMessage();
+    $.ajax({
+      url: 'getStudentAnnouncement.json',
+      dataType: 'json',
+      data: {
+        SearchWord: searchKeyword,
+        filterFlag: filterFlag
+      },
+      async: false,
+      beforeSend: function () {
+        //$("#"+divId).html('<div id="divPostLoading" style="text-align: center;width: 100%;"><i class="fa fa-spinner fa-pulse fa-fw fa-4x" style="color:#0b4971"></i></div>');
+      },
+      complete: function () {},
+      success: function (jArray) {
+        if (document.getElementById('tabResult') != null) {
+          ReactDOM.unmountComponentAtNode(document.getElementById('tabResult'));
+        }
+        ReactDOM.render( /*#__PURE__*/React.createElement(StudentAnnouncement, {
+          announcementArr: jArray
+        }), document.getElementById('tabResult'));
+      },
+      error: function () {
+        return;
+      }
+    });
+  }
+  getJobTrayAlerts() {
+    if (document.getElementById('tabResult') != null) {
+      ReactDOM.unmountComponentAtNode(document.getElementById('tabResult'));
+    }
+    $('#tabResult').show('slow');
+    $('#divalumpost').hide();
+    /*ReactDOM.render(<React.Fragment>{faIcon("fa fa-spinner fa-pulse fa-fw",{fontSize: '15px',color:'#0b4971'})}</React.Fragment>,
+    		  document.getElementById('tabResult'));*/
+    ReactDOM.render( /*#__PURE__*/React.createElement(StudentTasks, {
+      jobTray: this.state.TaskArr
+    }), document.getElementById('tabResult'));
+  }
+  componentDidMount() {
+    this.isProfileUpdated();
+    this.fetchAnnouncement();
+    this.fetchAttedance();
+    this.fetchJobTrayForStudent();
+    showTodaysConflictTimetableForStudent();
+    getbooksIssuedCount();
+    studentSubjectCount();
+    showTodaysTimetableForStudent();
+  }
+  componentWillUnmount() {
+    console.log("Unmount");
+  }
+  render() {
+    const {
+      error,
+      isLoaded,
+      items,
+      customer,
+      CourseType,
+      studentId,
+      studentName,
+      isProfileUploadModal,
+      handleClose
+    } = this.state;
+    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(MiddleBox, {
+      CourseType: CourseType,
+      customer: customer,
+      state: this
+    }));
+  }
+}
+$(document).ready(function () {
+  ReactDOM.render( /*#__PURE__*/React.createElement(MiddleBoxStudentDashboard, null), document.getElementById('middleBoxStudentDashboard'));
+});
+function ProfileInfo(props) {
+  return /*#__PURE__*/React.createElement("div", {
+    className: "avatar-container homeSection profileDash"
+  }, /*#__PURE__*/React.createElement("img", {
+    className: "pull-left",
+    width: "64px",
+    height: "150px",
+    src: 'getStudentProfileImage.json',
+    alt: "Photo",
+    id: "studentProfilePhoto",
+    name: "Photo",
+    style: {
+      backgroundColor: '#FFFFFF',
+      maxHeight: '270px'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    className: "studentDesc"
+  }, /*#__PURE__*/React.createElement("span", null, props.studentName), /*#__PURE__*/React.createElement("br", null), props.studentLockStatus == "true" || props.studentLockStatus == true ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: 'red'
+    }
+  }, "LOCKED") : null), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("small", {
+    style: {
+      color: 'gray'
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    id: "rollNo"
+  })));
+}
+function MiddleBox(props) {
+  const styles = {
+    borderRadius: '5px',
+    backgroundColor: '#fff !important',
+    cursor: 'pointer',
+    textAlign: 'center',
+    marginLeft: '10px',
+    paddingTop: '10px'
+  };
+  let BoxClassName = "avatar-container homeSection EvtDashboard   span2  text-center";
+  let CustomizeMiddleBox;
+  let Placement;
+  let quickLink;
+  let SubjectList;
+  let boxId = 3;
+  let studDashboardLblStudSide = $('#studDashboardLblStudSide').val() == '' || $('#studDashboardLblStudSide').val() == undefined || $('#studDashboardLblStudSide').val() == "false" || $('#studDashboardLblStudSide').val() == null || $('#studDashboardLblStudSide').val() == false ? false : true;
+  if (props.CourseType == "COURSE_TYPE_SCHOOL") {
+    if (!(props.customer == "IMT_NAGPUR" || props.customer == "IMT_GAZIABAD" || props.customer == "IMT_HYDERABAD")) {
+      if (props.CourseType == "COURSE_TYPE_SCHOOL") {
+        $(".home_work").show();
+        CustomizeMiddleBox = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+          className: BoxClassName,
+          style: styles,
+          id: 'stud' + boxId++,
+          onClick: e => {
+            showAssignmentPage();
+            changeBulletinBar(e);
+          }
+        }, /*#__PURE__*/React.createElement("h3", {
+          className: "NewuniformFontStylesBold",
+          style: {
+            display: 'inline',
+            margin: '2px'
+          }
+        }), /*#__PURE__*/React.createElement("h2", {
+          className: "EvtDashboardTxt panelDash uniformFontStyles"
+        }, "Home Work"), /*#__PURE__*/React.createElement("input", {
+          id: "assignmentPostIds",
+          type: "hidden",
+          value: "0"
+        })));
+      } else {
+        $(".assignments").show();
+        CustomizeMiddleBox = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+          className: BoxClassName,
+          id: 'stud' + boxId++,
+          style: styles,
+          onClick: e => {
+            showAssignmentPage();
+            changeBulletinBar(e);
+          }
+        }, /*#__PURE__*/React.createElement("h3", {
+          className: "NewuniformFontStylesBold",
+          style: {
+            display: 'inline',
+            margin: '2px'
+          },
+          id: "assignmentCount"
+        }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+          fontSize: '15px',
+          color: '#0b4971'
+        })), /*#__PURE__*/React.createElement("h2", {
+          className: "EvtDashboardTxt panelDash uniformFontStyles"
+        }, " Assignments"), /*#__PURE__*/React.createElement("input", {
+          id: "assignmentPostIds",
+          type: "hidden",
+          value: "0"
+        })));
+      }
+    } else {
+      $(".assessments").show();
+      CustomizeMiddleBox = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: BoxClassName,
+        style: styles,
+        id: 'stud' + boxId++,
+        onClick: e => {
+          showAssignmentPage();
+          changeBulletinBar(e);
+        }
+      }, "if(!(props.CourseType == \"COURSE_TYPE_SCHOOL\"))", /*#__PURE__*/React.createElement("h3", {
+        className: "NewuniformFontStylesBold",
+        style: {
+          display: 'inline',
+          margin: '2px'
+        },
+        id: "assignmentCount"
+      }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+        fontSize: '15px',
+        color: '#0b4971'
+      })), "else", /*#__PURE__*/React.createElement("h3", {
+        className: "NewuniformFontStylesBold",
+        style: {
+          display: 'inline',
+          margin: '2px'
+        }
+      }), /*#__PURE__*/React.createElement("h2", {
+        className: "EvtDashboardTxt panelDash uniformFontStyles"
+      }, "Assessment"), /*#__PURE__*/React.createElement("input", {
+        id: "assignmentPostIds",
+        type: "hidden",
+        value: "0"
+      })));
+    }
+  } else {
+    $(".assessments").show();
+    CustomizeMiddleBox = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: BoxClassName,
+      id: 'stud' + boxId++,
+      style: styles,
+      onClick: e => {
+        showAssignmentPage();
+        changeBulletinBar(e);
+      }
+    }, /*#__PURE__*/React.createElement("h3", {
+      className: "NewuniformFontStylesBold",
+      style: {
+        display: 'inline',
+        margin: '2px'
+      },
+      id: "assignmentCount"
+    }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+      fontSize: '15px',
+      color: '#0b4971'
+    })), /*#__PURE__*/React.createElement("h2", {
+      className: "EvtDashboardTxt panelDash uniformFontStyles"
+    }, "Assessment"), /*#__PURE__*/React.createElement("input", {
+      id: "assignmentPostIds",
+      type: "hidden",
+      value: "0"
+    })));
+  }
+  let Task;
+  if (!(props.customer == "IMT_NAGPUR" || props.customer == "IMT_GAZIABAD" || props.customer == "IMT_HYDERABAD")) {
+    $(".task").show();
+    Task = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: BoxClassName,
+      id: 'stud' + boxId++,
+      style: styles,
+      onClick: e => {
+        props.state.getJobTrayAlerts();
+        changeBulletinBar(e);
+      }
+    }, /*#__PURE__*/React.createElement("h3", {
+      className: "NewuniformFontStylesBold",
+      style: {
+        display: 'inline',
+        margin: '2px'
+      },
+      id: "taskCount"
+    }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+      fontSize: '15px',
+      color: '#0b4971'
+    })), /*#__PURE__*/React.createElement("h2", {
+      className: "EvtDashboardTxt panelDash uniformFontStyles"
+    }, studDashboardLblStudSide == true || studDashboardLblStudSide == "true" ? 'Feedback' : 'Task')));
+  }
+  if (props.customer == "IMT_NAGPUR" || props.customer == "IMT_GAZIABAD" || props.customer == "IMT_HYDERABAD" || props.customer == "INDIRA_PUNE" || props.customer == "MATSUNIVERSITY" || props.customer == "HPTELIBRARY" || props.customer == "HPTU" || props.customer == "JDGROUP" || props.customer == "MIT" || props.customer == "XISS" || props.customer == "WESCHOOL" || props.customer == "ABS" || props.customer == "RAMAIAH" || props.customer == "RAMAIAH_UNIVERSITY" || props.customer == "SPIT" || props.customer == "MGMU" || props.customer == "REVA_UNIVERSITY" || props.customer == "SIES") {
+    if (props.CourseType != "COURSE_TYPE_SCHOOL") {
+      Placement = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+        className: BoxClassName,
+        id: 'stud' + boxId++,
+        style: styles,
+        onClick: e => {
+          window.location.replace('registerforPlacements.htm');
+          changeBulletinBar(e);
+        }
+      }, /*#__PURE__*/React.createElement("h3", {
+        className: "NewuniformFontStylesBold",
+        style: {
+          display: 'inline',
+          margin: '2px'
+        },
+        id: "companyCountPlc"
+      }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+        fontSize: '15px',
+        color: '#0b4971'
+      })), /*#__PURE__*/React.createElement("h2", {
+        className: "EvtDashboardTxt panelDash uniformFontStyles"
+      }, "Placement")));
+    }
+  }
+  let AddmisionLink;
+  let Transport;
+  if (props.customer == "DYPATIL") {
+    AddmisionLink = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("table", {
+      style: {
+        width: '100%'
+      }
+    }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+      style: {
+        display: 'none',
+        backgroundColor: '#e0e0e0',
+        borderTop: '2px solid rgb(127,127,127)',
+        borderBottom: '2px solid rgb(127,127,127)',
+        borderLeft: '2px solid rgb(127,127,127)',
+        borderRight: '2px solid rgb(127,127,127)',
+        cursor: 'pointer',
+        verticalAlign: 'middle'
+      },
+      id: "transDiv",
+      className: "span12 text-center"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "icon icon-hand-right "
+    }), "\xA0\xA0", /*#__PURE__*/React.createElement("a", {
+      id: "redirectAdmissionLink"
+    }, /*#__PURE__*/React.createElement("b", {
+      style: {
+        fontSize: '13px',
+        textDecoration: 'underline',
+        verticalAlign: 'middle'
+      },
+      className: "fg-black"
+    }, "Click here for Next Year Admissions "), " ", /*#__PURE__*/React.createElement("i", {
+      style: {
+        fontSize: '13px',
+        textDecoration: 'underline',
+        verticalAlign: 'middle'
+      }
+    })))))));
+  }
+  if (props.customer == "DES" || props.customer == "SIES") {
+    $(".subject_list").show();
+    SubjectList = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      className: BoxClassName,
+      id: 'stud' + boxId++,
+      style: styles,
+      onClick: e => {
+        getStudentSubjectList();
+        changeBulletinBar(e);
+      }
+    }, /*#__PURE__*/React.createElement("img", {
+      src: "img/study-process.png"
+    }), " ", /*#__PURE__*/React.createElement("h3", {
+      className: "NewuniformFontStylesBold",
+      style: {
+        display: 'inline',
+        margin: '2px'
+      },
+      id: "subjectListCountNew"
+    }), /*#__PURE__*/React.createElement("h2", {
+      className: "EvtDashboardTxt panelDash uniformFontStyles"
+    }, "Course List")), /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("table", {
+      style: {
+        width: '100%'
+      }
+    }, /*#__PURE__*/React.createElement("tbody", null, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", {
+      style: {
+        display: 'none',
+        backgroundColor: '#e0e0e0',
+        borderTop: '2px solid rgb(127,127,127)',
+        borderBottom: '2px solid rgb(127,127,127)',
+        borderLeft: '2px solid rgb(127,127,127)',
+        borderRight: '2px solid rgb(127,127,127)',
+        cursor: 'pointer',
+        verticalAlign: 'middle'
+      },
+      id: "transDiv",
+      className: "span12 text-center"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "icon icon-hand-right "
+    }), "\xA0\xA0", /*#__PURE__*/React.createElement("a", {
+      id: "redirectAdmissionLink"
+    }, /*#__PURE__*/React.createElement("b", {
+      style: {
+        fontSize: '13px',
+        textDecoration: 'underline',
+        verticalAlign: 'middle'
+      },
+      className: "fg-black"
+    }, "Click here for Next Year Admissions "), " ", /*#__PURE__*/React.createElement("i", {
+      style: {
+        fontSize: '13px',
+        textDecoration: 'underline',
+        verticalAlign: 'middle'
+      }
+    })))))));
+  } else {
+    if (props.CourseType != "COURSE_TYPE_SCHOOL") {
+      if (!(props.customer == "INDIRA_PUNE" || props.customer == "MATSUNIVERSITY" || props.customer == "HPTELIBRARY" || props.customer == "HPTU" || props.customer == "JDGROUP" || props.customer == "MIT" || props.customer == "XISS" || props.customer == "WESCHOOL" || props.customer == "ABS" || props.customer == "RAMAIAH" || props.customer == "RAMAIAH_UNIVERSITY" || props.customer == "SPIT" || props.customer == "MGMU" || props.customer == "REVA_UNIVERSITY" || props.customer == "SIES")) {
+        if (props.customer == "IMT_NAGPUR" || props.customer == "IMT_GAZIABAD" || props.customer == "IMT_HYDERABAD") {
+          $(".subject").show();
+          SubjectList = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+            className: BoxClassName,
+            id: 'stud' + boxId++,
+            style: styles,
+            onClick: e => {
+              showSubjectDetails();
+              changeBulletinBar(e);
+            }
+          }, /*#__PURE__*/React.createElement("h3", {
+            style: {
+              display: 'inline',
+              margin: '2px'
+            },
+            className: "NewuniformFontStylesBold",
+            id: "subjectListCountNew"
+          }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+            fontSize: '15px',
+            color: '#0b4971'
+          })), /*#__PURE__*/React.createElement("h2", {
+            className: "EvtDashboardTxt panelDash uniformFontStyles"
+          }, " Subjects")), " ");
+        } else {
+          if (props.customer == "STJOHNS" || props.customer == "WESCHOOL" || props.customer == "VCET") {
+            Placement = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+              className: BoxClassName,
+              id: 'stud' + boxId++,
+              style: styles,
+              onClick: e => {
+                window.location = "manageDocument.json";
+              }
+            }, /*#__PURE__*/React.createElement("i", {
+              className: "fa fa-folder-open-o fa-2x"
+            }), /*#__PURE__*/React.createElement("h2", {
+              className: "EvtDashboardTxt panelDash uniformFontStyles"
+            }, "DMS")));
+          } else if (props.customer != "XLRI") {
+            $(".placement").show();
+            Placement = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+              className: BoxClassName,
+              id: 'stud' + boxId++,
+              style: styles,
+              onClick: e => {
+                getPlacementDetail(1);
+                changeBulletinBar(e);
+              }
+            }, /*#__PURE__*/React.createElement("h3", {
+              className: "NewuniformFontStylesBold",
+              style: {
+                display: 'inline',
+                margin: '2px'
+              },
+              id: "companyCount"
+            }, faIcon("fa fa-spinner fa-pulse fa-fw", {
+              fontSize: '15px',
+              color: '#0b4971'
+            })), /*#__PURE__*/React.createElement("h2", {
+              className: "EvtDashboardTxt panelDash uniformFontStyles"
+            }, "Placement")));
+          }
+          if (props.customer == "SRM_SIKKIM") {
+            quickLink = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+              className: BoxClassName,
+              id: 'stud' + boxId++,
+              style: styles,
+              onClick: e => {
+                quickLinksPopup(props);
+              }
+            }, /*#__PURE__*/React.createElement("i", {
+              className: "fa fa-external-link fa-x"
+            }), /*#__PURE__*/React.createElement("h2", {
+              className: "EvtDashboardTxt panelDash uniformFontStyles"
+            }, "Quick Links")));
+          }
+        }
+      }
+    } else {
+      if (props.customer != "INDIRA_PUNE") {
+        $(".transport").show();
+        Transport = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+          className: BoxClassName,
+          id: 'stud' + boxId++,
+          style: styles,
+          onClick: e => {
+            getTransportDetail(1);
+            changeBulletinBar(e);
+          }
+        }, /*#__PURE__*/React.createElement("h3", {
+          className: "NewuniformFontStylesBold",
+          style: {
+            display: 'inline',
+            margin: '2px'
+          },
+          id: "TransportCount"
+        }, "-"), /*#__PURE__*/React.createElement("h2", {
+          className: "EvtDashboardTxt panelDash uniformFontStyles"
+        }, "Transport")), " ");
+      }
+    }
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      borderRadius: '5px',
+      backgroundColor: '#fff !important',
+      cursor: 'pointer',
+      textAlign: 'center',
+      marginLeft: '0px',
+      paddingTop: '10px'
+    },
+    id: "stud1",
+    className: BoxClassName,
+    onClick: e => {
+      props.state.viewAnnouncemnet();
+      changeBulletinBar(e);
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "NewuniformFontStylesBold",
+    style: {
+      display: 'inline',
+      margin: '2px'
+    },
+    id: "announcementCount"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "EvtDashboardTxt ann panelDash uniformFontStyles"
+  }, "Announcements")), /*#__PURE__*/React.createElement("div", {
+    style: styles,
+    className: BoxClassName,
+    id: "stud2",
+    onClick: e => {
+      showAttendencePage();
+      changeBulletinBar(e);
+    }
+  }, /*#__PURE__*/React.createElement("h3", {
+    className: "NewuniformFontStylesBold",
+    style: {
+      display: 'inline',
+      margin: '2px'
+    },
+    id: "attendencePer"
+  }), /*#__PURE__*/React.createElement("h2", {
+    className: "EvtDashboardTxt panelDash uniformFontStyles"
+  }, studDashboardLblStudSide == true || studDashboardLblStudSide == "true" ? 'LS attendance' : 'Attendance', " ")), CustomizeMiddleBox, Task, Placement, SubjectList, Transport, AddmisionLink, quickLink);
+}
+function StudentTasks(props) {
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "accordion",
+    id: "accordionExample",
+    style: {
+      width: '100%'
+    }
+  }, props.jobTray.map((posts, i) => {
+    let action;
+    let posted;
+    if (posts.isRead == "false") {
+      if (posts.actionurl != "") {
+        if (posts.actionurl.split(':')[0] == "call") {
+          action = /*#__PURE__*/React.createElement("a", {
+            className: "btn btn-success btn-mini",
+            style: {
+              margin: '5px',
+              paddingLeft: '10px'
+            },
+            onclick: posts.actionurl.split(':')[1]
+          }, "check");
+        } else {
+          action = /*#__PURE__*/React.createElement("a", {
+            className: "btn btn-success btn-mini",
+            style: {
+              margin: '5px',
+              paddingLeft: '10px'
+            },
+            href: posts.actionurl
+          }, "check");
+        }
+      }
+    }
+    let assignTime = "";
+    let assignDate = "";
+    if (posts.JobAssignedTime != "" && posts.JobAssignedTime != undefined && posts.JobAssignedTime != null) {
+      assignTime = 'on ' + posts.JobAssignedTime;
+    }
+    if (posts.JobAssignedDate != "" && posts.JobAssignedDate != undefined && posts.JobAssignedDate != null) {
+      assignDate = $.datepicker.formatDate('M dd, yy', new Date(posts.JobAssignedDate));
+    }
+    if (posts.byUsername != "" && posts.byUsername != undefined && posts.byUsername != null) {
+      posted = /*#__PURE__*/React.createElement("span", null, assignTime + " ", " ", assignDate + "  ", /*#__PURE__*/React.createElement("b", null, " By " + posts.byUsername));
+    } else {
+      posted = /*#__PURE__*/React.createElement("span", null, assignTime + " ", " ", assignDate);
+    }
+    return /*#__PURE__*/React.createElement("div", {
+      className: "accordion-group",
+      key: i
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "accordion-heading"
+    }, /*#__PURE__*/React.createElement("a", {
+      className: "accordion-toggle",
+      "data-toggle": "collapse",
+      "data-parent": "#accordionExample",
+      href: '#accordion_' + i,
+      "aria-expanded": "false"
+    }, /*#__PURE__*/React.createElement("strong", null, posts.JobHeading), /*#__PURE__*/React.createElement("span", {
+      style: {
+        float: 'right'
+      }
+    }, posted))), /*#__PURE__*/React.createElement("div", {
+      id: 'accordion_' + i,
+      className: "accordion-body collapse"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "accordion-inner"
+    }, posts.JobDescription, /*#__PURE__*/React.createElement("span", {
+      style: {
+        float: 'right'
+      }
+    }, action))));
+  })));
+}
+function StudentAnnouncement(props) {
+  if (props.announcementArr.length == 0) {
+    return /*#__PURE__*/React.createElement("h4", {
+      style: {
+        textAlign: 'center',
+        fontSize: '14px',
+        padding: '5px'
+      }
+    }, "No  Announcements");
+  }
+  return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    className: "accordion",
+    id: "accordionExample1",
+    style: {
+      width: '98%'
+    }
+  }, props.announcementArr.map((obj, i) => {
+    let posted = /*#__PURE__*/React.createElement("span", null, "On  ", obj.createdDate, " by ", /*#__PURE__*/React.createElement("b", null, obj.employeeName));
+    let annoucemnetHdr;
+    try {
+      annoucemnetHdr = /*#__PURE__*/React.createElement("strong", null, decodeURIComponent(obj.heading));
+    } catch (e) {
+      annoucemnetHdr = /*#__PURE__*/React.createElement("strong", null, obj.heading);
+    }
+    let div = "div";
+    return /*#__PURE__*/React.createElement("div", {
+      className: "accordion-group",
+      key: i
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "accordion-heading"
+    }, /*#__PURE__*/React.createElement("a", {
+      className: "accordion-toggle",
+      "data-toggle": "collapse",
+      "data-parent": "#accordionExample1",
+      onClick: e => {
+        viewAnnouncementDetailNew(obj.announcementId);
+      },
+      href: '#accordion_' + obj.announcementId,
+      "aria-expanded": "false"
+    }, /*#__PURE__*/React.createElement("strong", null, annoucemnetHdr), /*#__PURE__*/React.createElement("span", {
+      style: {
+        float: 'right'
+      }
+    }, posted))), /*#__PURE__*/React.createElement("div", {
+      id: 'accordion_' + obj.announcementId,
+      className: "accordion-body collapse"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: "accordion-inner"
+    }, /*#__PURE__*/React.createElement("div", {
+      id: 'announcementBody-' + obj.announcementId
+    }), /*#__PURE__*/React.createElement("div", {
+      className: "footer",
+      style: {
+        float: 'right',
+        marginBottom: '10px'
+      }
+    }, /*#__PURE__*/React.createElement("a", {
+      title: "Move to Trash",
+      onClick: e => {
+        removeStudentAnnouncement(obj.announcementId, div, obj.isPermanent);
+        setReadAnnouncement(obj.announcementId);
+      }
+    }, /*#__PURE__*/React.createElement("img", {
+      src: "img/trash.png"
+    }))))));
+  })));
+}
+function changeBulletinBar(ele) {
+  var EvtDashboardTxt = $(ele.target).find('.EvtDashboardTxt').text();
+  var boiler = "";
+  if (EvtDashboardTxt == "Announcements") {
+    boiler += '<i  class="fa fa-bullhorn fa-lg" ></i>&nbsp;&nbsp' + EvtDashboardTxt;
+  } else if (EvtDashboardTxt == "Task") {
+    boiler += '<i class="fa fa-list-alt fa-lg"></i>&nbsp;&nbsp' + EvtDashboardTxt;
+  } else if (EvtDashboardTxt == "Placement") {
+    boiler += '<i class="fa fa-handshake-o fa-lg"></i>&nbsp;&nbsp' + EvtDashboardTxt;
+  } else {
+    boiler += '<i class="fa fa-inbox fa-lg"></i>&nbsp;&nbsp;BULLETIN BOARD</span>';
+  }
+  $('#currentSelection').html(boiler);
+}
+class BulletinBoard extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      customer: $('#customerHelper').val()
+    };
+  }
+  render() {
+    let ComposeAndShare;
+    const {
+      customer
+    } = this.state;
+    if (!(customer == "GOKHALE_INSTITUTE" || customer == "IMT_NAGPUR" || customer == "IMT_GAZIABAD" || customer == "IMT_HYDERABAD")) {
+      ComposeAndShare = /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", null, " | "), /*#__PURE__*/React.createElement("a", {
+        id: "bulletinStatus",
+        className: "compose",
+        onClick: e => {
+          bulletinStatus(e);
+        }
+      }, /*#__PURE__*/React.createElement("i", {
+        className: "fa fa-envelope fa-lg"
+      }), "\xA0Compose\xA0"), /*#__PURE__*/React.createElement("a", {
+        id: "bulletinStatus",
+        style: {
+          display: 'none'
+        },
+        className: "compose",
+        onClick: e => {
+          bulletinStatus(e);
+        }
+      }, /*#__PURE__*/React.createElement("i", {
+        className: "fa fa-times-circle fa-lg"
+      })));
+    }
+    return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("legend", {
+      className: "buletinCls",
+      style: {
+        width: '97%'
+      }
+    }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontSize: '11px'
+      },
+      id: "currentSelection"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-inbox fa-lg"
+    }), "\xA0\xA0BULLETIN BOARD"), /*#__PURE__*/React.createElement("span", {
+      className: "pull-right",
+      style: {
+        fontSize: '11px',
+        textTransform: 'none'
+      }
+    }, /*#__PURE__*/React.createElement("a", {
+      bulletintype: "Posts",
+      onClick: e => {
+        getAlumniPost(10);
+      }
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-bullhorn fa-lg"
+    }), "\xA0View All Posts\xA0"), ComposeAndShare))), /*#__PURE__*/React.createElement("br", null));
+  }
+}
+$(document).ready(function () {
+  ReactDOM.render( /*#__PURE__*/React.createElement(BulletinBoard, null), document.getElementById('BulletinBoard'));
+  ReactDOM.render( /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(AlumniPost, null)), document.getElementById('divalumpost'));
+});
+function StudentDashboardList1(props) {
+  let CustomiseList;
+  let profileLink;
+  let syllabusLink;
+  let acadFeesLink;
+  const Linkstyle = {
+    height: '100%',
+    width: '100%'
+  };
+  var customerHelpStr = $('#customerHelper').val();
+  var junoMicroserviceTransportEnable = $('#junoMicroserviceTransportEnable').val() === 'true';
+  var junoMicroserviceTransportMenuEnable = $('#junoMicroserviceTransportMenuEnable').val() === 'true';
+  if (customerHelpStr == "IMT_NAGPUR" || customerHelpStr == "IMT_GAZIABAD" || customerHelpStr == "IMT_HYDERABAD") {
+    profileLink = "stu_studentProfileIMT.htm";
+    syllabusLink = "studentCourseFileNew.htm";
+  } else if ($('#studentSideNewCourseUI').val() == true || $('#studentSideNewCourseUI').val() == 'true') {
+    profileLink = "stu_studentProfile.htm";
+    syllabusLink = "studentCourses.htm";
+  } else if (props.CourseType == "COURSE_TYPE_SCHOOL" && props.SubCourseType == "COURSE_TYPE_SCHOOL") {
+    profileLink = "schoolForm.htm";
+    syllabusLink = "studentCourseFileNew.htm";
+  } else {
+    profileLink = "stu_studentProfile.htm";
+    syllabusLink = "studentCourseFileNew.htm";
+  }
+  var newFeesAcdemicUiFlag = $('#newFeesAcdemicUiFlag').val() == '' || $('#newFeesAcdemicUiFlag').val() == undefined ? false : true;
+  var studDashboardLblStudSide = $('#studDashboardLblStudSide').val() == '' || $('#studDashboardLblStudSide').val() == undefined || $('#studDashboardLblStudSide').val() == "false" || $('#studDashboardLblStudSide').val() == null || $('#studDashboardLblStudSide').val() == false ? false : true;
+  if (customerHelpStr == "GOKHALE_INSTITUTE" || customerHelpStr == "MEGHE" || newFeesAcdemicUiFlag) {
+    if (customerHelpStr == "SRM_SIKKIM") {
+      acadFeesLink = 'studentFeesPayment.htm';
+    } else {
+      acadFeesLink = 'studentAcademicFeesPayment.htm';
+    }
+  } else {
+    acadFeesLink = 'studentFinanceDetails.htm';
+  }
+  let HostelTr;
+  if (customerHelpStr != "SIES" && customerHelpStr != "XLRI" && customerHelpStr != "SRM_SIKKIM") {
+    HostelTr = /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-building fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_hostel",
+      href: "studentHostelHomeDetails.htm"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "HOSTEL"))));
+  }
+  let CustomerSpecific;
+  if (customerHelpStr != "INDIRA_PUNE" && customerHelpStr != "IMT_NAGPUR" && customerHelpStr != "IMT_GAZIABAD" && customerHelpStr != "IMT_HYDERABAD") {
+    CustomerSpecific = /*#__PURE__*/React.createElement(React.Fragment, null, customerHelpStr != "XLRI" && customerHelpStr != "SRM_SIKKIM" && $('#hideStudentSideLeaveApplication').val() != true && $('#hideStudentSideLeaveApplication').val() != "true" && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-file-text fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_leave",
+      href: "studentLeaveApplication.htm"
+    }, " ", /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "LEAVE DETAILS")))), HostelTr, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-male fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_mentor",
+      href: "stu_mentorCommunicationSmsEmail.htm"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "CONTACT MENTOR")))), customerHelpStr != "BITS_MESRA" && customerHelpStr != "SRM_SIKKIM" && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-comments-o fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_blogs",
+      href: "viewCommentBlog.htm"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "BLOGS")))), customerHelpStr === "DYPATIL" && juno.login_emailId && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-laptop fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_assessment",
+      href: `viewOnlineAssessmentNew.htm?key=${btoa(juno.login_emailId)}`
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "QUIZ")))));
+  }
+  let CustomerSpecificProfile;
+  if (customerHelpStr != "SRM_UNIVERSITY" || $('#isDevelopmentEnvironment').val() == 'true' || $('#isDevelopmentEnvironment').val() == true) {
+    CustomerSpecificProfile = /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-user fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_profile",
+      href: profileLink
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "PROFILE"))));
+  }
+  let CustomerSpecificReRegistration;
+  if (customerHelpStr == "SRM_SIKKIM") {
+    CustomerSpecificReRegistration = /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-edit fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      href: "stu_studentCourseChoiceNew.htm"
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "RE-REGISTRATION"))));
+  }
+  let academicFeesDiv;
+  if (customerHelpStr != "SRM_SIKKIM") {
+    academicFeesDiv = /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-rupee fa-lg"
+    })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+      id: "a_fees",
+      href: acadFeesLink
+    }, /*#__PURE__*/React.createElement("div", {
+      style: Linkstyle
+    }, "FEES DETAILS"))));
+  }
+  const studentHomeControls = $('#studentHomeControls').val() == '' || $('#studentHomeControls').val() == undefined || $('#studentHomeControls').val() == false || $('#studentHomeControls').val() == "false" ? false : true;
+  return !studentHomeControls ? /*#__PURE__*/React.createElement("div", {
+    className: "avatar-container homeSection stuSideBar "
+  }, /*#__PURE__*/React.createElement("table", {
+    className: "table table-considered borderless"
+  }, /*#__PURE__*/React.createElement("tbody", {
+    className: "nav nav-list studDashli "
+  }, /*#__PURE__*/React.createElement("tr", {
+    className: "active"
+  }, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-dashboard fa-lg"
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    href: "home.htm"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: Linkstyle
+  }, "DASHBOARD")))), junoMicroserviceTransportEnable && junoMicroserviceTransportMenuEnable && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-taxi fa-lg"
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: "100%",
+      width: "100%",
+      cursor: "pointer"
+    },
+    onClick: () => {
+      createTokenTransport();
+    }
+  }, "Transport V2"))), CustomerSpecificProfile, /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-book fa-lg"
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    id: "a_syllabus",
+    href: syllabusLink
+  }, /*#__PURE__*/React.createElement("div", {
+    style: Linkstyle
+  }, " SYLLABUS")))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-calendar fa-lg"
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    id: "a_academicCalender",
+    href: "studentScheduleAcademicCalender.htm"
+  }, " ", /*#__PURE__*/React.createElement("div", {
+    style: Linkstyle
+  }, studDashboardLblStudSide === true ? "ACADEMIC CALENDAR" : "CALENDAR")))), /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-clock-o fa-lg"
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    id: "a_timeTable",
+    href: "#",
+    onClick: e => {
+      getTimeTableDetails();
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: Linkstyle
+  }, "TIME TABLE")))), customerHelpStr != "XLRI" && /*#__PURE__*/React.createElement("tr", null, /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("i", {
+    className: "fa fa-bar-chart fa-lg"
+  })), /*#__PURE__*/React.createElement("td", null, /*#__PURE__*/React.createElement("a", {
+    id: "a_library",
+    href: customerHelpStr == "SRM_SIKKIM" ? "employeeWebOpac.htm" : "stu_studentLibraryDetails.htm"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: Linkstyle
+  }, studDashboardLblStudSide == true ? "DIGITAL LIBRARY" : /*#__PURE__*/React.createElement(React.Fragment, null, "LIBRARY (", /*#__PURE__*/React.createElement("span", {
+    id: "bookIssueCount"
+  }, "-"), ")"))))), academicFeesDiv, CustomerSpecific, CustomerSpecificReRegistration))) : '';
+}
+function stdProfilePic() {
+  var Maxsize = 5242880;
+  $image_crop = $('#image_demo').croppie({
+    enableExif: true,
+    enableOrientation: true,
+    viewport: {
+      width: 200,
+      height: 200,
+      type: 'square' //circle
+    },
+    boundary: {
+      width: 300,
+      height: 300
+    }
+  });
+  $('#profilePictureUpload').on('change', function () {
+    var reader = new FileReader();
+    reader.onload = function (event) {
+      $image_crop.croppie('bind', {
+        url: event.target.result
+      }).then(function () {
+        console.log('jQuery bind complete');
+      });
+    };
+    reader.readAsDataURL(this.files[0]);
+    $('#uploadimageModal').modal('show');
+  });
+  $(function () {
+    $('.vanilla-rotate').on('click', function (ev) {
+      $image_crop.croppie('rotate', parseInt($(this).data('deg')));
+    });
+  });
+  $('.crop_image').click(function (event) {
+    $image_crop.croppie('result', {
+      type: 'canvas',
+      size: 'viewport'
+    }).then(function (response) {
+      console.log(response);
+      var base64ImageContent = response.replace(/^data:image\/(png|jpg);base64,/, "");
+      var blob = base64ToBlob(base64ImageContent, 'image/png');
+      var formData = new FormData();
+      formData.append('fileData', blob);
+      $.ajax({
+        url: "uploadStudentProfileImage.json",
+        type: "POST",
+        contentType: false,
+        processData: false,
+        data: formData,
+        name: 'fileData',
+        size: Maxsize,
+        onSubmit: function (data) {
+          //if(extension.toString().toLowerCase() == 'png' || extension.toString().toLowerCase() == 'jpg',extension.toString().toLowerCase() == 'jpeg'){
+          startLoading();
+          this.setData({
+            'fileSize': Maxsize
+          });
+        },
+        success: function (data) {
+          $('#uploadimageModal').modal('hide');
+          if (isNaN(data)) {
+            //showErrorMessage('File size is larger than specified',10000);
+            jAlert("File size is larger than specified !!");
+          } else {
+            var imageBoiler = '<img src="getStudentProfileImage.json?type=profile&someparam=' + data + '" alt="Photo" name="Photo" width="120px" height="120px" border="1" align="right" style="background-color: #FFFFFF" />';
+            $('#stdProfileImage2342').html(imageBoiler);
+            jAlert("Image uploaded successfully !!!");
+            imageStatus = true;
+            showSuccessMessage('Image uploaded. ', 10000);
+            $('#profileImgModal').modal('hide');
+          }
+          //$('#uploaded_image').html(data);
+          $image_crop.croppie('destroy');
+        }
+      });
+    });
+  });
+}
+function base64ToBlob(base64, mime) {
+  mime = mime || '';
+  var sliceSize = 1024;
+  var byteChars = window.atob(base64);
+  var byteArrays = [];
+  for (var offset = 0, len = byteChars.length; offset < len; offset += sliceSize) {
+    var slice = byteChars.slice(offset, offset + sliceSize);
+    var byteNumbers = new Array(slice.length);
+    for (var i = 0; i < slice.length; i++) {
+      byteNumbers[i] = slice.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNumbers);
+    byteArrays.push(byteArray);
+  }
+  return new Blob(byteArrays, {
+    type: mime
+  });
+}
+let gpropVar = null;
+function quickLinksPopup(props) {
+  gpropVar = null;
+  $("#divalumpost").hide();
+  $('#tabResult').show();
+  gpropVar = props;
+  var bodyB = `	
+	
+	<div class="accordion-group"><div class="accordion-heading">
+		<a class="accordion-toggle" href="https://online-degree.swayam2.ac.in/" target="_blank"><strong>Swayam LMS</strong></a>
+	</div></div>
+	
+	<div class="accordion-group"><div class="accordion-heading">
+		<a class="accordion-toggle" href="https://learn.onlinesrmus.in/d2l/login" target="_blank"><strong>University LMS</strong></a>
+	</div></div>
+	
+	<div class="accordion-group"><div class="accordion-heading">
+		<a class="accordion-toggle" href="#" onclick="applyLinkForCoursera();"><strong>Coursera</strong></a>
+	</div></div>
+	
+	<div class="accordion-group"><div class="accordion-heading">
+		<a class="accordion-toggle" href="#" onclick="applyLinkForLiveSession();"><strong>Live Session</strong></a>
+	</div></div>
+	
+	<div class="accordion-group"><div class="accordion-heading">
+		<a class="accordion-toggle" href="#" onclick="underDevlopment();"><strong>Participation Status</strong></a>
+	</div></div>
+	
+	<div class="accordion-group"><div class="accordion-heading">
+		<a class="accordion-toggle" href="#" onclick="underDevlopment();"><strong>My Assignment Status</strong></a>
+	</div></div>
+	
+	`;
+  $('#tabResult').html(bodyB);
+}
+function applyLinkForLiveSession() {
+  try {
+    var studentCourse = $('#courseNameTemp').val();
+    if (gpropVar.customer == "SRM_SIKKIM" && studentCourse == "MBA") {
+      window.open("https://meet.google.com/ddu-rduf-nfg", "_blank");
+    } else if (gpropVar.customer == "SRM_SIKKIM" && studentCourse == "MCA") {
+      window.open("https://meet.google.com/ebv-evju-cko", "_blank");
+    } else {
+      jAlert("Link Not Mapped!");
+    }
+  } catch (e) {}
+}
+function applyLinkForCoursera() {
+  try {
+    var studentCourse = $('#courseNameTemp').val();
+    if (gpropVar.customer == "SRM_SIKKIM" && studentCourse == "MBA") {
+      window.open("https://coursera.org/programs/mba-masters-in-business-administration-z9avh", "_blank");
+    } else if (gpropVar.customer == "SRM_SIKKIM" && studentCourse == "MCA") {
+      window.open("https://coursera.org/programs/masters-in-computer-application-rgn0g", "_blank");
+    } else {
+      jAlert("Link Not Mapped!");
+    }
+  } catch (e) {}
+}
+function underDevlopment() {
+  jAlert("Rolling Out Soon.");
+}_55è¨ò      i’¬0i’¬0I\Üéi÷ﬁ^   q    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scriptReactCompiled/student/studentHomeReact.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"52582-1774889052000"
+Last-Modified: Mon, 30 Mar 2026 16:44:12 GMT
+Content-Type: text/javascript
+Content-Length: 52582
+Date: Wed, 08 Apr 2026 02:49:20 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"52582-1774889052000"
+Last-Modified: Mon, 30 Mar 2026 16:44:12 GMT
+Content-Type: text/javascript
+Content-Length: 52582
+Keep-Alive: timeout=5, max=89
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 247 net-response-time-onstop 248   Õf

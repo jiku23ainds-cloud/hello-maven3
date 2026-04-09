@@ -1,0 +1,16 @@
+[Aisleriot Config]
+ShowToolbar=true
+ShowStatusbar=true
+Sound=true
+Animations=true
+Recent=spiderette;spider-three-decks;spider;klondike;
+Variation=spiderette.scm
+
+[klondike.scm]
+Statistic=0;5;0;0;
+
+[spider.scm]
+Statistic=0;1;0;0;
+
+[spiderette.scm]
+Statistic=0;1;0;0;

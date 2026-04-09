@@ -1,0 +1,18 @@
+#include<stdio.h>
+void main(){
+	int arr[]={3,4,5,2,1,7,9,8,6};
+	int key;
+	int loc=-1;
+	int n=9;
+	printf("Enter the element to search : ");
+	scanf("%d",&key);
+	for(int i=0;i<n;i++)
+		if(arr[i]==key){
+			loc=i;
+			break;
+		}
+	if(loc==-1)
+		printf("Key not found");
+	else
+		printf("Key is found at position %d\n",loc);
+}

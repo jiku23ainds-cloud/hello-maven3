@@ -1,0 +1,1921 @@
+var cmbNo=0;
+
+function showRejectForm(caller){
+	$("#rejFormDiv").hide();
+	$("#accptFormDiv").show();
+
+	$.ajax({
+		url:'getPlacementRegistrationReason.json',
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+
+			var boiler1='';
+
+			boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+			'<tr>'+
+			'<th>'+
+			'Reason of rejection placement:'+
+			'</th>'+
+			'<td style="display:none;"><input type="text" id="txtHiddenPlacementRegRejId" /></td>'+
+			'</tr>'+
+			'</table>'+
+			'<table class="table table-striped table-bordered table-condensed">';
+
+
+			for(var i=0; i<jArray.length; i++){
+
+				boiler1 +=
+					'<tr>'+
+					'<td width="30px;">'+
+					'<input type="checkbox" id="chk'+jArray[i]["placementRegistrationReasonId"]+'" name="reason" value="'+jArray[i]["placementRegistrationReasonId"]+'" /></td><td><label>'+jArray[i]["type"]+'</label>'+
+					'</td>'+
+					'</tr>';
+			}
+			if(caller=="side"){
+				boiler1 +=
+					'<tr>'+
+					'<td colspan="2">'+
+					'<input type="button" id="btnSave" value="Save" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()"/>'+
+					'</td>'+
+					'</tr>';
+			}
+			boiler1+='</table>';		
+
+			$('#accptFormDiv').html(boiler1);
+			$('#placementRejectRegistrationBody').html(boiler1);
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+function savePlacemenRegistrationRejReq1(){
+	//var reqId=$("#txyRegId").val();
+	//alert("reqId..."+reqId);
+	var reqId="";
+	var reason=new Array();
+	var cnt=0;
+	var grescore="0";
+	var toefeelscore="0"
+		jConfirm("Do you wish to continue with opt out process from placement ? ", "Confirm", function(result) {
+		if (result == true) {
+			if($("#textareaReason").val()=="" && $("#textareaReason").val()==""){
+				jAlert("Please enter valid reason");
+				return false;
+			}
+		if($("#greScore").val()=="" && $("#toefelScore").val()==""){
+			jAlert("please add GRE/TOEFEEL Score");
+			return false;
+		}else{
+			
+			
+			
+				grescore=$("#greScore").val();	
+				toefeelscore=$("#toefelScore").val();
+			
+			$.ajax({
+				url:'savePlacemenRegistrationRejReq.json?reason='+$('#textareaReason').val()+'&reqId='+reqId+'&grescore='+grescore+'&toefeelscore='+toefeelscore,
+				dataType:'json',
+				async:false,
+				success:function(jArray){
+					$('#placementAcceptRegistration').modal('hide');
+					jAlert("Opt Out Successfully");
+					location.reload(true);
+				},
+				error:function(){
+					////alert("in Error stream CMB");
+				}
+			});
+		}
+			}else {
+				return false;
+			}
+			});
+	
+	
+}
+
+function savePlacemenRegistrationRejReq(){
+	//var reqId=$("#txyRegId").val();
+	//alert("reqId..."+reqId);
+	var reqId="";
+	var reason=new Array();
+	var cnt=0;
+	
+			$.ajax({
+				url:'savePlacemenRegistrationRejReq.json?reason='+reason+'&reqId='+reqId,
+				dataType:'json',
+				async:false,
+				success:function(jArray){
+					$('#placementAcceptRegistration').modal('hide');
+					jAlert("Saved Successfully");
+				},
+				error:function(){
+					////alert("in Error stream CMB");
+				}
+			});
+		
+	
+	/*$('input[name = "reason"]:checked').each(function(){
+		cnt++;
+		reason.push($(this).val());
+	});*/
+//	if(cnt==1){
+	
+	//}
+	/*else{
+		jAlert("Please select only one reason");
+	}*/
+}
+function savePlacemenRegistrationAcceptedReq(){
+	//var sDate=$("#txtStartDate").val();
+	//var eDate=$("#txtEndDate").val();
+	/*if(sDate=="" || eDate==""){
+		jAlert("Please select Start Date and End Date");
+	}
+	else{*/
+	//alert($("#txyRegId").val());
+		var reqId="";
+		if($("#txyRegId").val() != undefined)
+			{
+				reqId = $("#txyRegId").val(); 
+			}
+		var cmbComp1="";
+		var cmbComp2="";
+		var cmbComp3="";
+		var cmbComp4="";
+		var cmbComp5="";
+		var cmbComp6="";
+
+		/*if($("#cmbComp1").val()!=0){
+			cmbComp1=$("#cmbComp1").val();
+		}
+
+		if($("#cmbComp2").val()!=0){
+			cmbComp2=$("#cmbComp2").val();
+		}
+
+		if($("#cmbComp3").val()!=0){
+			cmbComp3=$("#cmbComp3").val();
+		}
+
+		if($("#cmbComp4").val()!=0){
+			cmbComp4=$("#cmbComp4").val();
+		}
+
+		if($("#cmbComp5").val()!=0){
+			cmbComp5=$("#cmbComp5").val();
+		}
+
+		if($("#cmbComp6").val()!=0){
+			cmbComp6=$("#cmbComp6").val();
+		}
+*/
+		$.ajax({
+			url:'savePlacemenRegistrationAcceptedReq.json?cmbComp1='+cmbComp1+'&cmbComp2='+cmbComp2+'&cmbComp3='+cmbComp3+'&cmbComp4='+cmbComp4+'&cmbComp5='+cmbComp5+'&cmbComp6='+cmbComp6+'&reqId='+reqId,
+			dataType:'json',
+			async:false,
+			success:function(jArray){
+				jAlert("Saved Successfully");
+				location.reload(true);
+				//window.location.href = "MyPlacements.htm?hType=placement";
+			},
+			error:function(){
+				////alert("in Error stream CMB");
+			}
+		});
+	//}
+}
+
+function showAcceptForm(caller){
+	$("#accptFormDiv").hide();
+	$("#rejFormDiv").show();
+	var boiler1='';
+	boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+	'<tr>'+
+	/*'<th>'+
+	'Request for placement:'+
+	'</th>'+*/
+	'<td style="display:none;"><input type="text" id="txtHiddenPlacementRegAccptId" /></td>'+
+	'</tr>'+
+	'</table>'+
+
+	'<table class="table table-striped table-bordered table-condensed">'+
+	'<tr>'+
+	'<th>'+
+	'Dream Companies :'+
+	'</th>'+
+	'</tr>'+
+	'</table>'+
+
+	'<table class="table table-striped table-bordered table-condensed">'+
+
+	'<tr>'+
+	'<td>'+
+	'1.&nbsp;<select id="cmbComp1" onchange="addOherCompanyPopUp1()">'+
+	'</td>'+
+	'<td>'+
+	'2.&nbsp;<select id="cmbComp2" onchange="addOherCompanyPopUp2()">'+
+	'</td>'+
+	'</tr>'+
+
+	'<tr>'+
+	'<td>'+
+	'3.&nbsp;<select id="cmbComp3" onchange="addOherCompanyPopUp3()">'+
+	'</td>'+
+	'<td>'+
+	'4.&nbsp;<select id="cmbComp4" onchange="addOherCompanyPopUp4()">'+
+	'</td>'+
+	'</tr>'+
+
+	'<tr>'+
+	'<td>'+
+	'5.&nbsp;<select id="cmbComp5" onchange="addOherCompanyPopUp5()">'+
+	'</td>'+
+	'<td>'+
+	'6.&nbsp;<select id="cmbComp6" onchange="addOherCompanyPopUp6()">'+
+	'</td>'+
+	'</tr>';
+	if(caller=="side"){
+		boiler1+='<tr>'+
+		'<td colspan="2">'+
+		'<input type="button" id="btnSave2" value="Save" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationAcceptedReq()"/>'+
+		'</td>'+
+		'</tr>';
+	}
+
+
+	boiler1+='</table>';		
+
+	$('#rejFormDiv').html(boiler1);
+	$('#placementAcceptRegistrationBody').html(boiler1);
+
+	jQuery('#txtStartDate').datepicker(
+			{
+				dateFormat:"M d,yy",
+				///showWeek: true,
+				changeMonth: true,
+				changeYear: true,
+				yearRange:"-60:+5",
+			});
+
+	jQuery('#txtEndDate').datepicker(
+			{
+				dateFormat:"M d,yy",
+				///showWeek: true,
+				changeMonth: true,
+				changeYear: true,
+				yearRange:"-60:+5",
+			});
+
+	cmbNo=0;
+	getCompanyList(cmbNo);
+}
+
+function getCompanyList(cmbNo){
+
+	$.ajax({
+		url:'GETCompanyList.json',
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+
+			var j=jArray.length;
+			var companyComboBoiler='<option value="0">Select</option>';
+			for(var i=0;i<j;i++)
+				companyComboBoiler +='<option value="'+jArray[i]["companyMasterId"]+'">'+jArray[i]["companyName"]+'</option>';
+
+			companyComboBoiler +='<option value="addNew">Add New</option>';
+
+			if(cmbNo==0){
+				$('#cmbComp1').html(companyComboBoiler);
+				$('#cmbComp2').html(companyComboBoiler);
+				$('#cmbComp3').html(companyComboBoiler);
+				$('#cmbComp4').html(companyComboBoiler);
+				$('#cmbComp5').html(companyComboBoiler);
+				$('#cmbComp6').html(companyComboBoiler);
+			}
+
+			if(cmbNo==1)
+				$('#cmbComp1').html(companyComboBoiler);
+
+			if(cmbNo==2)
+				$('#cmbComp2').html(companyComboBoiler);
+
+			if(cmbNo==3)
+				$('#cmbComp3').html(companyComboBoiler);
+
+			if(cmbNo==4)
+				$('#cmbComp4').html(companyComboBoiler);
+
+			if(cmbNo==5)
+				$('#cmbComp5').html(companyComboBoiler);
+
+			if(cmbNo==6)
+				$('#cmbComp6').html(companyComboBoiler);
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+
+function getPlaceRegReqDetail(){
+
+	$.ajax({
+		url:'getPlaceRegReqDetail.json',
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+			if(jArray.length>0)
+			if(jArray[0]["acceptRej"]=="Accept"){
+				showAcceptForm("side");
+				//alert("val...."+jArray[0]["id"]);
+
+				$('#radAccept').attr('checked',true);
+
+				$("#txyRegId").val(jArray[0]["id"]);
+
+				var pubDate = new Date(jArray[0]["startDate"]);
+				$('#txtStartDate').datepicker({
+					dateFormat : 'M d,yy',
+				});
+				$("#txtStartDate").datepicker('setDate', pubDate);
+
+				var pubDate2 = new Date(jArray[0]["endDate"]);
+				$('#txtEndDate').datepicker({
+					dateFormat : 'M d,yy',
+				});
+				$("#txtEndDate").datepicker('setDate', pubDate2);
+
+				$("#cmbComp1").val(jArray[0]["dreamCompId1"]);
+				$("#cmbComp2").val(jArray[0]["dreamCompId2"]);
+				$("#cmbComp3").val(jArray[0]["dreamCompId3"]);
+				$("#cmbComp4").val(jArray[0]["dreamCompId4"]);
+				$("#cmbComp5").val(jArray[0]["dreamCompId5"]);
+				$("#cmbComp6").val(jArray[0]["dreamCompId6"]);
+			}
+			else{
+				showRejectForm("side");
+				//alert("val2...."+jArray[0]["id"]);
+				$('#radReject').attr('checked',true);
+
+				$("#txyRegId").val(jArray[0]["id"]);
+				$("#chk"+jArray[0]["reasonId"]).attr('checked',true);
+
+
+			}
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+function addOherCompanyPopUp1(){
+	cmbNo=1;
+	if($("#cmbComp1").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}	
+
+function addOherCompanyPopUp2(){	
+	cmbNo=2;
+	if($("#cmbComp2").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function addOherCompanyPopUp3(){
+	cmbNo=3;
+	if($("#cmbComp3").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}	
+
+function addOherCompanyPopUp4(){	
+	cmbNo=4;
+	if($("#cmbComp4").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function addOherCompanyPopUp5(){
+	cmbNo=5;
+	if($("#cmbComp5").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function addOherCompanyPopUp6(){
+	cmbNo=6;
+	if($("#cmbComp6").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function saveAnotherCompInPopUpThroughStud(){
+	var companyName=$("#txtOtherCompanyName").val();
+	$.ajax({
+		url:'saveAnotherCompInPopUpThroughStud.json?companyName='+companyName,
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+			$('#addOtherCompanyPopUp').modal('hide');
+			jAlert("Added successfully. You can select now");
+			getCompanyList(cmbNo);
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+//functions From navCommon.jsp        to Register Students For Placements
+function checkStudentStatus() {
+	
+	$('#showCPCRulesWhileRegistratingForPlacPopUp').modal('show').css({
+		width: '600px',
+		'margin-left': function () {
+			return -($(this).width() / 2);
+		}
+	});
+	
+	var status="";
+	var StudentId = $('#StudentId').val();
+	$.ajax({
+		url : 'checkStudentActivateForPlacement.json',   // PlacementCell Controler
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(json) {
+			status=json[0]["statusJson"];
+		},
+		error : function() {
+			jAlert("Error in Getting Student Placement List..", "Error");
+		}
+	});
+	
+	if(status=="Accepted"){	
+		checkOtherQualificationStatus(); // in Student Graduation Table...
+	}
+	if(status=="NotRegistered" || status=="Rejected"){
+		jConfirm("Do You Wish to Register For Placments? ", "Confirm", function(result) {
+			if (result == true) {
+				var customerIdentifiecationObj=$('#customerHelper').val();
+				if(customerIdentifiecationObj=="ICT_MUMBAI" && customerIdentifiecationObj !=undefined){
+				window.location.href = "placementRulesForStudent.htm"
+				return false;
+				}
+				$('#placementAcceptRegistration').modal('show');
+				
+				var boiler1='';
+
+				boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+				'<tr>'+
+				'<td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td>'+
+				'</tr>';
+				
+				boiler1+='<tr>'+
+							'<td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;'+
+							'<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()"/>'+
+							'</td>'+
+						'</tr>';
+
+				boiler1+='</table>';		
+
+				$('#placementAcceptRegistrationBody').html(boiler1);
+				showCPCRulesInForm();
+			} else{
+				return false;
+				//savePlacemenRegistrationRejReq();
+			}
+		});
+	}
+	
+	if(status=="NotActivated"){
+		jAlert("Your batch has not been activated yet...","Warning");
+		
+		
+	}
+	if(status=="Debbared"){
+		jAlert("You have been debbared...","Warning");
+		
+	}
+		
+}
+
+function showCPCRulesInForm(){
+	$.ajax({
+		url:'getPlacementRulesForStudent.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+												
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success: function(jArray){
+			var boiler=''+jArray+'';
+			$("#divCPCRulesForStudWhileRegisteringForPlac").html(boiler);
+			
+		},
+		error: function(){
+			
+		}
+	});
+}
+/*
+function checkOtherQualificationStatus()
+{
+	$.ajax({
+		url : 'checkOtherQualificationStatusInStudentGraduation.json',   // PlacementCell Controler
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(jArray) {
+			
+			//$('#addOtherQualificationForPlacementDiv').modal('show');
+			
+			var graduationArray = new Array();
+			var otherQualiArray = new Array();
+			graduationArray = jArray[0]["GraduationDetai"];
+			otherQualiArray = jArray[0]["OtherQualificationArray"];
+			if(jArray.length > 0)
+			{
+				if(otherQualiArray.length > 0)
+				{
+					if(graduationArray.length > 0)
+					{
+						$('#addOtherQualificationForPlacementDiv').modal('show').css({
+							width: '700px',
+							'margin-left': function () {
+								return -($(this).width() / 2);
+							}
+						});
+						
+						var boiler = '<table class="table table-bordered">'+
+										'<tr>'+
+											'<th>Current Qualification :</th>'+
+											'<td>'+jArray[0]["currentQuali"]+'</td>'+
+										'</tr>'+
+										'<tr>'+
+											'<td colspan="2" id="qualiTD"></td>'+
+										'</tr>'+
+									 '</table>';
+						
+						$('#addOtherQualificationForPlacementBody').html(boiler);
+						var innerBoiler = '<table class="table table-bordered">';
+					   for(var i=0;i<graduationArray.length;i++)
+					   {	
+						   innerBoiler += '<tr id="'+graduationArray[i]["studentGraduationId"]+'" class="graduationIdTrcls" >'+
+						   						'<th>Select your equivalent to <b><u> ('+graduationArray[i]["degreeName"]+') </u></b> graduation/PG/diploma qualification from the following</th>'+
+						   				  '</tr>'+
+						   				  '<tr>'+
+						   				  		'<td>'+
+						   				  		'<div class="listWrapper" id="div_'+graduationArray[i]["studentGraduationId"]+'" >'+
+						   				  			'<ul style="list-style: none;">';
+													   for(var j=0;j<otherQualiArray.length;j++)
+														{
+														   if(otherQualiArray[j]["DegreeName"] != "Any Degree")
+														   {
+															   innerBoiler += '<li style="width:15em;" ><input type="radio" class="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'" name="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'"  value="'+graduationArray[i]["studentGraduationId"]+'-'+otherQualiArray[j]["otherQualificationId"]+'">'+otherQualiArray[j]["DegreeName"]+'</li>';
+														   }
+														}
+						   		innerBoiler +=	'</ul></div></td>'+
+						   				  '</tr>';
+					   }
+					   innerBoiler += '</table>'+
+					   					'</br>'+
+					   					'<center><input type="button" value="Save" class="btn btn-inverse" onclick="saveStudOtherQualificationForPlacement()" /></center>';
+					   $('#qualiTD').html(innerBoiler);
+					}
+					else
+					{
+						//window.location.href = "";
+					}
+				}
+				else
+				{
+					//window.location.href = "";
+				}
+			}
+			else
+			{
+				//window.location.href = "";
+			}
+			
+		},
+		error : function() {
+			jAlert("Error in Getting Student Placement List..", "Error");
+		}
+	});
+}*/
+
+
+function checkOtherQualificationStatus()
+{
+	$.ajax({
+		url : 'checkOtherQualificationStatusInStudentGraduation.json',   // PlacementCell Controler
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(jArray) {
+			
+			//$('#addOtherQualificationForPlacementDiv').modal('show');
+			
+			var graduationArray = new Array();
+			var otherQualiArray = new Array();
+			graduationArray = jArray[0]["GraduationDetai"];
+			otherQualiArray = jArray[0]["OtherQualificationArray"];
+			if(jArray.length > 0)
+			{
+				if(otherQualiArray.length > 0)
+				{
+					if(graduationArray.length > 0)
+					{
+						$('#addOtherQualificationForPlacementDiv').modal('show').css({
+							width: '700px',
+							'margin-left': function () {
+								return -($(this).width() / 2);
+							}
+						});
+						
+						var boiler = '<table class="table table-bordered">'+
+										'<tr>'+
+											'<th>Current Qualification :</th>'+
+											'<td>'+jArray[0]["currentQuali"]+'</td>'+
+										'</tr>'+
+										'<tr>'+
+											'<td colspan="2" id="qualiTD"></td>'+
+										'</tr>'+
+									 '</table>';
+						
+						$('#addOtherQualificationForPlacementBody').html(boiler);
+						var innerBoiler = '<table class="table table-bordered">';
+					   for(var i=0;i<graduationArray.length;i++)
+					   {	
+						   innerBoiler += '<tr id="'+graduationArray[i]["studentGraduationId"]+'" class="graduationIdTrcls" >'+
+						   						'<th>Select your equivalent to <b><u> ('+graduationArray[i]["degreeName"]+') </u></b> graduation/PG/diploma qualification from the following</th>'+
+						   				  '</tr>'+
+						   				  '<tr>'+
+						   				  		'<td>'+
+						   				  		'<div class="listWrapper" id="div_'+graduationArray[i]["studentGraduationId"]+'" >'+
+						   				  			'<ul style="list-style: none;">';
+													   for(var j=0;j<otherQualiArray.length;j++)
+														{
+														   if(otherQualiArray[j]["DegreeName"] != "Any Degree")
+														   {
+															   innerBoiler += '<li style="width:15em;" ><input type="radio" class="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'" name="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'"  value="'+graduationArray[i]["studentGraduationId"]+'-'+otherQualiArray[j]["otherQualificationId"]+'">'+otherQualiArray[j]["DegreeName"]+'</li>';
+														   }
+														}
+						   		innerBoiler +=	'</ul></div></td>'+
+						   				  '</tr>';
+					   }
+					   innerBoiler += '</table>'+
+					   					'</br>'+
+					   					'<center><input type="button" value="Save" class="btn btn-inverse  btnColorGreen " onclick="saveStudOtherQualificationForPlacement()" /></center>';
+					   $('#qualiTD').html(innerBoiler);
+					}
+					else
+					{
+						//window.location.href = "";
+					}
+				}
+				else
+				{
+					//window.location.href = "";
+				}
+			}
+			else
+			{
+				//window.location.href = "";
+			}
+			
+		},
+		error : function() {
+			jAlert("Error in Getting Student Placement List..", "Error");
+		}
+	});
+}
+function registerDialogForPlacement(){
+
+	var customerIdentifiecationObj=$('#customerHelper').val();
+	if(customerIdentifiecationObj=="ICT_MUMBAI" && customerIdentifiecationObj !=undefined){
+	//window.replace("placementRulesForStudent.htm");	
+	window.location.href = "placementRulesForStudent.htm"
+	return false;
+	}
+	jConfirm("Do You Wish to Register For Placments? ", "Confirm", function(result) {
+		if (result == true) {
+			$('#placementAcceptRegistration').modal('show');
+			
+			var boiler1='';
+
+			boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+			'<tr>'+
+			'<td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td>'+
+			'</tr>';
+			
+			boiler1+='<tr>'+
+						'<td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini   btnColorGreen " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;'+
+						'<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  btnColorRed " onclick="savePlacemenRegistrationRejReq()"/>'+
+						'</td>'+
+					'</tr>';
+
+			boiler1+='</table>';		
+
+			$('#placementAcceptRegistrationBody').html(boiler1);
+			$('#divPlacementRules1').html(boiler1);
+			//divPlacementRules1
+			showCPCRulesInForm();
+		} else{
+			return false;
+			//savePlacemenRegistrationRejReq();
+		}
+	});
+}
+function registerDialogForPlacementOnClick(){
+	jConfirm("Do You Wish to Register For Placments? ", "Confirm", function(result) {
+		if (result == true) {
+	//		$('#placementAcceptRegistration').modal('show');
+			
+			var boiler1='';
+
+			boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+			'<tr>'+
+			'<td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td>'+
+			'</tr>';
+			
+			boiler1+='<tr>'+
+						'<td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini  btnColorGreen " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;'+
+						'<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  btnColorRed " onclick="savePlacemenRegistrationRejReq()"/>'+
+						'</td>'+
+					'</tr>';
+
+			boiler1+='</table>';		
+
+		//$('#placementAcceptRegistrationBody').html(boiler1);
+			$('#divPlacementRules1').html(boiler1);
+			//divPlacementRules1
+			getPlaceRegReqDetail();
+			showCPCRulesInForm();
+		} else{
+			return false;
+			// savePlacemenRegistrationRejReq();
+		}
+	});
+}
+function saveStudOtherQualificationForPlacement()
+{
+	var studGraduationIdArray = new Array();
+	var otherQualificationId = new Array();
+	$('.graduationIdTrcls').each(function(){
+		
+		var graduationId = $(this).attr('id');
+		studGraduationIdArray.push(graduationId);
+		
+		$('.rdoOtherQuali_'+graduationId).each(function(){
+			if($(this).is(':checked'))
+				otherQualificationId.push($(this).val());
+		});
+	});
+	if(otherQualificationId.length > 0)
+	{
+		$.ajax({
+			url:'saveStudOtherQualificationForPlacement.json?otherQualificationId='+otherQualificationId,
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+													
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success: function(jArray){
+				jAlert("Saved Successfully");
+				//window.location.href = "MyPlacements.htm?hType=placement";
+			},
+			error: function(){
+				
+			}
+		});
+	}
+	else
+	{
+		jAlert("Please Select Qualification");
+	}
+}        H÷  xH÷∑)   20260309231353-8l+÷  ‹‡N   https://erp.cmrit.ac.in/studentMPW/placementJs/placementRegistrationRequest.js      ÂY  var cmbNo=0;
+
+function showRejectForm(caller){
+	$("#rejFormDiv").hide();
+	$("#accptFormDiv").show();
+
+	$.ajax({
+		url:'getPlacementRegistrationReason.json',
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+
+			var boiler1='';
+
+			boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+			'<tr>'+
+			'<th>'+
+			'Reason of rejection placement:'+
+			'</th>'+
+			'<td style="display:none;"><input type="text" id="txtHiddenPlacementRegRejId" /></td>'+
+			'</tr>'+
+			'</table>'+
+			'<table class="table table-striped table-bordered table-condensed">';
+
+
+			for(var i=0; i<jArray.length; i++){
+
+				boiler1 +=
+					'<tr>'+
+					'<td width="30px;">'+
+					'<input type="checkbox" id="chk'+jArray[i]["placementRegistrationReasonId"]+'" name="reason" value="'+jArray[i]["placementRegistrationReasonId"]+'" /></td><td><label>'+jArray[i]["type"]+'</label>'+
+					'</td>'+
+					'</tr>';
+			}
+			if(caller=="side"){
+				boiler1 +=
+					'<tr>'+
+					'<td colspan="2">'+
+					'<input type="button" id="btnSave" value="Save" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()"/>'+
+					'</td>'+
+					'</tr>';
+			}
+			boiler1+='</table>';		
+
+			$('#accptFormDiv').html(boiler1);
+			$('#placementRejectRegistrationBody').html(boiler1);
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+function savePlacemenRegistrationRejReq1(){
+	//var reqId=$("#txyRegId").val();
+	//alert("reqId..."+reqId);
+	var reqId="";
+	var reason=new Array();
+	var cnt=0;
+	var grescore="0";
+	var toefeelscore="0"
+		jConfirm("Do you wish to continue with opt out process from placement ? ", "Confirm", function(result) {
+		if (result == true) {
+			if($("#textareaReason").val()=="" && $("#textareaReason").val()==""){
+				jAlert("Please enter valid reason");
+				return false;
+			}
+		if($("#greScore").val()=="" && $("#toefelScore").val()==""){
+			jAlert("please add GRE/TOEFEEL Score");
+			return false;
+		}else{
+			
+			
+			
+				grescore=$("#greScore").val();	
+				toefeelscore=$("#toefelScore").val();
+			
+			$.ajax({
+				url:'savePlacemenRegistrationRejReq.json?reason='+$('#textareaReason').val()+'&reqId='+reqId+'&grescore='+grescore+'&toefeelscore='+toefeelscore,
+				dataType:'json',
+				async:false,
+				success:function(jArray){
+					$('#placementAcceptRegistration').modal('hide');
+					jAlert("Opt Out Successfully");
+					location.reload(true);
+				},
+				error:function(){
+					////alert("in Error stream CMB");
+				}
+			});
+		}
+			}else {
+				return false;
+			}
+			});
+	
+	
+}
+
+function savePlacemenRegistrationRejReq(){
+	//var reqId=$("#txyRegId").val();
+	//alert("reqId..."+reqId);
+	var reqId="";
+	var reason=new Array();
+	var cnt=0;
+	
+			$.ajax({
+				url:'savePlacemenRegistrationRejReq.json?reason='+reason+'&reqId='+reqId,
+				dataType:'json',
+				async:false,
+				success:function(jArray){
+					$('#placementAcceptRegistration').modal('hide');
+					jAlert("Saved Successfully");
+				},
+				error:function(){
+					////alert("in Error stream CMB");
+				}
+			});
+		
+	
+	/*$('input[name = "reason"]:checked').each(function(){
+		cnt++;
+		reason.push($(this).val());
+	});*/
+//	if(cnt==1){
+	
+	//}
+	/*else{
+		jAlert("Please select only one reason");
+	}*/
+}
+function savePlacemenRegistrationAcceptedReq(){
+	//var sDate=$("#txtStartDate").val();
+	//var eDate=$("#txtEndDate").val();
+	/*if(sDate=="" || eDate==""){
+		jAlert("Please select Start Date and End Date");
+	}
+	else{*/
+	//alert($("#txyRegId").val());
+		var reqId="";
+		if($("#txyRegId").val() != undefined)
+			{
+				reqId = $("#txyRegId").val(); 
+			}
+		var cmbComp1="";
+		var cmbComp2="";
+		var cmbComp3="";
+		var cmbComp4="";
+		var cmbComp5="";
+		var cmbComp6="";
+
+		/*if($("#cmbComp1").val()!=0){
+			cmbComp1=$("#cmbComp1").val();
+		}
+
+		if($("#cmbComp2").val()!=0){
+			cmbComp2=$("#cmbComp2").val();
+		}
+
+		if($("#cmbComp3").val()!=0){
+			cmbComp3=$("#cmbComp3").val();
+		}
+
+		if($("#cmbComp4").val()!=0){
+			cmbComp4=$("#cmbComp4").val();
+		}
+
+		if($("#cmbComp5").val()!=0){
+			cmbComp5=$("#cmbComp5").val();
+		}
+
+		if($("#cmbComp6").val()!=0){
+			cmbComp6=$("#cmbComp6").val();
+		}
+*/
+		$.ajax({
+			url:'savePlacemenRegistrationAcceptedReq.json?cmbComp1='+cmbComp1+'&cmbComp2='+cmbComp2+'&cmbComp3='+cmbComp3+'&cmbComp4='+cmbComp4+'&cmbComp5='+cmbComp5+'&cmbComp6='+cmbComp6+'&reqId='+reqId,
+			dataType:'json',
+			async:false,
+			success:function(jArray){
+				jAlert("Saved Successfully");
+				location.reload(true);
+				//window.location.href = "MyPlacements.htm?hType=placement";
+			},
+			error:function(){
+				////alert("in Error stream CMB");
+			}
+		});
+	//}
+}
+
+function showAcceptForm(caller){
+	$("#accptFormDiv").hide();
+	$("#rejFormDiv").show();
+	var boiler1='';
+	boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+	'<tr>'+
+	/*'<th>'+
+	'Request for placement:'+
+	'</th>'+*/
+	'<td style="display:none;"><input type="text" id="txtHiddenPlacementRegAccptId" /></td>'+
+	'</tr>'+
+	'</table>'+
+
+	'<table class="table table-striped table-bordered table-condensed">'+
+	'<tr>'+
+	'<th>'+
+	'Dream Companies :'+
+	'</th>'+
+	'</tr>'+
+	'</table>'+
+
+	'<table class="table table-striped table-bordered table-condensed">'+
+
+	'<tr>'+
+	'<td>'+
+	'1.&nbsp;<select id="cmbComp1" onchange="addOherCompanyPopUp1()">'+
+	'</td>'+
+	'<td>'+
+	'2.&nbsp;<select id="cmbComp2" onchange="addOherCompanyPopUp2()">'+
+	'</td>'+
+	'</tr>'+
+
+	'<tr>'+
+	'<td>'+
+	'3.&nbsp;<select id="cmbComp3" onchange="addOherCompanyPopUp3()">'+
+	'</td>'+
+	'<td>'+
+	'4.&nbsp;<select id="cmbComp4" onchange="addOherCompanyPopUp4()">'+
+	'</td>'+
+	'</tr>'+
+
+	'<tr>'+
+	'<td>'+
+	'5.&nbsp;<select id="cmbComp5" onchange="addOherCompanyPopUp5()">'+
+	'</td>'+
+	'<td>'+
+	'6.&nbsp;<select id="cmbComp6" onchange="addOherCompanyPopUp6()">'+
+	'</td>'+
+	'</tr>';
+	if(caller=="side"){
+		boiler1+='<tr>'+
+		'<td colspan="2">'+
+		'<input type="button" id="btnSave2" value="Save" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationAcceptedReq()"/>'+
+		'</td>'+
+		'</tr>';
+	}
+
+
+	boiler1+='</table>';		
+
+	$('#rejFormDiv').html(boiler1);
+	$('#placementAcceptRegistrationBody').html(boiler1);
+
+	jQuery('#txtStartDate').datepicker(
+			{
+				dateFormat:"M d,yy",
+				///showWeek: true,
+				changeMonth: true,
+				changeYear: true,
+				yearRange:"-60:+5",
+			});
+
+	jQuery('#txtEndDate').datepicker(
+			{
+				dateFormat:"M d,yy",
+				///showWeek: true,
+				changeMonth: true,
+				changeYear: true,
+				yearRange:"-60:+5",
+			});
+
+	cmbNo=0;
+	getCompanyList(cmbNo);
+}
+
+function getCompanyList(cmbNo){
+
+	$.ajax({
+		url:'GETCompanyList.json',
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+
+			var j=jArray.length;
+			var companyComboBoiler='<option value="0">Select</option>';
+			for(var i=0;i<j;i++)
+				companyComboBoiler +='<option value="'+jArray[i]["companyMasterId"]+'">'+jArray[i]["companyName"]+'</option>';
+
+			companyComboBoiler +='<option value="addNew">Add New</option>';
+
+			if(cmbNo==0){
+				$('#cmbComp1').html(companyComboBoiler);
+				$('#cmbComp2').html(companyComboBoiler);
+				$('#cmbComp3').html(companyComboBoiler);
+				$('#cmbComp4').html(companyComboBoiler);
+				$('#cmbComp5').html(companyComboBoiler);
+				$('#cmbComp6').html(companyComboBoiler);
+			}
+
+			if(cmbNo==1)
+				$('#cmbComp1').html(companyComboBoiler);
+
+			if(cmbNo==2)
+				$('#cmbComp2').html(companyComboBoiler);
+
+			if(cmbNo==3)
+				$('#cmbComp3').html(companyComboBoiler);
+
+			if(cmbNo==4)
+				$('#cmbComp4').html(companyComboBoiler);
+
+			if(cmbNo==5)
+				$('#cmbComp5').html(companyComboBoiler);
+
+			if(cmbNo==6)
+				$('#cmbComp6').html(companyComboBoiler);
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+
+function getPlaceRegReqDetail(){
+
+	$.ajax({
+		url:'getPlaceRegReqDetail.json',
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+			if(jArray.length>0)
+			if(jArray[0]["acceptRej"]=="Accept"){
+				showAcceptForm("side");
+				//alert("val...."+jArray[0]["id"]);
+
+				$('#radAccept').attr('checked',true);
+
+				$("#txyRegId").val(jArray[0]["id"]);
+
+				var pubDate = new Date(jArray[0]["startDate"]);
+				$('#txtStartDate').datepicker({
+					dateFormat : 'M d,yy',
+				});
+				$("#txtStartDate").datepicker('setDate', pubDate);
+
+				var pubDate2 = new Date(jArray[0]["endDate"]);
+				$('#txtEndDate').datepicker({
+					dateFormat : 'M d,yy',
+				});
+				$("#txtEndDate").datepicker('setDate', pubDate2);
+
+				$("#cmbComp1").val(jArray[0]["dreamCompId1"]);
+				$("#cmbComp2").val(jArray[0]["dreamCompId2"]);
+				$("#cmbComp3").val(jArray[0]["dreamCompId3"]);
+				$("#cmbComp4").val(jArray[0]["dreamCompId4"]);
+				$("#cmbComp5").val(jArray[0]["dreamCompId5"]);
+				$("#cmbComp6").val(jArray[0]["dreamCompId6"]);
+			}
+			else{
+				showRejectForm("side");
+				//alert("val2...."+jArray[0]["id"]);
+				$('#radReject').attr('checked',true);
+
+				$("#txyRegId").val(jArray[0]["id"]);
+				$("#chk"+jArray[0]["reasonId"]).attr('checked',true);
+
+
+			}
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+function addOherCompanyPopUp1(){
+	cmbNo=1;
+	if($("#cmbComp1").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}	
+
+function addOherCompanyPopUp2(){	
+	cmbNo=2;
+	if($("#cmbComp2").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function addOherCompanyPopUp3(){
+	cmbNo=3;
+	if($("#cmbComp3").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}	
+
+function addOherCompanyPopUp4(){	
+	cmbNo=4;
+	if($("#cmbComp4").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function addOherCompanyPopUp5(){
+	cmbNo=5;
+	if($("#cmbComp5").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function addOherCompanyPopUp6(){
+	cmbNo=6;
+	if($("#cmbComp6").val()=="addNew"){
+		//clearForm('addOtherCompanyPopUp');
+		$('#addOtherCompanyPopUp').modal('show').css({
+			width: '600px',
+			'margin-left': function () {
+				return -($(this).width() / 2);
+			}
+		});
+	}
+}
+
+function saveAnotherCompInPopUpThroughStud(){
+	var companyName=$("#txtOtherCompanyName").val();
+	$.ajax({
+		url:'saveAnotherCompInPopUpThroughStud.json?companyName='+companyName,
+		dataType:'json',
+		async:false,
+		success:function(jArray){
+			$('#addOtherCompanyPopUp').modal('hide');
+			jAlert("Added successfully. You can select now");
+			getCompanyList(cmbNo);
+
+		},
+		error:function(){
+			////alert("in Error stream CMB");
+		}
+	});
+}
+
+//functions From navCommon.jsp        to Register Students For Placements
+function checkStudentStatus() {
+	
+	$('#showCPCRulesWhileRegistratingForPlacPopUp').modal('show').css({
+		width: '600px',
+		'margin-left': function () {
+			return -($(this).width() / 2);
+		}
+	});
+	
+	var status="";
+	var StudentId = $('#StudentId').val();
+	$.ajax({
+		url : 'checkStudentActivateForPlacement.json',   // PlacementCell Controler
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(json) {
+			status=json[0]["statusJson"];
+		},
+		error : function() {
+			jAlert("Error in Getting Student Placement List..", "Error");
+		}
+	});
+	
+	if(status=="Accepted"){	
+		checkOtherQualificationStatus(); // in Student Graduation Table...
+	}
+	if(status=="NotRegistered" || status=="Rejected"){
+		jConfirm("Do You Wish to Register For Placments? ", "Confirm", function(result) {
+			if (result == true) {
+				var customerIdentifiecationObj=$('#customerHelper').val();
+				if(customerIdentifiecationObj=="ICT_MUMBAI" && customerIdentifiecationObj !=undefined){
+				window.location.href = "placementRulesForStudent.htm"
+				return false;
+				}
+				$('#placementAcceptRegistration').modal('show');
+				
+				var boiler1='';
+
+				boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+				'<tr>'+
+				'<td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td>'+
+				'</tr>';
+				
+				boiler1+='<tr>'+
+							'<td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;'+
+							'<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()"/>'+
+							'</td>'+
+						'</tr>';
+
+				boiler1+='</table>';		
+
+				$('#placementAcceptRegistrationBody').html(boiler1);
+				showCPCRulesInForm();
+			} else{
+				return false;
+				//savePlacemenRegistrationRejReq();
+			}
+		});
+	}
+	
+	if(status=="NotActivated"){
+		jAlert("Your batch has not been activated yet...","Warning");
+		
+		
+	}
+	if(status=="Debbared"){
+		jAlert("You have been debbared...","Warning");
+		
+	}
+		
+}
+
+function showCPCRulesInForm(){
+	$.ajax({
+		url:'getPlacementRulesForStudent.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+												
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success: function(jArray){
+			var boiler=''+jArray+'';
+			$("#divCPCRulesForStudWhileRegisteringForPlac").html(boiler);
+			
+		},
+		error: function(){
+			
+		}
+	});
+}
+/*
+function checkOtherQualificationStatus()
+{
+	$.ajax({
+		url : 'checkOtherQualificationStatusInStudentGraduation.json',   // PlacementCell Controler
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(jArray) {
+			
+			//$('#addOtherQualificationForPlacementDiv').modal('show');
+			
+			var graduationArray = new Array();
+			var otherQualiArray = new Array();
+			graduationArray = jArray[0]["GraduationDetai"];
+			otherQualiArray = jArray[0]["OtherQualificationArray"];
+			if(jArray.length > 0)
+			{
+				if(otherQualiArray.length > 0)
+				{
+					if(graduationArray.length > 0)
+					{
+						$('#addOtherQualificationForPlacementDiv').modal('show').css({
+							width: '700px',
+							'margin-left': function () {
+								return -($(this).width() / 2);
+							}
+						});
+						
+						var boiler = '<table class="table table-bordered">'+
+										'<tr>'+
+											'<th>Current Qualification :</th>'+
+											'<td>'+jArray[0]["currentQuali"]+'</td>'+
+										'</tr>'+
+										'<tr>'+
+											'<td colspan="2" id="qualiTD"></td>'+
+										'</tr>'+
+									 '</table>';
+						
+						$('#addOtherQualificationForPlacementBody').html(boiler);
+						var innerBoiler = '<table class="table table-bordered">';
+					   for(var i=0;i<graduationArray.length;i++)
+					   {	
+						   innerBoiler += '<tr id="'+graduationArray[i]["studentGraduationId"]+'" class="graduationIdTrcls" >'+
+						   						'<th>Select your equivalent to <b><u> ('+graduationArray[i]["degreeName"]+') </u></b> graduation/PG/diploma qualification from the following</th>'+
+						   				  '</tr>'+
+						   				  '<tr>'+
+						   				  		'<td>'+
+						   				  		'<div class="listWrapper" id="div_'+graduationArray[i]["studentGraduationId"]+'" >'+
+						   				  			'<ul style="list-style: none;">';
+													   for(var j=0;j<otherQualiArray.length;j++)
+														{
+														   if(otherQualiArray[j]["DegreeName"] != "Any Degree")
+														   {
+															   innerBoiler += '<li style="width:15em;" ><input type="radio" class="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'" name="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'"  value="'+graduationArray[i]["studentGraduationId"]+'-'+otherQualiArray[j]["otherQualificationId"]+'">'+otherQualiArray[j]["DegreeName"]+'</li>';
+														   }
+														}
+						   		innerBoiler +=	'</ul></div></td>'+
+						   				  '</tr>';
+					   }
+					   innerBoiler += '</table>'+
+					   					'</br>'+
+					   					'<center><input type="button" value="Save" class="btn btn-inverse" onclick="saveStudOtherQualificationForPlacement()" /></center>';
+					   $('#qualiTD').html(innerBoiler);
+					}
+					else
+					{
+						//window.location.href = "";
+					}
+				}
+				else
+				{
+					//window.location.href = "";
+				}
+			}
+			else
+			{
+				//window.location.href = "";
+			}
+			
+		},
+		error : function() {
+			jAlert("Error in Getting Student Placement List..", "Error");
+		}
+	});
+}*/
+
+
+function checkOtherQualificationStatus()
+{
+	$.ajax({
+		url : 'checkOtherQualificationStatusInStudentGraduation.json',   // PlacementCell Controler
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(jArray) {
+			
+			//$('#addOtherQualificationForPlacementDiv').modal('show');
+			
+			var graduationArray = new Array();
+			var otherQualiArray = new Array();
+			graduationArray = jArray[0]["GraduationDetai"];
+			otherQualiArray = jArray[0]["OtherQualificationArray"];
+			if(jArray.length > 0)
+			{
+				if(otherQualiArray.length > 0)
+				{
+					if(graduationArray.length > 0)
+					{
+						$('#addOtherQualificationForPlacementDiv').modal('show').css({
+							width: '700px',
+							'margin-left': function () {
+								return -($(this).width() / 2);
+							}
+						});
+						
+						var boiler = '<table class="table table-bordered">'+
+										'<tr>'+
+											'<th>Current Qualification :</th>'+
+											'<td>'+jArray[0]["currentQuali"]+'</td>'+
+										'</tr>'+
+										'<tr>'+
+											'<td colspan="2" id="qualiTD"></td>'+
+										'</tr>'+
+									 '</table>';
+						
+						$('#addOtherQualificationForPlacementBody').html(boiler);
+						var innerBoiler = '<table class="table table-bordered">';
+					   for(var i=0;i<graduationArray.length;i++)
+					   {	
+						   innerBoiler += '<tr id="'+graduationArray[i]["studentGraduationId"]+'" class="graduationIdTrcls" >'+
+						   						'<th>Select your equivalent to <b><u> ('+graduationArray[i]["degreeName"]+') </u></b> graduation/PG/diploma qualification from the following</th>'+
+						   				  '</tr>'+
+						   				  '<tr>'+
+						   				  		'<td>'+
+						   				  		'<div class="listWrapper" id="div_'+graduationArray[i]["studentGraduationId"]+'" >'+
+						   				  			'<ul style="list-style: none;">';
+													   for(var j=0;j<otherQualiArray.length;j++)
+														{
+														   if(otherQualiArray[j]["DegreeName"] != "Any Degree")
+														   {
+															   innerBoiler += '<li style="width:15em;" ><input type="radio" class="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'" name="rdoOtherQuali_'+graduationArray[i]["studentGraduationId"]+'"  value="'+graduationArray[i]["studentGraduationId"]+'-'+otherQualiArray[j]["otherQualificationId"]+'">'+otherQualiArray[j]["DegreeName"]+'</li>';
+														   }
+														}
+						   		innerBoiler +=	'</ul></div></td>'+
+						   				  '</tr>';
+					   }
+					   innerBoiler += '</table>'+
+					   					'</br>'+
+					   					'<center><input type="button" value="Save" class="btn btn-inverse  btnColorGreen " onclick="saveStudOtherQualificationForPlacement()" /></center>';
+					   $('#qualiTD').html(innerBoiler);
+					}
+					else
+					{
+						//window.location.href = "";
+					}
+				}
+				else
+				{
+					//window.location.href = "";
+				}
+			}
+			else
+			{
+				//window.location.href = "";
+			}
+			
+		},
+		error : function() {
+			jAlert("Error in Getting Student Placement List..", "Error");
+		}
+	});
+}
+function registerDialogForPlacement(){
+
+	var customerIdentifiecationObj=$('#customerHelper').val();
+	if(customerIdentifiecationObj=="ICT_MUMBAI" && customerIdentifiecationObj !=undefined){
+	//window.replace("placementRulesForStudent.htm");	
+	window.location.href = "placementRulesForStudent.htm"
+	return false;
+	}
+	jConfirm("Do You Wish to Register For Placments? ", "Confirm", function(result) {
+		if (result == true) {
+			$('#placementAcceptRegistration').modal('show');
+			
+			var boiler1='';
+
+			boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+			'<tr>'+
+			'<td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td>'+
+			'</tr>';
+			
+			boiler1+='<tr>'+
+						'<td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini   btnColorGreen " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;'+
+						'<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  btnColorRed " onclick="savePlacemenRegistrationRejReq()"/>'+
+						'</td>'+
+					'</tr>';
+
+			boiler1+='</table>';		
+
+			$('#placementAcceptRegistrationBody').html(boiler1);
+			$('#divPlacementRules1').html(boiler1);
+			//divPlacementRules1
+			showCPCRulesInForm();
+		} else{
+			return false;
+			//savePlacemenRegistrationRejReq();
+		}
+	});
+}
+function registerDialogForPlacementOnClick(){
+	jConfirm("Do You Wish to Register For Placments? ", "Confirm", function(result) {
+		if (result == true) {
+	//		$('#placementAcceptRegistration').modal('show');
+			
+			var boiler1='';
+
+			boiler1 +='<table class="table table-striped table-bordered table-condensed">'+
+			'<tr>'+
+			'<td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td>'+
+			'</tr>';
+			
+			boiler1+='<tr>'+
+						'<td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini  btnColorGreen " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;'+
+						'<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  btnColorRed " onclick="savePlacemenRegistrationRejReq()"/>'+
+						'</td>'+
+					'</tr>';
+
+			boiler1+='</table>';		
+
+		//$('#placementAcceptRegistrationBody').html(boiler1);
+			$('#divPlacementRules1').html(boiler1);
+			//divPlacementRules1
+			getPlaceRegReqDetail();
+			showCPCRulesInForm();
+		} else{
+			return false;
+			// savePlacemenRegistrationRejReq();
+		}
+	});
+}
+function saveStudOtherQualificationForPlacement()
+{
+	var studGraduationIdArray = new Array();
+	var otherQualificationId = new Array();
+	$('.graduationIdTrcls').each(function(){
+		
+		var graduationId = $(this).attr('id');
+		studGraduationIdArray.push(graduationId);
+		
+		$('.rdoOtherQuali_'+graduationId).each(function(){
+			if($(this).is(':checked'))
+				otherQualificationId.push($(this).val());
+		});
+	});
+	if(otherQualificationId.length > 0)
+	{
+		$.ajax({
+			url:'saveStudOtherQualificationForPlacement.json?otherQualificationId='+otherQualificationId,
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+													
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success: function(jArray){
+				jAlert("Saved Successfully");
+				//window.location.href = "MyPlacements.htm?hType=placement";
+			},
+			error: function(){
+				
+			}
+		});
+	}
+	else
+	{
+		jAlert("Please Select Qualification");
+	}
+}”ò¿Ÿ!  ◊         ∆®ÌW      cmbNo      Ñf;¥      showRejectForm     T7R      caller     ¸◊"      #rejFormDiv    üvÙ}      hide   Nˆ‚K      #accptFormDiv      HáíK      show   æd»ê      ajax   π4H#      getPlacementRegistrationReason.json	    DoÄw      dataType
+   …©\9      success    ı≤z      jArray     »Õ…      boiler1    Á«Ä      </table>   Ω∂ﬁ”      placementRegistrationReasonId      ~e‘      " name="reason" value="    1sç˜      " /></td><td><label>   ~ 9Í      side   ‘„X      html    ‡h˘       #placementRejectRegistrationBody!   hö”™      savePlacemenRegistrationRejReq1"    H±7ñ      reqId#      ê©ò∆      cnt$    º*ä‘      grescore%   ¡@Ï¬      toefeelscore&   E»xz      jConfirm'   ·â±>      Do you wish to continue with opt out process from placement ? (     NXa      Confirm)    ›ÑÚ      #textareaReason*    &⁄õ      val+    Òp^      jAlert,     QÆ¯m      Please enter valid reason-      â…S’	      #greScore.      wuYó      #toefelScore/   _k—Î      please add GRE/TOEFEEL Score0   NCñ +      savePlacemenRegistrationRejReq.json?reason=1    tLÓ      &reqId=2    kƒ®s
+      &grescore=3     é*¢ò      &toefeelscore=4     fL&z      #placementAcceptRegistration5    ∫˚      modal6      È”ˆ      Opt Out Successfully7   0+QA      location8   MΩT      reload9     <Œ      savePlacemenRegistrationRejReq:     ïèE      Saved Successfully;     ^◊Y#      savePlacemenRegistrationAcceptedReq<    U≥eH	      #txyRegId=      Ωú=      cmbComp1>   vì”€      cmbComp2?   /z      cmbComp3@    πÜ&      cmbComp4A   Ÿ2æƒ      cmbComp5B   í¨ıb      cmbComp6C   Ã’Óh2      savePlacemenRegistrationAcceptedReq.json?cmbComp1=D     ~ºGw
+      &cmbComp2=E     
+˘œø
+      &cmbComp3=F     ØT]˚
+      &cmbComp4=G     ;ëÂC
+      &cmbComp5=H     G™*®
+      &cmbComp6=I     ºU]ﬁ      showAcceptFormT     ¿ÔeF       #placementAcceptRegistrationBodyU   >Â/      jQueryV     ^˜Ìw      #txtStartDateW      Jñ˛L
+      datepickerX     D~1ü
+      dateFormatY     :¸:ï      M d,yyZ     	6Yﬁ      changeMonth[    ¿Râ
+      changeYear\     ≈n{y	      yearRange]      n?(˛      -60:+5^     ﬂy¢H      #txtEndDate_    O0C      getCompanyList`     Ã†,      GETCompanyList.jsona    <ì·G      companyComboBoilerb     ì¥!      <option value="0">Select</option>c      PŸÄç      <option value="d    ^∑≥ß      companyMasterIde    +®¢      ">f     ¥Ôå€      companyNameg    ò…	      </option>h      ﬁ@-'      <option value="addNew">Add New</option>i    Áíûo	      #cmbComp1j      º%¯î	      #cmbComp2k      uü/3	      #cmbComp3l      J2âX	      #cmbComp4m      ¨¿ˆ	      #cmbComp5n      ÿ>	      #cmbComp6o      ë‘Å⁄      getPlaceRegReqDetailp   Êä¢b      getPlaceRegReqDetail.jsonq      ∞∫MÉ	      acceptRejr      fMW      Accepts     %ı©‚
+      #radAcceptt     A¢Ωê      attru   »:0ó      checkedv    ‘>NF      pubDatew    Z]_ê	      startDatex      ∏á˘2      setDatey    j˙ƒ      pubDate2z   7∞„      endDate{    '.Á      dreamCompId1|   ¸¿@)      dreamCompId2}   µ:x«      dreamCompId3~   äÕ—Ï      dreamCompId4   CG	ã      dreamCompId5Ä   ⁄b∞      dreamCompId6Å   Ì⁄ˆ÷
+      #radRejectÇ     :Åz8      #chkÉ   (•È      reasonIdÑ   AÓ∆Î      addOherCompanyPopUp1Ö   n¶ª⁄      addNewÜ     ∫$∞J      #addOtherCompanyPopUpá      ÎƒJ˚      widthà      Í;N      600pxâ      Ú(:…      margin-leftä    ˙g˛â      addOherCompanyPopUp2ã   ≥·5(      addOherCompanyPopUp3å   l[m∆      addOherCompanyPopUp4ç   %’§d      addOherCompanyPopUp5é   ﬁN‹      addOherCompanyPopUp6è   ]¿!      saveAnotherCompInPopUpThroughStudê      ⁄ã83      #txtOtherCompanyNameë   àî£Ö3      saveAnotherCompInPopUpThroughStud.json?companyName=í    ™X#∂&      Added successfully. You can select nowì     H¸p      checkStudentStatusî     6åï*      #showCPCRulesWhileRegistratingForPlacPopUpï     ôÏ~O	      StudentIdñ      rÜ
+      #StudentIdó     DpÇ`%      checkStudentActivateForPlacement.jsonò      ≈ô¸
+      GETô    ´À*6
+      statusJsonö     ƒΩ™L)      Error in Getting Student Placement List..õ      ƒ∏v’      Acceptedú   √ﬁÁ      checkOtherQualificationStatusù      ™jΩY      NotRegisteredû      0év      Rejectedü   Û[hf'      Do You Wish to Register For Placments? †    ÔH„      customerIdentifiecationObj°     ‘⁄$»      #customerHelper¢    zN©|
+      ICT_MUMBAI£     ¯2áâ      window§     ª©`X      href•   ≥ÈR7      placementRulesForStudent.htm©   Óƒƒà      showCPCRulesInForm™     #`/ù      NotActivated´   '∂ÀA(      Your batch has not been activated yet...¨   pÍﬁ˛      Warning≠    oÒ;W      DebbaredÆ   ƒ™W      You have been debbared...Ø      M*…u       getPlacementRulesForStudent.json∞   à3¿µ      text±   Ñ–ˇ
+      beforeSend≤     qm+Ô      startCommonAjaxSpinner≥     Dï»á      complete¥   Ü*F      stopCommonAjaxSpinnerµ      1Ôf       boiler∂     ”32*      #divCPCRulesForStudWhileRegisteringForPlac∑     ëc]=5      checkOtherQualificationStatusInStudentGraduation.json∏      „;ıÌ      graduationArrayπ    ]¶Q      otherQualiArray∫    B5b}      GraduationDetaiª    5Ë Z      OtherQualificationArrayº    ˇœπ∫%      #addOtherQualificationForPlacementDivΩ      Õ       700pxæ      O9»$      <table class="table table-bordered">¿   ª_ÄC      currentQuali¬   ÍTS9&      #addOtherQualificationForPlacementBody√     D≈À∏      innerBoilerƒ    Ô„\9      <tr id="≈   9Ë
+†      studentGraduationId»    mÌI)
+      degreeNameÕ     m©π
+      DegreeNameŒ     äk∑
+      Any Degreeœ     go>MB      <li style="width:15em;" ><input type="radio" class="rdoOtherQuali_–     ﬂ¯‚      " name="rdoOtherQuali_—     -(Ï
+      "  value="“     Ú≠!      otherQualificationId”   ˜Ó’∂      </li>◊      (0µQ      #qualiTDÿ   b»t¢      registerDialogForPlacement€     ºí7•      #divPlacementRules1‹    ∏„,x!      registerDialogForPlacementOnClickﬁ      ÔL•w&      saveStudOtherQualificationForPlacementﬂ     Ç|	8      studGraduationIdArray‡      K$4§      .graduationIdTrcls·     RœÆâ      each‚   Kû*      graduationId„   Ñu2      push‰   X¥ G      .rdoOtherQuali_Â    ÄÈz      :checkedÊ   v¨pA      saveStudOtherQualificationForPlacement.json?otherQualificationId=Á      ïÒ°ñ      Please Select QualificationË     0…®     <table class="table table-striped table-bordered table-condensed"><tr><th>Reason of rejection placement:</th><td style="display:none;"><input type="text" id="txtHiddenPlacementRegRejId" /></td></tr></table><table class="table table-striped table-bordered table-condensed">È   “∂Ó∂4      <tr><td width="30px;"><input type="checkbox" id="chkÍ   G⁄h      </label></td></tr>Î     Cú      <tr><td colspan="2"><input type="button" id="btnSave" value="Save" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()"/></td></tr>Ï   ‚w)     <table class="table table-striped table-bordered table-condensed"><tr><td style="display:none;"><input type="text" id="txtHiddenPlacementRegAccptId" /></td></tr></table><table class="table table-striped table-bordered table-condensed"><tr><th>Dream Companies :</th></tr></table><table class="table table-striped table-bordered table-condensed"><tr><td>1.&nbsp;<select id="cmbComp1" onchange="addOherCompanyPopUp1()"></td><td>2.&nbsp;<select id="cmbComp2" onchange="addOherCompanyPopUp2()"></td></tr><tr><td>3.&nbsp;<select id="cmbComp3" onchange="addOherCompanyPopUp3()"></td><td>4.&nbsp;<select id="cmbComp4" onchange="addOherCompanyPopUp4()"></td></tr><tr><td>5.&nbsp;<select id="cmbComp5" onchange="addOherCompanyPopUp5()"></td><td>6.&nbsp;<select id="cmbComp6" onchange="addOherCompanyPopUp6()"></td></tr>Ì      |äl‡¢      <tr><td colspan="2"><input type="button" id="btnSave2" value="Save" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationAcceptedReq()"/></td></tr>Ó     ñ
+º      <table class="table table-striped table-bordered table-condensed"><tr><td><u><b>Central Placement Cell Rules</b></u><br><div id="divCPCRulesForStudWhileRegisteringForPlac"></div></td></tr>Ô   u1Ÿ¶&     <tr><td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  " onclick="savePlacemenRegistrationRejReq()"/></td></tr>     R~ãL      <table class="table table-bordered"><tr><th>Current Qualification :</th><td>Ò   π∏À{=      </td></tr><tr><td colspan="2" id="qualiTD"></td></tr></table>Ú      LΩÇáC      " class="graduationIdTrcls" ><th>Select your equivalent to <b><u> (Û    zeH}t      ) </u></b> graduation/PG/diploma qualification from the following</th></tr><tr><td><div class="listWrapper" id="div_Ù   ç®Í!      " ><ul style="list-style: none;">ı      Uƒ¶ı      </ul></div></td></tr>ˆ      jGˆuù      </table></br><center><input type="button" value="Save" class="btn btn-inverse  btnColorGreen " onclick="saveStudOtherQualificationForPlacement()" /></center>˜      ~vnA     <tr><td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini   btnColorGreen " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  btnColorRed " onclick="savePlacemenRegistrationRejReq()"/></td></tr>¯      C8p(@     <tr><td><input type="button" id="btnSave2" value="Accept" class="btn btn-inverse btn-mini  btnColorGreen " onclick="savePlacemenRegistrationAcceptedReq()"/>&nbsp;&nbsp;<input type="button" id="btnSave2" value="Decline" class="btn btn-inverse btn-mini  btnColorRed " onclick="savePlacemenRegistrationRejReq()"/></td></tr>˚   ‘!      savePlacemenRegistrationRejReq1/<     ¬ß/a      checkStudentStatus/<  3≈ñE      registerDialogForPlacement/<  ø rY#      registerDialogForPlacementOnClick/<   +dN(      saveStudOtherQualificationForPlacement/<  ¸¨¿à*      saveStudOtherQualificationForPlacement/</<     =   Ä  =   =              Ô%,â                                                                                                                                                                       	                 
+                                                                                                                                                                                                                                                                                                                                                                                                                  !      !           "      !           #                 $      $           %      $           &      $           '      $           (                  )      )           *      )           +      )           ,      )           -                  .      .           /      /           0      .           1                  2      2           3                  4      4           5                 6      6           7      7           8      6           9      6           :      6           ;      6           <      ≥Oåc              ê!  ê9  ê;  êI  ê_  êo  êÑ  êä  êã  êå  êç  êé  êè  êì  ê©  êú  êÿ  ê‹  êﬁ  ê               P                i                                "  Pà  #  $  P%  P             ó                                               "  à  #                                               "  =  >  ?  @  A  B                                                                 P              j  a  i                                                v  y                                                w                                 w                                 w                                 w                                 w                                 w                 f                                               º `ï                w                                              ó  †                                                                  µ                                                ∏  π  µ  √  i  j                w                                 †              ó                                ó                   ﬂ  P“  P              ‚  w                 w                                                                  Ø¬0∞IÙ$KEÆ˙ö         Û  	     
+  Ü           Û  	     
+  Ü           Û  	     
+  Ü           Û  	     
+  Ü           X  Z  [  \           X  Z  [  \           Û  	     
+  Ü           Û  	     
+  Ü           X          X     
+     á  â     
+    á  â     
+    á  â     
+    á  â     
+    á  â     
+    á  â         Û  	     
+  Ü      
+     á  â         Û  	  ‰     
+  Ü      #    Û  	     ±  ≥  
+  Ü         Û  	  ‰     
+  Ü      
+    á  â     #    Û  	     ±  ≥  
+  Ü   á&’™ç!´!=   @    'ÄŒ–@                            ﬂ   ∫   Õ   ‰ß
+
+`GÄ UPÄÄÄÃ   øáÍÛÃ   Ä   
+                     ¿  —    ‰æ       u ÊL   Èy  ‰æ       u ÊL   Èy  ‰æ   ÊL   È;      >	   
+   >   >   o   >   o   >   y ‰ß*`P
+P$`P
+PD`%**&J.JP42PÄ§  ¿∫'öî                           –   ‰¡      (0–   ‰–  ‰ö   ¡  ø  L   úf   ô   ¡      ø  ¡  ML   (   (ø  ¡  ML   (   (ø  ¡  ML   (	   ((0–   ‰¡  2*–  ‰õåˇˇˇô   ƒ    
+   ú   ô   ¡      (0–   ‰ô   ¡      (0–   ‰æ       u ÊL   È¡   y ‰æ       u ÊL   È¡   y ‰ß@`J`ê@ `fì@`E'î Eî Bõ@"`ï@`ñ `ë@ `ê@"`P
+ˇˇˇ˚P$`P
+*ˇˇˇ˚PD%PÄÄ§             y   (   !Û‘(                               ß@ÄÄÄò   +7ò   V                            —    ‰æ   ÇË  É  –   ‰–  ‰   —    ‰   —    ‰æ          o   y ‰ß@`,`í 
+`&`,`,`ê Vˇˇˇ≤P4,PÄd  H3|ßd  ƒ                 <       ø  ú≤  ô   æ       u ÊL   Èu     û)   ô   ‰æ       u ÊL   Èu     ô   ú   ô   æ       y ‰§ô   æ       u ÊL   Èu     û)   ô   ‰æ       u ÊL   Èu     ô   ú    ô   æ    	   y ‰§õÀ   ô   æ       u ÊL   Èu  —    ‰æ       u ÊL   Èu  —    ‰æ   ÊL
+   È;      æ       u ÊL   Èu  (   (ƒ    (   (ƒ    (   (ƒ    (>      >   >   o   >   o   >   y ‰ô<   õ   ô<   §ô<   ß `/`P
+Pü P
+Pò `P$`A!F`P
+Pü P
+Pò `P$`A!;	@`	P
+P*`P
+PJ`%2[
+P
+,*&JJPì0 `A!VÄx   ØÇ…Îx   ?                  	       æ       u ÊL   È   y ‰æ       y ‰æ   ÊL   Èy ‰ß `P!P$`P$`	P$P(   wÕeâ(                               ß@ÄÄÄ¿   ôaRS¿   v                            –   ‰æ   ÇË  É  –  ‰–  ‰æ   ÊL   È;      ¡  (   (¡   (>   	   >
+   >   o   >   o   >   y ‰ß@`*`í 
+`F`%2**&JJP4PÄÄd   Òdh¯d   .                         æ       u ÊL   È   y ‰æ       y ‰ß `P!P$`P$PÄÄÄ(   wÕeâ(                               ß@ÄÄÄå  ∑≤5Æå                  "           –   ‰æ       u ÊL   Èu   ú'   ô   æ       u ÊL   Èu  –   ‰ô
+      –  ‰   –  ‰   –  ‰   –  ‰   –  ‰   –  ‰æ   ÊL   È;      ¡  (   (¡  (	   (¡  (
+   (¡  (   (¡  (   (¡  (   (¡   (>      >   >   o   >   o   >   y ‰ß@`*`P
+P	 `P
+PM`*`*`*`*`*`J,`%9**&J5J,P4:PÄÄT   {T   !                         æ       y ‰æ   ÊL   Èy ‰ß `P$`	PDPÄÄ(   æS.Î(                               ß@ÄÄÄ¯  ˛¯å¯  V                ,       æ       u ÊL   Èy  ‰æ       u ÊL   Èy  ‰   –   ‰¡      (0–   ‰ø     ú   ô   ¡   	   (0–   ‰ô   ¡   
+   (0–   ‰æ       u ÊL   È¡   y ‰æ       u ÊL   È¡   y ‰æ       u ÊL   È;      >   >   >      >   y ‰æ       u ÊL   È;      >   >   >      >   y ‰∫   Õ   ‰æ    æ   y ‰ß `P
+P$`P
+P$`*`ê@1`ì `ï@:`ê@<`P
+ˇˇˇ˚P$`P
+*ˇˇˇ˚PD?`P*%JC&&J?PDH`P*%JL&&JHPDQ`,`ˇˇˇˇPPà   ¨œ√íà   N   
+                     ¿  —    ‰æ   ÊL   È;      >      >   >   o	   >
+   o   >   y ‰ßJ`%**&J+JP4/PÄ¿  øâqÀ∞  ñ                M      ø  L   –   ‰   –  ‰–  ‰ö   ¡  ¡   úR   ô   ¡     ø  ¡  ML   (   (ø  ¡  ML   (   ((0–  ‰¡  2*–  ‰õ§ˇˇˇô   ¡     (0–  ‰ƒ    ú∏   ô   æ	    
+   u ÊL   È¡  y ‰æ	       u ÊL   È¡  y ‰æ	       u ÊL   È¡  y ‰æ	       u ÊL   È¡  y ‰æ	       u ÊL   È¡  y ‰æ	       u ÊL   È¡  y ‰ô)   ƒ    ú'   ô+   æ	    
+   u ÊL   È¡  y ‰ô/   ƒ    ú'   ô1   æ	       u ÊL   È¡  y ‰ô5   ƒ    ú'   ô7   æ	       u ÊL   È¡  y ‰ô;   ƒ    ú'   ô=   æ	       u ÊL   È¡  y ‰ôA   ƒ    ú'   ôC   æ	       u ÊL   È¡  y ‰ôG   ƒ    ú'   ôI   æ	       u ÊL   È¡  y ‰ôM   ß@
+`-`* `f/`	'î "õ@`ï@`ê@	`í `P
+ˇˇˇ˚P$`P
+ˇˇˇ˚P$`P
+ˇˇˇ˚P$`P
+ˇˇˇ˚P$`P
+ˇˇˇ˚P$`P
+ˇˇˇ˚PI`í `P
+ˇˇˇ˚PI`ì `P
+ˇˇˇ˚PI`ì `P
+ˇˇˇ˚PI`ì `P
+ˇˇˇ˚PI`ì `P
+ˇˇˇ˚PI!`ì `P
+ˇˇˇ˚PI$PÄÄ¿            a   (   !Û‘(                               ß@ÄÄÄÄ   »åÄ–Ä   D                          æ   ÊL   È;      >      >   >   o	   >
+   o   >   y ‰ß@`%**&J/JP43PÄÄÄ–  òp1–  ®                f       ø  L    úò  ô   ø  ML      ú˛  ô   æ       y ‰æ       u ÊL   È	   y ‰æ    
+   u ÊL   Èø  ML   y ‰æ   Çø  ML   Ë  É –   ‰æ       u ÊL   È;      >   y ‰æ       u ÊL   È   ¡   y ‰æ   Çø  ML   Ë  É –  ‰æ       u ÊL   È;      >   y ‰æ       u ÊL   È   ¡  y ‰æ       u ÊL   Èø  ML   y ‰æ       u ÊL   Èø  ML   y ‰æ       u ÊL   Èø  ML   y ‰æ       u ÊL   Èø  ML   y ‰æ        u ÊL   Èø  ML!   y ‰æ    "   u ÊL   Èø  ML#   y ‰õÖ   ôS   æ$       y ‰æ    %   u ÊL   È	   y ‰æ    
+   u ÊL   Èø  ML   y ‰æ    &   ø  ML'   (u ÊL   È	   y ‰ôf   ß `î `ö `PD`Pê PD`P
+
+ˇˇˇ¸PD
+`	ˇˇˇ˜(`P
+%JPD`P(ˇˇˇÍPD`	ˇˇˇ˜(`P
+%JPD`P&ˇˇˇÍPD`P
+
+ˇˇˇ¸P$`P
+
+ˇˇˇ¸P$`P
+
+ˇˇˇ¸P$`P
+
+ˇˇˇ¸P$`P
+
+ˇˇˇ¸P$`P
+
+ˇˇˇ¸P> `PD `Pê PD"`P
+
+ˇˇˇ¸P$`ˇˇˇ¯Pê PI(PÄÄÄ(   !Û‘(                               ß@ÄÄÄ¿   ©?hz¿   {                          ∫   Õ   ‰æ       u ÊL   Èu     úK   ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰ô   ß `,`P
+Pì@`PP
+%*J,P9PX   æ“ËjX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄƒ   '=≠¬ƒ   |                          ∫   Õ   ‰æ       u ÊL   Èu     úK   ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰ô   ß `-`P
+Pì@`PP
+%*J,P9PÄÄÄX   æ“ËjX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄƒ   aÖ≤‚ƒ   |                          ∫   Õ   ‰æ       u ÊL   Èu     úK   ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰ô   ß `-`P
+Pì@`PP
+%*J,P9PÄÄÄX   æ“ËjX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄƒ   ïPõÏƒ   |                          ∫   Õ   ‰æ       u ÊL   Èu     úK   ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰ô   ß `-`P
+Pì@`PP
+%*J,P9PÄÄÄX   æ“ËjX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄƒ   ı≥ê–ƒ   |                          ∫   Õ   ‰æ       u ÊL   Èu     úK   ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰ô   ß `-`P
+Pì@`PP
+%*J,P9PÄÄÄX   æ“ËjX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄƒ   ïΩG«ƒ   |                          ∫   Õ   ‰æ       u ÊL   Èu     úK   ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰ô   ß `-`P
+Pì@`PP
+%*J,P9PÄÄÄX   æ“ËjX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄ¨   ∂¸‚¨   f                         æ       u ÊL   Èu  –   ‰æ   ÊL   È;      ¡   (>      >	   >
+   o   >   o   >   y ‰ß `P
+P(`%:**&JJP4PÄÄÄ|   ºC‹|   =                  	       æ       u ÊL   È   y ‰æ       y ‰æ    æ   y ‰ß `PP$`P$`ˇˇˇˇPDP(   !Û‘(                               ß@ÄÄÄ  S®¯  ã                -        æ       u ÊL   È   u ÊL   È;      >   o	   >
+   y ‰   —    ‰æ       u ÊL   Èu  –   ‰æ   ÊL   È;      >      >      >   >   o   >   o   >   y ‰ƒ       ú   ô   æ    y  ‰ô   ƒ       ü   ô    ‰ƒ       ô!   ú#   ô"   æ        !   o"   y ‰ô%   ƒ    #   ú   ô'   æ$    %   &   y ‰ô)   ƒ    '   ú   ô+   æ$    (   &   y ‰ô-   ß@`P/P
+%*J@PD	`,`P
+P(`%***&JJPD`ñ `O`≤ `ê ?ˇˇˇ…PI=`ñ `ê PIB`ñ `ê P9GPÄX   PôX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&` ˇˇˇ˛P
+P'QÄ<   sœZ <                            ø  ML   —    ‰ß `ë PÄÄ@   kPTª@                             æ          y ‰ß `ê P$P|  JÖÉ|                         ø  úÒ   ô   æ       u ÊL   Èu  –   ‰¡      û   ô   ‰¡    ô	   ú!   ô
+   æ   L      N   ‰§ô   æ    	   u ÊL
+   È   y ‰   –  ‰¡     (0–  ‰¡     (0–  ‰¡     (0–  ‰æ       u ÊL   È¡  y ‰æ    y  ‰õ   ô   §ô   ß `/$`P
+P(`ô Ië `ï `AF`P!PD	`J`ê@`ê@`ê@`P
+*ˇˇˇ˚P$`î `AVÄÄÄò   öŸ}¡ò   X                          æ   ÊL   È;      >      >   >   o	   >
+   o   >   o   >   o   >   y ‰ß `%**&J	JJJP4PÄÄ4   ∑§Qb4                             æ    y  ‰ß `JPÄ4   Ï „≠4                             æ    y  ‰ß `*PÄÄl   ~ ^^l   2                           ø  (   (–   ‰æ       u ÊL   È¡   y ‰ß `/`P
+4ˇˇˇ˚PDPÄÄ(   !Û‘(                               ß@ÄÄÄå   ”y¢±å   N                          æ   ÊL   È;      >      >      >	   >
+   o   >   o   >   y ‰ß `%***&JPJP4TPÄÄÄ∏  ˛ÍWò  º         
+       Y      æ   ÇË  É  –   ‰æ   ÇË  É  –  ‰ø  ML   –   ‰ø  ML   –  ‰ø  L    új  ô   ¡  L    úK  ô   ¡   L    ú,  ô   æ       u ÊL   È   u ÊL	   È;
+      >   o   >   y ‰   ø  ML   (   (–  ‰æ       u ÊL   È¡  y ‰   –  ‰–  ‰ö#   ¡  ¡   L   úN  ô&   ¡     ¡   ¡  ML   (   (¡   ¡  ML   (   (¡   ¡  ML   (   ((0–  ‰–  ‰ö3   ¡  ¡  L   ú∂   ô6   ¡  ¡  ML      úÉ   ô:   ¡     ¡   ¡  ML   (   (¡   ¡  ML   (   (¡   ¡  ML   (    (¡  ¡  ML!   ("   (¡  ¡  ML   (#   ((0–  ‰ôO   ¡  2*–  ‰õ;ˇˇˇôQ   ¡  $   (0–  ‰¡  2*–  ‰õ£˛ˇˇôT   ¡  %   (0–  ‰æ    &   u ÊL   È¡  y ‰õ   ôY   õ   ôY   õ   ôY   ß@`í `í `/`/`î `ï 	`ï `P*P
+%*J@PD`Eñ@`P
+0ˇˇˇ˚P$`* `fî 
+`	ï 9ï@(6ú@* `fî `û `	Tï Cï 7ï .ï 0°@*6`ï@1`ê@!.`ï@4	`ê@7	`P
+ˇˇˇ˚P>::?:D@HPÄÄ∏         |             	  b  X   H,ÁX   #                        „–   ‰æ    ¡   u ÊL   Èu  -§ß&	` ˇˇˇ˛P
+P'QÄ@   kPTª@                             æ          y ‰ß `ê P$PÃ   û#ñÃ   }                         æ       u ÊL   Èu  –   ‰¡      û   ô   ‰¡    ô   ú!   ô   æ   L      N   ‰§ô   æ	    
+      o   y ‰ß@!`P
+P(`ô Ië@`ï `1$F`ê ?ˇˇˇ…P4$PÄÄÄ(  c§u(  Ω                        ø  ú´   ô   æ       u ÊL   È   y ‰   –   ‰¡      (0–   ‰¡      (0–   ‰¡      (0–   ‰æ    	   u ÊL
+   È¡   y ‰æ       u ÊL
+   È¡   y ‰æ    y  ‰õ   ô   §ô   ß `/`P!PD`J`ê@`ê@`ê@`P
+*ˇˇˇ˚P$`P
+ˇˇˇ˚PD`î `AVÄL   Æ›zaL                             æ          o   y ‰ß `ê ?ˇˇˇ…P4PÄÄ‰   e0—-‰   å                        ø  úz   ô      –   ‰¡      (0–   ‰¡      (0–   ‰¡      (0–   ‰æ       u ÊL   È¡   y ‰æ    y  ‰æ	    y  ‰õ   ô   §ô   ß `O`J`ê@`ê@`ê@`P
+ˇˇˇ˚PD`*`î `AVÄÄ@  lßJ@  ⁄                          æ   ÇË  É  —    ‰æ   ÇË  É  —    ‰æ       u ÊL   Èo   y ‰ƒ    L    úm   ô   æ   ÊL   È;   	   ƒ    (>
+      >   >   o   >   o   >   o   >   o   >   y ‰õ   ô   æ       y ‰ô   ß `î `î `P
+ˇˇˇ˚PD`ó `%H,*&JJJJP>% `P9(PÄ∏   ØÅ«∏   `                        „–  ‰æ    ¡  u ÊL   È   u –   ‰ƒ    ÊL   È¡   y ‰æ       ¡   (u ÊL   Èo   y ‰ßF`ˇˇˇˇPP(`ˇˇˇ˚PD`ˇˇˇÌP
+&ˇˇˇ˚PD	PÄÄÄ§   A|z"§   Z                        „–   ‰æ    ¡   u ÊL   È   u ú2   ô   ƒ    ÊL   Èæ    ¡   u ÊL   Èu  y ‰ô   ß&`ˇˇˇˇPP-`ˇˇˇ˛P
+PˇˇˇÛP)PÄÄ4   *¥µ™4                             æ    y  ‰ß `JPÄ4   »∆aÚ4                             æ    y  ‰ß `*PÄÄ<   XOÓ<                            æ       y ‰ß `PDPÄ(   æS.Î(                               ß@ÄÄÄ3ıÿ  `z   Ë    È        ‰  Í    Î    $           `  `$               @  Û    	       p
+    pÜ     `$  4  5    +  6  7  8    `  `$  )  *  z   +  ,  -  .  /      @0  1  2  3  Û    	       p
+    pÜ     `z   *  0  &  '  (    p	  `$  4  5    +  :  
+  `  `z   *  $      @0  1  Û    	     	  p
+  
+  pÜ     `+  :  7  8    `  `z   $  <  *      @C  D  E  F  G  H  1  Û    	       p
+    pÜ     `$          z   Ï    Ì      T  U  V  W    @Y  X  Z  [  ]  \  ^    @   _    `  b  c  d  e  f  g  h  $  i    j  k  l  m  n    `  `$      @`  Û    	       p
+    pÜ     `  q  r  I    $  s  t  u  <  *  ç -  w  V  W    @Y  X  x  z  ^  	  @i  {  j  |  k  }  l  ~  m    n  Ä    Å  Ç  É    `  `$      @p  Û    	       p
+    pÜ     `$  á    `   $  i  *  Ö  Ü  5    M   
+  @à  á    pâ    `$  á    `   $  j  *  Ö  Ü  5    M     @à  á    pâ    `$  á    `   $  k  *  Ö  Ü  5    M     @à  á    pâ    `$  á    `   $  l  *  Ö  Ü  5    M     @à  á    pâ    `$  á    `   $  m  *  Ö  Ü  5    M     @à  á    pâ     `$  á    `   $  n  *  Ö  Ü  5    M     @à  á     pâ  "  `$  Ü  5    +  í  _     #  `!  `$  ê  *      @ë  Û    	     "  p
+  #  pÜ   %  `$  á  &  `ô  '  `+  ö  2  (  `$  °  *  ¢  £  7  •  §  4  5    z   Ó  Ô    T    ©  $  `$  î  5    M     @à  á  %  pâ  z   ñ  *      @ó  Û    	  ò  ‰     &  p
+  '  pÜ   õ  ú  ù  û  &  ü  (  (  p™  +  ´  ¨  ≠  Æ  *  `≤  +  `¥  ,  `z   $  ∂    -  `)  `$      @Ø  Û  ∞  	     *  p±  +  p≥  ,  p
+  -  pÜ   0  `$  á  /  `*  ∫  ª    $  º  5    M     @Ω  á  0  pâ    ¿  Ò  ¬    æ  ƒ  ≈  Ú  »  Û  Ù  Õ  Œ  œ  –  —  -  “  e  ”  ı  ˆ  ◊  1  `+  ö  2  .  `$      @∑  Û    	  ò  ‰     /  p
+  1  pÜ   3  `$  4  5    z   Ó  ˜    T    €  ©  2  `$  °  *  ¢  £  7  •  §  &  ü  (  3  p5  `z   Ó  ¯    $  €    o  ©  4  `&  ü  (  5  p8  `$  ú Â  „  *  7  `$  t  ç „  ‰  ·  8  p9  `≤  :  `¥  ;  `+  :  <  `6  `*  $  ‡  ·  7  p      @Ê  Û    	     9  p±  :  p≥  ;  p
+  <  pÜ   +  Á     `  p  p  p  p  p  p  p  p  p  p  p  p  p!  p$  p)  p.  p2  p4  p6  p   ˇXÑj                                     
+              Ü         E      !        -      ˚        #   	   
+        ,      Ü         U      9        M      
+        T      Ü         k      ;        e      
+        j      Ü         Å      I        Æ      _        ú      
+        ≠      Ü         ‰      o        ª   (   
+        „      Ü         Ù      Ñ        Ò      â             ä             â             ã             â        *     å        '     â        <     ç        9     â        N     é        K     â        g     è        ]  	   
+        f     Ü         í  )   ì        v     â        y     
+        {     Ü                     ≈     ©        ª     ±        Ω     ≥        ø     
+        ƒ     Ü              ú        Ÿ  '   
+        ÷     â              Ü               ÿ                    7     ‹        -  
+          R     ﬁ        B            <            J     ±        L     ≥        N     
+        Q     Ü         ùH©¿      ÂY      ÂY                Ä%   K     K                 —     …                      D    D  1              Äu  „	  M  „	  7   )            u  €	  m  €	  ?   a            ﬂ  e	  ◊  e	  S               y	  ©	  q	  ©	  X               
+  à  Â	  à  e   (               Å    Å  p               ï  ≈  ç  ≈  t               µ  „  â  „  Ö   -             	  ï    ï  µ               ®  ÷  †  ÷  ∫                ¸  3  Â  3  ¡             ÄL  ƒ  5  ƒ                ±    ©                  ë  Ω  â  Ω  A              ‰  ı"  «  ı"  H               J  ∞"  B  ∞"  N              ¬"  Ó"  ∫"  Ó"  w              #  $  ˜"  $  }              Õ#  ˘#  ƒ#  ˘#  É              $$  %  $  %  ä              ﬁ$  
+%  ’$  
+%  ê              4%  $&  %  $&  ó              Ì%  &  ‰%  &  ù              D&  5'  '&  5'  §              ˛&  *'  ı&  *'  ™              T'  D(  7'  D(  ±              (  9(  (  9(  ∑              c(  S)  F(  S)  æ              )  H)  )  H)  ƒ              )  +  U)  +  À  +             <*  ∆*  4*  ∆*  —              ÿ*  +  –*  +  ◊             Är+  ì3  W+  ì3  ﬁ              Í+  ,  ·+  ,  ‚               ˆ,  #-  Ó,  #-  Ó              7-  Ä-  /-  Ä-  Ò               g.  —2  _.  —2  ˙  J           ∞3  45  ï3  45  '                4  R4  4  R4  ,               h4  å4  `4  å4  0               °4  5  ô4  5  3              "5  -5  5  -5  8              ˘@  yL  ”@  yL  ï  '            ∞A  L  ®A  L  ú             ©C  ›C  †C  ›C  ¨                )L  rL  !L  rL  Â              ùL  ≈Q  zL  ≈Q  Í  $             ¸M  ¡Q  ÙM  ¡Q  Ú  I           Q  #V  ∆Q  #V    +             <R  V  4R  V    I          ÄSV  ÂY  $V  ÂY  .  0           —V  πW  …V  πW  2  '            aW  ¥W  YW  ¥W  7  2             ãX  ¿X  ÉX  ¿X  B               ◊X  ˝X  œX  ˝X  F               Y  ÑY  Y  ÑY  I              òY  •Y  êY  •Y  M             5°›ª†⁄Ò¶õ+N      i’¬]i’¬]I]ÂOi⁄e   x    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/studentMPW/placementJs/placementRegistrationRequest.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"23013-1770966820000"
+Last-Modified: Fri, 13 Feb 2026 07:13:40 GMT
+Content-Type: text/javascript
+Content-Length: 23013
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"23013-1770966820000"
+Last-Modified: Fri, 13 Feb 2026 07:13:40 GMT
+Content-Type: text/javascript
+Content-Length: 23013
+Keep-Alive: timeout=5, max=88
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 268 net-response-time-onstop 268 alt-data 1;23013,javascript/moz-script-bytecode-20260309231353-8l alt-data-from-child 1  0D

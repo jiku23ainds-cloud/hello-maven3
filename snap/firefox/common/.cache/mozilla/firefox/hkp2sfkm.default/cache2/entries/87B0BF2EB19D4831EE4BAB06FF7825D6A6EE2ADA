@@ -1,0 +1,2165 @@
+function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : String(i); }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+import StepperDirectionButtons from './../Modules/ApplAdmissionForm/StepperDirectionButtons.js';
+import SearchableDropdown from './SearchableDropdown.js';
+import ReactSelectComponent from './ReactSelectComponent.js';
+const {
+  Container,
+  Row,
+  Col,
+  Image,
+  Button,
+  Form,
+  Card,
+  InputGroup,
+  Spinner
+} = ReactBootstrap;
+export default class AffiliatedStudentRegistrationComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "getInstituteList", () => {
+      $.ajax({
+        url: '/restApi/aflInstUser_getInstituteProgramBatch.json?campusId=2',
+        dataType: 'json',
+        type: 'GET',
+        async: false,
+        beforeSend: function () {
+          //startCommonAjaxSpinner();												
+        },
+        complete: function () {
+          //stopCommonAjaxSpinner(); 
+        },
+        success: function (instArr) {
+          this.state.instProgBatchMap = instArr;
+        }.bind(this),
+        error: function () {
+          jAlert("Error...!");
+        }
+      });
+    });
+    _defineProperty(this, "getQualificationList", () => {
+      const qualList = this.state.selectedInstitute.courseArr;
+      //console.log('qualList : ', qualList1);
+      this.setState({
+        qualificationArr: qualList[0]
+      });
+    });
+    _defineProperty(this, "onInstituteSelect", selectedInstArr => {
+      if (selectedInstArr != undefined) {
+        this.setState({
+          selectedInstitute: selectedInstArr,
+          qualificationArr: selectedInstArr.courseArr
+        });
+      }
+
+      //console.log('this.state.selectedInstitute = ', this.state.selectedInstitute);
+      //console.log('this.state.qualificationArr = ', this.state.qualificationArr);
+    });
+    _defineProperty(this, "onQualificationSelect", selectedQualificationArr => {
+      if (selectedQualificationArr != undefined) {
+        this.setState({
+          selectedQualification: selectedQualificationArr,
+          batchArr: selectedQualificationArr.batchArr
+        });
+      }
+      //console.log('this.state.selectedQualification = ', this.state.selectedQualification)
+    });
+    _defineProperty(this, "onBatchSelect", selectedBatchArr => {
+      if (selectedBatchArr != undefined) {
+        this.setState({
+          selectedBatch: selectedBatchArr
+        });
+      }
+      //console.log('this.state.selectedBatch = ', this.state.selectedBatch)
+    });
+    _defineProperty(this, "handleChange", e => {
+      //console.log(e.target.name, e.target.value);
+      var val = e.target.value;
+      //console.log(e.target);
+      if (e.target.type == "checkbox") {
+        val = e.target.checked;
+      }
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "handleChangeForCaps", e => {
+      var val = e.target.value;
+      val = val.toUpperCase();
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "onSubmit", e => {
+      e.preventDefault();
+    });
+    _defineProperty(this, "onSubmitPage1", () => {
+
+      //this.stepper.next();
+    });
+    _defineProperty(this, "onFinalSubmit", () => {
+      this.setState({
+        isFinalSubmitLoading: true,
+        isFinalSubmitSuccess: false
+      }, () => {
+        //const {fname, mname, lname, email, tel, terms, captchaTxt, password, confirmPassword, address,email_otp, tel_otp} = this.state;
+        const {
+          email,
+          tel,
+          terms,
+          captchaTxt,
+          password,
+          confirmPassword,
+          email_otp,
+          tel_otp,
+          selectedInstitute,
+          selectedQualification,
+          selectedBatch,
+          regNumber
+        } = this.state;
+        const instId = selectedInstitute.instId;
+        const courseId = selectedQualification.courseId;
+        const qualId = selectedQualification.qualId;
+        const instCourseStrngthId = selectedBatch.instCrsStrngthId;
+        const userType = 'AFFILIATED_STUDENT';
+        const {
+          formType,
+          customerUID,
+          studType
+        } = this.props;
+        const pageLink = window.location.origin;
+        console.log(formType, customerUID, studType);
+        // console.log(email, tel, terms, captchaTxt, password, confirmPassword,email_otp, tel_otp, 
+        //	selectedInstitute, selectedQualification, selectedBatch,
+        //	regNumber,instId,courseId,qualId, instCourseStrngthId, userType)
+
+        $.ajax({
+          url: '/restApi/registerNewApplicant.json',
+          type: 'POST',
+          data: {
+            email,
+            tel,
+            terms,
+            captchaTxt,
+            formType,
+            password,
+            email_otp,
+            tel_otp,
+            customerUID,
+            pageLink,
+            instId,
+            courseId,
+            qualId,
+            instCourseStrngthId,
+            userType
+          },
+          dataType: 'json',
+          success: function (res) {
+            const {
+              isError = true,
+              field = '',
+              message = ''
+            } = res;
+            if (isError) {
+              if (field == '') {
+                if (message == 'USER_ALREADY_EXIST') {
+                  this.state.otpSentOnemail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already associated with your account, Please login to continue.'
+                  };
+                } else if (message == 'USER_ALREADY_EXIST_IN_USERS') {
+                  this.state.otpSentOnemail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already exist in system, Please enter email never used before.'
+                  };
+                } else if (message == 'USER_REG_NOT_EXIST') {
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'commonErrorBlock',
+                    message: 'Your record does not match the university\'s records. Please select the correct institute, program, and batch.'
+                  };
+                } else {
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'commonErrorBlock',
+                    message: 'An error occurred. Please try again later.'
+                  };
+                }
+              } else {
+                if (field == 'email') {
+                  this.state.otpSentOnemail = false;
+                }
+                this.state.errorFromResponse = res;
+              }
+              this.setState({
+                isFinalSubmitLoading: false,
+                isFinalSubmitSuccess: false,
+                captchaCount: this.state.captchaCount + 1,
+                captchaTxt: ''
+              });
+            } else {
+              this.state.errorFromResponse = {};
+              this.setState({
+                isFinalSubmitLoading: false,
+                isFinalSubmitSuccess: true
+              }, () => {
+                setTimeout(() => {
+                  if (formType == 'aflUserReg' || formType == 'distanceStudent') {
+                    window.location.replace('/aflsDashBoard.htm');
+                  } else if (formType == 'guestRegForm') {
+                    window.location.replace('/guestUserDashBoard.htm');
+                    // window.location. = '/guestUserDashBoard.htm';
+                  } else {
+                    window.location = '/anon_applWelcomePage.htm?id=' + window.gLoginStatus.applFormId;
+                  }
+                }, 1500);
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    _defineProperty(this, "validateUserExistance", () => {
+      const {
+        email,
+        regNumber = '',
+        selectedInstitute,
+        selectedQualification,
+        selectedBatch
+      } = this.state;
+      const instId = selectedInstitute != undefined && selectedInstitute.instId != undefined ? selectedInstitute.instId : 0;
+      const courseId = selectedQualification != undefined && selectedQualification.courseId != undefined ? selectedQualification.courseId : 0;
+      const instCrsStrngthId = selectedBatch != undefined && selectedBatch.instCrsStrngthId != undefined ? selectedBatch.instCrsStrngthId : 0;
+      this.setState({
+        validatingProcessing: true,
+        isValidated: false
+      });
+      $.ajax({
+        //url: 'https://649af3c6bf7c145d0239c3a1.mockapi.io/test/getData/studReg/1',
+        url: 'restApi/aflInstUser_checkUserExistance.json',
+        data: {
+          email: email,
+          instId: instId,
+          courseId: courseId,
+          instCrsStrngthId: instCrsStrngthId,
+          regNumber: regNumber
+        },
+        type: 'GET',
+        dataType: 'json',
+        success: function (res) {
+          if (res != undefined && res.isError != undefined) {
+            if (res.isError == true) {
+              this.setState({
+                validatingProcessing: false,
+                isValidated: false,
+                isUserExists: false
+              });
+            } else {
+              const isUserExists = res.isUserExists != undefined && (res.isUserExists == 'true' || res.isUserExists == true) ? true : false;
+              const isRegExists = res.isRegExists != undefined && (res.isRegExists == 'true' || res.isRegExists == true) ? true : false;
+              const regId = res.regId != undefined ? res.regId : '';
+              const registrationNumber = res.registrationNumber != undefined ? res.registrationNumber : '';
+              const userType = res.userType != undefined ? res.userType : '';
+              const nameAsPer10thCert = res.nameAsPer10thCert != undefined ? res.nameAsPer10thCert : '';
+              const contactNo = res.contactNo != undefined ? res.contactNo : '';
+              const regStatus = res.regStatus != undefined ? res.regStatus : '';
+              const totalRegistrationCount = res.totalRegistrationCount != undefined ? Number(res.totalRegistrationCount) : 1;
+              this.setState({
+                validatingProcessing: false,
+                isValidated: true,
+                isUserExists: isUserExists,
+                isRegistratinoExists: isRegExists,
+                registrationNumber: registrationNumber,
+                userType: userType,
+                nameAsPer10thCert: nameAsPer10thCert,
+                tel: contactNo,
+                regStatus: regStatus,
+                regId: regId,
+                totalRegistrationCount: totalRegistrationCount,
+                validationMsg: res.isRegExists === false || res.isRegExists === 'false' ? "Entered Email Id does not belong to University Record. Please contact your Institute." : totalRegistrationCount > 1 ? "Multiple registration records were found for the entered email Id. Please contact your institute or university to update your email Id." : res.isUserExists === true || res.isUserExists === 'true' ? "Your login credentials have already been created. Please use your email to log in. If you have forgotten your password, you can reset it by clicking on the 'Forgot password' link." : ""
+              });
+            }
+          } else {
+            this.setState({
+              validatingProcessing: false,
+              isValidated: false,
+              isUserExists: false
+            });
+          }
+        }.bind(this),
+        error: function () {
+          this.setState({
+            validatingProcessing: false,
+            isValidated: false
+          });
+        }
+      });
+    });
+    _defineProperty(this, "validateDataOnRender", defaultVal => {
+      const {
+        fname = defaultVal,
+        mname = defaultVal,
+        lname = defaultVal
+      } = this.state;
+      var nameRegPattern = /^[a-zA-Z ]+$/;
+      var regNumberRegPattern = /^[0-2]\d-[a-zA-Z]+-(?!0)\d{1,}$/;
+      var emailRegPattern = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-zA-Z]{1,4}$/;
+      var mobileRegPattern = /^([+]\d{2})?\d{10}$/;
+      var isValidPage1 = true;
+      //-------------------------------------
+      const {
+        email = defaultVal,
+        tel = defaultVal,
+        regNumber = defaultVal,
+        selectedInstitute,
+        selectedQualification,
+        selectedBatch
+      } = this.state;
+      const instId = selectedInstitute != undefined && selectedInstitute != null && selectedInstitute.instId != undefined ? selectedInstitute.instId : 0;
+      const courseId = selectedQualification != undefined && selectedQualification != null && selectedQualification.courseId != undefined ? selectedQualification.courseId : 0;
+      const instCrsStrngthId = selectedBatch != undefined && selectedBatch != null && selectedBatch.instCrsStrngthId != undefined ? selectedBatch.instCrsStrngthId : 0;
+      if (instId != undefined) {
+        if (instId == 0 || instId == '0') {
+          this.state.errors['inst'] = 'Please select Institute!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['inst'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (courseId != undefined) {
+        if (courseId == 0 || courseId == '0') {
+          this.state.errors['course'] = 'Please select Program!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['course'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (instCrsStrngthId != undefined) {
+        if (instCrsStrngthId == 0 || instCrsStrngthId == '0') {
+          this.state.errors['batch'] = 'Please select Batch!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['batch'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (regNumber != undefined) {
+        //console.log('regNumber ', regNumber);
+        if (regNumber.trim() == '') {
+          delete this.state.errors['regNumber'];
+        } else if (!regNumberRegPattern.test(regNumber)) {
+          this.state.errors['regNumber'] = 'Please enter valid Registration Number!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['regNumber'];
+        }
+      }
+      if (email != undefined) {
+        if (email.trim() == '') {
+          this.state.errors['email'] = 'Please enter Email!';
+          isValidPage1 = false;
+        } else if (!emailRegPattern.test(email)) {
+          this.state.errors['email'] = 'Please enter valid Email Id!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['email'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      this.state.isValidPage1 = isValidPage1;
+      var isValidPage2 = true;
+      if (regNumber != undefined) {
+        //console.log('regNumber ', regNumber);
+        if (regNumber.trim() == '') {
+          delete this.state.errors['regNumber'];
+          isValidPage2 = true;
+        } else if (!regNumberRegPattern.test(regNumber)) {
+          this.state.errors['regNumber'] = 'Please enter valid Registration Number!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['regNumber'];
+        }
+      } else {
+        isValidPage2 = true;
+      }
+      if (tel != undefined) {
+        if (tel.trim() == '') {
+          this.state.errors['tel'] = 'Please enter Mobile No.!';
+          isValidPage2 = false;
+        } else if (!mobileRegPattern.test(tel)) {
+          this.state.errors['tel'] = 'Please enter valid Mobile No!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['tel'];
+        }
+      } else {
+        isValidPage2 = false;
+      }
+
+      //-------------------------------------
+      if (this.props.formType == 'aflUserReg' || this.props.formType == 'distanceStudent' || this.props.formType == 'guestRegForm') {
+        const {
+          password = defaultVal,
+          confirmPassword = defaultVal
+        } = this.state;
+        if (password != undefined) {
+          if (password.trim() == '') {
+            this.state.errors['password'] = 'Please enter Password!';
+            isValidPage2 = false;
+          } else {
+            delete this.state.errors['password'];
+          }
+        } else {
+          isValidPage2 = false;
+        }
+        if (confirmPassword != undefined) {
+          if (confirmPassword.trim() == '') {
+            this.state.errors['confirmPassword'] = 'Please enter Confirm Password!';
+            isValidPage2 = false;
+          } else if (password != confirmPassword) {
+            this.state.errors['confirmPassword'] = 'Password and Confirm Password are not same!';
+          } else {
+            delete this.state.errors['confirmPassword'];
+          }
+        } else {
+          isValidPage2 = false;
+        }
+      }
+      this.state.isValidPage2 = isValidPage2;
+      //-------------------------------------
+      const {
+        terms = defaultVal ? false : undefined,
+        captchaTxt = defaultVal
+      } = this.state;
+      var isValidPage3 = true;
+      if (captchaTxt != undefined) {
+        //console.log(terms);
+        if (captchaTxt.trim() == '') {
+          this.state.errors['captchaTxt'] = 'Please enter captcha!';
+          isValidPage3 = false;
+        } else {
+          delete this.state.errors['captchaTxt'];
+        }
+      } else {
+        isValidPage3 = false;
+      }
+      const {
+        isError = false,
+        field = '',
+        message = ''
+      } = this.state.errorFromResponse;
+      if (isError) {
+        this.state.errors[field] = message;
+      }
+
+      /*if(terms!=undefined){
+      	console.log(terms);
+      	if(terms!=true){
+      		this.state.errors['terms'] = 'Terms must be accepted';
+      		isValidPage3 = false;
+      	}else{
+      		delete this.state.errors['terms'];
+      	}
+      }else{
+      	isValidPage3 = false;
+      }*/
+      this.state.isValidPage3 = isValidPage3;
+    });
+    this.state = {
+      captchaCount: 0,
+      errors: {},
+      isValidPage1: false,
+      isValidPage2: false,
+      isValidPage3: false,
+      isFinalSubmitLoading: false,
+      isFinalSubmitSuccess: false,
+      errorFromResponse: {},
+      validatingProcessing: false,
+      isValidated: false,
+      instProgBatchMap: new Map(),
+      instituteArr: [],
+      batchArr: [],
+      qualificationArr: [],
+      selectedInstitute: {
+        label: "Select Institute",
+        value: null
+      },
+      selectedQualification: {
+        label: "Select Program",
+        value: null
+      },
+      selectedBatch: {
+        label: "Select Batch",
+        value: null
+      },
+      regNumber: ''
+    };
+  }
+  componentDidMount() {
+    this.getInstituteList();
+  }
+  render() {
+    const {
+      captchaCount = 0,
+      isUserExists,
+      isValidated,
+      validatingProcessing,
+      isDisabled,
+      isRegistratinoExists = false,
+      validationMsg = "",
+      totalRegistrationCount
+    } = this.state;
+    const {
+      FooterComponent,
+      formType = 'applicantReg',
+      studType = 'pvtStud'
+    } = this.props;
+    $("#mobile_no").keypress(function (e) {
+      var keyCode = e.which ? e.which : e.keyCode;
+      var result = !(keyCode >= 65 && keyCode <= 90 || keyCode >= 33 && keyCode <= 47 || keyCode == 126 || keyCode >= 97 && keyCode <= 122 || keyCode >= 58 && keyCode <= 64 || keyCode >= 91 && keyCode <= 96);
+      return result;
+    });
+    var otpTypeIndex = window?.gLoginStatus?.otpType || '0';
+    var isOtpNotReqired = otpTypeIndex == '0';
+    var isOtpSameForBoth = otpTypeIndex == '1';
+    var isOtpDiffForBoth = otpTypeIndex == '2';
+    var isRegiClosed = window?.gLoginStatus?.isRegiClosed || false;
+    //console.log("this.state.selectedInstitute::", this.state.selectedInstitute)
+    this.validateDataOnRender();
+    const LineComponent = () => /*#__PURE__*/React.createElement("div", {
+      className: "line",
+      style: {
+        backgroundColor: "rgba(255,255,255,.5)"
+      }
+    });
+    return /*#__PURE__*/React.createElement(Card, {
+      className: "mb-2",
+      style: {
+        height: '98.6%'
+      }
+    }, /*#__PURE__*/React.createElement(Card.Header, null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-question-circle-o pull-right",
+      "aria-hidden": "true"
+    }), isRegiClosed && /*#__PURE__*/React.createElement("h6", {
+      style: {
+        color: '#FF0000'
+      }
+    }, "  Applicant Registration is Closed."), !isRegiClosed && /*#__PURE__*/React.createElement("h6", null, /*#__PURE__*/React.createElement("b", null, "New Student, Register/Validate Login Id here"))), (!isValidated || !isRegistratinoExists || isUserExists || totalRegistrationCount > 1) && /*#__PURE__*/React.createElement(Card.Body, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, {
+      onSubmit: this.onSubmit,
+      autoComplete: "on"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      className: this.state.errors['inst'] ? 'is-invalid' : '',
+      id: "instSelect",
+      options: this.state.instProgBatchMap,
+      labelKey: "instName",
+      valueKey: "instId",
+      onSelect: this.onInstituteSelect,
+      selectedOption: this.state.selectedInstitute,
+      placeholder: "Select Institute"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['inst'] || '')), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "qualSelect",
+      options: this.state.qualificationArr,
+      labelKey: "courseName",
+      valueKey: "courseId",
+      onSelect: this.onQualificationSelect,
+      selectedOption: this.state.selectedQualification,
+      placeholder: "Select Program"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['course'] || ''))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "batchSelect",
+      options: this.state.batchArr,
+      labelKey: "batch",
+      valueKey: "instCrsStrngthId",
+      onSelect: this.onBatchSelect,
+      selectedOption: this.state.selectedBatch,
+      placeholder: "Select Academic Batch"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['batch'] || '')), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "regNumber"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['regNumber'] ? 'is-invalid' : '',
+      disabled: isRegiClosed,
+      type: "text",
+      name: "regNumber",
+      onChange: this.handleChange,
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.regNumber || '',
+      placeholder: "Registration Number",
+      autoComplete: "given-regnumber"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['regNumber'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed,
+      value: this.state.email || '',
+      type: "email",
+      name: "email",
+      placeholder: "Enter email",
+      autoComplete: "email"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 6,
+      md: 6
+    }, validatingProcessing != true && /*#__PURE__*/React.createElement(Button, {
+      className: "btn-block",
+      size: "sm",
+      onClick: e => this.validateUserExistance(),
+      disabled: this.state.isValidPage1 == true ? false : true
+    }, "Validate"), validatingProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Validating...")))), (isUserExists || !isRegistratinoExists || totalRegistrationCount > 1) && /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 12,
+      md: 12
+    }, /*#__PURE__*/React.createElement("p", {
+      className: "text-danger medium"
+    }, validationMsg)))))), isValidated && !isUserExists && isRegistratinoExists && totalRegistrationCount == 1 && /*#__PURE__*/React.createElement(Card.Body, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, {
+      onSubmit: this.onSubmit,
+      autoComplete: "on"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      className: this.state.errors['instName'] ? 'is-invalid' : '',
+      id: "instSelect",
+      options: this.state.instProgBatchMap,
+      labelKey: "instName",
+      valueKey: "instId",
+      onSelect: this.onInstituteSelect,
+      selectedOption: this.state.selectedInstitute,
+      placeholder: "Select Institute",
+      isDisabled: isRegiClosed || isValidated ? true : false
+    })), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "qualSelect",
+      options: this.state.qualificationArr,
+      labelKey: "courseName",
+      valueKey: "courseId",
+      onSelect: this.onQualificationSelect,
+      selectedOption: this.state.selectedQualification,
+      placeholder: "Select Program",
+      isDisabled: isRegiClosed || isValidated ? true : false
+    }))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "batchSelect",
+      options: this.state.batchArr,
+      labelKey: "batch",
+      valueKey: "instCrsStrngthId",
+      onSelect: this.onBatchSelect,
+      selectedOption: this.state.selectedBatch,
+      placeholder: "Select Academic Batch",
+      isDisabled: isRegiClosed || isValidated ? true : false
+    })), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "regNumber"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['regNumber'] ? 'is-invalid' : '',
+      type: "text",
+      disabled: isRegiClosed || isValidated ? true : false,
+      name: "regNumber",
+      onChange: this.handleChange,
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.regNumber || '',
+      placeholder: "Registration Number",
+      autoComplete: "given-regnumber"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['regNumber'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed || isValidated ? true : false,
+      value: this.state.email || '',
+      type: "email",
+      name: "email",
+      placeholder: "Enter email",
+      autoComplete: "email"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "formBasicPassword"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      disabled: isRegiClosed || isValidated ? true : false,
+      name: "tel",
+      id: "mobile_no",
+      placeholder: "Enter Mobile Number",
+      value: this.state.tel || '',
+      autoComplete: "tel",
+      maxLength: "10"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "password"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['password'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed,
+      type: "password",
+      name: "password",
+      placeholder: "Enter Password",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['password'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "formBasicPassword"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['confirmPassword'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed,
+      type: "password",
+      name: "confirmPassword",
+      placeholder: "Confirm Password",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['confirmPassword'] || '')))), isOtpNotReqired == false && this.state.email != undefined && this.state.email.length > 0 && this.state.tel != undefined && this.state.tel.length > 0 && /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: isOtpSameForBoth ? 6 : 3,
+      md: isOtpSameForBoth ? 6 : 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.email_otp || '',
+      type: "text",
+      name: "email_otp",
+      placeholder: isOtpSameForBoth ? "Enter Email / Mobile OTP" : "Enter Email OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email_otp'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, isOtpSameForBoth && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      tel: this.state.tel,
+      otpType: "sameForBoth"
+    }), isOtpSameForBoth != true && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      otpType: "email"
+    })), isOtpSameForBoth && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }), isOtpDiffForBoth == true && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "tel_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      name: "tel_otp",
+      placeholder: "Enter Mobile OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel_otp'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      tel: this.state.tel,
+      otpType: "tel"
+    })))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Image, {
+      src: "/imageCaptcha.jpg?dd=" + captchaCount,
+      style: {
+        height: "45px"
+      },
+      className: "",
+      fluid: true
+    }), /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "relodCaptcha",
+      onClick: () => {
+        this.setState({
+          captchaCount: captchaCount + 1
+        });
+      }
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa fa-refresh",
+      style: {
+        color: "#0e3e88"
+      }
+    }))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "captchaTxt"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['captchaTxt'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      value: this.state.captchaTxt || '',
+      name: "captchaTxt",
+      autoComplete: "off",
+      placeholder: "Enter Captcha"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['captchaTxt'] || '')))), this.state.errors['commonErrorBlock'] && /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "commonErrorBlock"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: 'is-invalid'
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['commonErrorBlock'] || '')), /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalSubmitLoading,
+      isSuccess: this.state.isFinalSubmitSuccess,
+      isDisabled: (this.state.isValidPage1 && this.state.isValidPage2 && this.state.isValidPage3) == true ? false : true,
+      nextStep: () => this.onFinalSubmit(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: "Register",
+      className: ""
+    }))))), /*#__PURE__*/React.createElement(Card.Footer, {
+      className: "text-center"
+    }, FooterComponent != undefined && FooterComponent));
+  }
+}
+class OtpSendButtonComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "sendOTP", () => {
+      const {
+        email,
+        tel,
+        otpType = 'email'
+      } = this.props;
+      this.setState({
+        otpProcessing: true,
+        otpSent: true
+      }, () => {
+        $.ajax({
+          url: '/anon_applRegistrationOtp.json',
+          data: {
+            email: email,
+            tel: tel,
+            otpType: otpType,
+            loginFormType: window.gLoginStatus.loginFormType
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.isError == true) {
+              this.setState({
+                otpSent: false,
+                otpProcessing: false
+              });
+            } else {
+              this.setState({
+                otpProcessing: false,
+                otpSent: true,
+                otp: res.otp_no
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    this.state = {
+      otpProcessing: false,
+      otpSent: false
+    };
+  }
+  render() {
+    return /*#__PURE__*/React.createElement("div", null, this.state.otpSent != true && /*#__PURE__*/React.createElement(Button, {
+      className: "btn-block",
+      size: "sm",
+      onClick: e => this.sendOTP()
+    }, "Send OTP"), this.state.otpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.otpProcessing == false && this.state.otpSent && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.otp), this.state.otpSent == true && /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "btn-block",
+      size: "sm",
+      style: {
+        color: "#0e3e88",
+        fontSize: "12px",
+        marginLeft: "-171px"
+      },
+      onClick: e => this.sendOTP()
+    }, "Resend OTP"));
+  }
+}        ÏG x ˇˇ     20260309231353-8lœG ·Ø8+[   https://erp.cmrit.ac.in/scriptReactCompiled/login/AffiliatedStudentRegistrationComponent.js      ì  function _defineProperty(obj, key, value) { key = _toPropertyKey(key); if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+function _toPropertyKey(t) { var i = _toPrimitive(t, "string"); return "symbol" == typeof i ? i : String(i); }
+function _toPrimitive(t, r) { if ("object" != typeof t || !t) return t; var e = t[Symbol.toPrimitive]; if (void 0 !== e) { var i = e.call(t, r || "default"); if ("object" != typeof i) return i; throw new TypeError("@@toPrimitive must return a primitive value."); } return ("string" === r ? String : Number)(t); }
+import StepperDirectionButtons from './../Modules/ApplAdmissionForm/StepperDirectionButtons.js';
+import SearchableDropdown from './SearchableDropdown.js';
+import ReactSelectComponent from './ReactSelectComponent.js';
+const {
+  Container,
+  Row,
+  Col,
+  Image,
+  Button,
+  Form,
+  Card,
+  InputGroup,
+  Spinner
+} = ReactBootstrap;
+export default class AffiliatedStudentRegistrationComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "getInstituteList", () => {
+      $.ajax({
+        url: '/restApi/aflInstUser_getInstituteProgramBatch.json?campusId=2',
+        dataType: 'json',
+        type: 'GET',
+        async: false,
+        beforeSend: function () {
+          //startCommonAjaxSpinner();												
+        },
+        complete: function () {
+          //stopCommonAjaxSpinner(); 
+        },
+        success: function (instArr) {
+          this.state.instProgBatchMap = instArr;
+        }.bind(this),
+        error: function () {
+          jAlert("Error...!");
+        }
+      });
+    });
+    _defineProperty(this, "getQualificationList", () => {
+      const qualList = this.state.selectedInstitute.courseArr;
+      //console.log('qualList : ', qualList1);
+      this.setState({
+        qualificationArr: qualList[0]
+      });
+    });
+    _defineProperty(this, "onInstituteSelect", selectedInstArr => {
+      if (selectedInstArr != undefined) {
+        this.setState({
+          selectedInstitute: selectedInstArr,
+          qualificationArr: selectedInstArr.courseArr
+        });
+      }
+
+      //console.log('this.state.selectedInstitute = ', this.state.selectedInstitute);
+      //console.log('this.state.qualificationArr = ', this.state.qualificationArr);
+    });
+    _defineProperty(this, "onQualificationSelect", selectedQualificationArr => {
+      if (selectedQualificationArr != undefined) {
+        this.setState({
+          selectedQualification: selectedQualificationArr,
+          batchArr: selectedQualificationArr.batchArr
+        });
+      }
+      //console.log('this.state.selectedQualification = ', this.state.selectedQualification)
+    });
+    _defineProperty(this, "onBatchSelect", selectedBatchArr => {
+      if (selectedBatchArr != undefined) {
+        this.setState({
+          selectedBatch: selectedBatchArr
+        });
+      }
+      //console.log('this.state.selectedBatch = ', this.state.selectedBatch)
+    });
+    _defineProperty(this, "handleChange", e => {
+      //console.log(e.target.name, e.target.value);
+      var val = e.target.value;
+      //console.log(e.target);
+      if (e.target.type == "checkbox") {
+        val = e.target.checked;
+      }
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "handleChangeForCaps", e => {
+      var val = e.target.value;
+      val = val.toUpperCase();
+      this.setState({
+        [e.target.name]: val
+      });
+    });
+    _defineProperty(this, "onSubmit", e => {
+      e.preventDefault();
+    });
+    _defineProperty(this, "onSubmitPage1", () => {
+
+      //this.stepper.next();
+    });
+    _defineProperty(this, "onFinalSubmit", () => {
+      this.setState({
+        isFinalSubmitLoading: true,
+        isFinalSubmitSuccess: false
+      }, () => {
+        //const {fname, mname, lname, email, tel, terms, captchaTxt, password, confirmPassword, address,email_otp, tel_otp} = this.state;
+        const {
+          email,
+          tel,
+          terms,
+          captchaTxt,
+          password,
+          confirmPassword,
+          email_otp,
+          tel_otp,
+          selectedInstitute,
+          selectedQualification,
+          selectedBatch,
+          regNumber
+        } = this.state;
+        const instId = selectedInstitute.instId;
+        const courseId = selectedQualification.courseId;
+        const qualId = selectedQualification.qualId;
+        const instCourseStrngthId = selectedBatch.instCrsStrngthId;
+        const userType = 'AFFILIATED_STUDENT';
+        const {
+          formType,
+          customerUID,
+          studType
+        } = this.props;
+        const pageLink = window.location.origin;
+        console.log(formType, customerUID, studType);
+        // console.log(email, tel, terms, captchaTxt, password, confirmPassword,email_otp, tel_otp, 
+        //	selectedInstitute, selectedQualification, selectedBatch,
+        //	regNumber,instId,courseId,qualId, instCourseStrngthId, userType)
+
+        $.ajax({
+          url: '/restApi/registerNewApplicant.json',
+          type: 'POST',
+          data: {
+            email,
+            tel,
+            terms,
+            captchaTxt,
+            formType,
+            password,
+            email_otp,
+            tel_otp,
+            customerUID,
+            pageLink,
+            instId,
+            courseId,
+            qualId,
+            instCourseStrngthId,
+            userType
+          },
+          dataType: 'json',
+          success: function (res) {
+            const {
+              isError = true,
+              field = '',
+              message = ''
+            } = res;
+            if (isError) {
+              if (field == '') {
+                if (message == 'USER_ALREADY_EXIST') {
+                  this.state.otpSentOnemail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already associated with your account, Please login to continue.'
+                  };
+                } else if (message == 'USER_ALREADY_EXIST_IN_USERS') {
+                  this.state.otpSentOnemail = false;
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'email',
+                    message: 'That email address is already exist in system, Please enter email never used before.'
+                  };
+                } else if (message == 'USER_REG_NOT_EXIST') {
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'commonErrorBlock',
+                    message: 'Your record does not match the university\'s records. Please select the correct institute, program, and batch.'
+                  };
+                } else {
+                  this.state.errorFromResponse = {
+                    isError: true,
+                    field: 'commonErrorBlock',
+                    message: 'An error occurred. Please try again later.'
+                  };
+                }
+              } else {
+                if (field == 'email') {
+                  this.state.otpSentOnemail = false;
+                }
+                this.state.errorFromResponse = res;
+              }
+              this.setState({
+                isFinalSubmitLoading: false,
+                isFinalSubmitSuccess: false,
+                captchaCount: this.state.captchaCount + 1,
+                captchaTxt: ''
+              });
+            } else {
+              this.state.errorFromResponse = {};
+              this.setState({
+                isFinalSubmitLoading: false,
+                isFinalSubmitSuccess: true
+              }, () => {
+                setTimeout(() => {
+                  if (formType == 'aflUserReg' || formType == 'distanceStudent') {
+                    window.location.replace('/aflsDashBoard.htm');
+                  } else if (formType == 'guestRegForm') {
+                    window.location.replace('/guestUserDashBoard.htm');
+                    // window.location. = '/guestUserDashBoard.htm';
+                  } else {
+                    window.location = '/anon_applWelcomePage.htm?id=' + window.gLoginStatus.applFormId;
+                  }
+                }, 1500);
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    _defineProperty(this, "validateUserExistance", () => {
+      const {
+        email,
+        regNumber = '',
+        selectedInstitute,
+        selectedQualification,
+        selectedBatch
+      } = this.state;
+      const instId = selectedInstitute != undefined && selectedInstitute.instId != undefined ? selectedInstitute.instId : 0;
+      const courseId = selectedQualification != undefined && selectedQualification.courseId != undefined ? selectedQualification.courseId : 0;
+      const instCrsStrngthId = selectedBatch != undefined && selectedBatch.instCrsStrngthId != undefined ? selectedBatch.instCrsStrngthId : 0;
+      this.setState({
+        validatingProcessing: true,
+        isValidated: false
+      });
+      $.ajax({
+        //url: 'https://649af3c6bf7c145d0239c3a1.mockapi.io/test/getData/studReg/1',
+        url: 'restApi/aflInstUser_checkUserExistance.json',
+        data: {
+          email: email,
+          instId: instId,
+          courseId: courseId,
+          instCrsStrngthId: instCrsStrngthId,
+          regNumber: regNumber
+        },
+        type: 'GET',
+        dataType: 'json',
+        success: function (res) {
+          if (res != undefined && res.isError != undefined) {
+            if (res.isError == true) {
+              this.setState({
+                validatingProcessing: false,
+                isValidated: false,
+                isUserExists: false
+              });
+            } else {
+              const isUserExists = res.isUserExists != undefined && (res.isUserExists == 'true' || res.isUserExists == true) ? true : false;
+              const isRegExists = res.isRegExists != undefined && (res.isRegExists == 'true' || res.isRegExists == true) ? true : false;
+              const regId = res.regId != undefined ? res.regId : '';
+              const registrationNumber = res.registrationNumber != undefined ? res.registrationNumber : '';
+              const userType = res.userType != undefined ? res.userType : '';
+              const nameAsPer10thCert = res.nameAsPer10thCert != undefined ? res.nameAsPer10thCert : '';
+              const contactNo = res.contactNo != undefined ? res.contactNo : '';
+              const regStatus = res.regStatus != undefined ? res.regStatus : '';
+              const totalRegistrationCount = res.totalRegistrationCount != undefined ? Number(res.totalRegistrationCount) : 1;
+              this.setState({
+                validatingProcessing: false,
+                isValidated: true,
+                isUserExists: isUserExists,
+                isRegistratinoExists: isRegExists,
+                registrationNumber: registrationNumber,
+                userType: userType,
+                nameAsPer10thCert: nameAsPer10thCert,
+                tel: contactNo,
+                regStatus: regStatus,
+                regId: regId,
+                totalRegistrationCount: totalRegistrationCount,
+                validationMsg: res.isRegExists === false || res.isRegExists === 'false' ? "Entered Email Id does not belong to University Record. Please contact your Institute." : totalRegistrationCount > 1 ? "Multiple registration records were found for the entered email Id. Please contact your institute or university to update your email Id." : res.isUserExists === true || res.isUserExists === 'true' ? "Your login credentials have already been created. Please use your email to log in. If you have forgotten your password, you can reset it by clicking on the 'Forgot password' link." : ""
+              });
+            }
+          } else {
+            this.setState({
+              validatingProcessing: false,
+              isValidated: false,
+              isUserExists: false
+            });
+          }
+        }.bind(this),
+        error: function () {
+          this.setState({
+            validatingProcessing: false,
+            isValidated: false
+          });
+        }
+      });
+    });
+    _defineProperty(this, "validateDataOnRender", defaultVal => {
+      const {
+        fname = defaultVal,
+        mname = defaultVal,
+        lname = defaultVal
+      } = this.state;
+      var nameRegPattern = /^[a-zA-Z ]+$/;
+      var regNumberRegPattern = /^[0-2]\d-[a-zA-Z]+-(?!0)\d{1,}$/;
+      var emailRegPattern = /^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-zA-Z]{1,4}$/;
+      var mobileRegPattern = /^([+]\d{2})?\d{10}$/;
+      var isValidPage1 = true;
+      //-------------------------------------
+      const {
+        email = defaultVal,
+        tel = defaultVal,
+        regNumber = defaultVal,
+        selectedInstitute,
+        selectedQualification,
+        selectedBatch
+      } = this.state;
+      const instId = selectedInstitute != undefined && selectedInstitute != null && selectedInstitute.instId != undefined ? selectedInstitute.instId : 0;
+      const courseId = selectedQualification != undefined && selectedQualification != null && selectedQualification.courseId != undefined ? selectedQualification.courseId : 0;
+      const instCrsStrngthId = selectedBatch != undefined && selectedBatch != null && selectedBatch.instCrsStrngthId != undefined ? selectedBatch.instCrsStrngthId : 0;
+      if (instId != undefined) {
+        if (instId == 0 || instId == '0') {
+          this.state.errors['inst'] = 'Please select Institute!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['inst'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (courseId != undefined) {
+        if (courseId == 0 || courseId == '0') {
+          this.state.errors['course'] = 'Please select Program!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['course'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (instCrsStrngthId != undefined) {
+        if (instCrsStrngthId == 0 || instCrsStrngthId == '0') {
+          this.state.errors['batch'] = 'Please select Batch!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['batch'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      if (regNumber != undefined) {
+        //console.log('regNumber ', regNumber);
+        if (regNumber.trim() == '') {
+          delete this.state.errors['regNumber'];
+        } else if (!regNumberRegPattern.test(regNumber)) {
+          this.state.errors['regNumber'] = 'Please enter valid Registration Number!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['regNumber'];
+        }
+      }
+      if (email != undefined) {
+        if (email.trim() == '') {
+          this.state.errors['email'] = 'Please enter Email!';
+          isValidPage1 = false;
+        } else if (!emailRegPattern.test(email)) {
+          this.state.errors['email'] = 'Please enter valid Email Id!';
+          isValidPage1 = false;
+        } else {
+          delete this.state.errors['email'];
+        }
+      } else {
+        isValidPage1 = false;
+      }
+      this.state.isValidPage1 = isValidPage1;
+      var isValidPage2 = true;
+      if (regNumber != undefined) {
+        //console.log('regNumber ', regNumber);
+        if (regNumber.trim() == '') {
+          delete this.state.errors['regNumber'];
+          isValidPage2 = true;
+        } else if (!regNumberRegPattern.test(regNumber)) {
+          this.state.errors['regNumber'] = 'Please enter valid Registration Number!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['regNumber'];
+        }
+      } else {
+        isValidPage2 = true;
+      }
+      if (tel != undefined) {
+        if (tel.trim() == '') {
+          this.state.errors['tel'] = 'Please enter Mobile No.!';
+          isValidPage2 = false;
+        } else if (!mobileRegPattern.test(tel)) {
+          this.state.errors['tel'] = 'Please enter valid Mobile No!';
+          isValidPage2 = false;
+        } else {
+          delete this.state.errors['tel'];
+        }
+      } else {
+        isValidPage2 = false;
+      }
+
+      //-------------------------------------
+      if (this.props.formType == 'aflUserReg' || this.props.formType == 'distanceStudent' || this.props.formType == 'guestRegForm') {
+        const {
+          password = defaultVal,
+          confirmPassword = defaultVal
+        } = this.state;
+        if (password != undefined) {
+          if (password.trim() == '') {
+            this.state.errors['password'] = 'Please enter Password!';
+            isValidPage2 = false;
+          } else {
+            delete this.state.errors['password'];
+          }
+        } else {
+          isValidPage2 = false;
+        }
+        if (confirmPassword != undefined) {
+          if (confirmPassword.trim() == '') {
+            this.state.errors['confirmPassword'] = 'Please enter Confirm Password!';
+            isValidPage2 = false;
+          } else if (password != confirmPassword) {
+            this.state.errors['confirmPassword'] = 'Password and Confirm Password are not same!';
+          } else {
+            delete this.state.errors['confirmPassword'];
+          }
+        } else {
+          isValidPage2 = false;
+        }
+      }
+      this.state.isValidPage2 = isValidPage2;
+      //-------------------------------------
+      const {
+        terms = defaultVal ? false : undefined,
+        captchaTxt = defaultVal
+      } = this.state;
+      var isValidPage3 = true;
+      if (captchaTxt != undefined) {
+        //console.log(terms);
+        if (captchaTxt.trim() == '') {
+          this.state.errors['captchaTxt'] = 'Please enter captcha!';
+          isValidPage3 = false;
+        } else {
+          delete this.state.errors['captchaTxt'];
+        }
+      } else {
+        isValidPage3 = false;
+      }
+      const {
+        isError = false,
+        field = '',
+        message = ''
+      } = this.state.errorFromResponse;
+      if (isError) {
+        this.state.errors[field] = message;
+      }
+
+      /*if(terms!=undefined){
+      	console.log(terms);
+      	if(terms!=true){
+      		this.state.errors['terms'] = 'Terms must be accepted';
+      		isValidPage3 = false;
+      	}else{
+      		delete this.state.errors['terms'];
+      	}
+      }else{
+      	isValidPage3 = false;
+      }*/
+      this.state.isValidPage3 = isValidPage3;
+    });
+    this.state = {
+      captchaCount: 0,
+      errors: {},
+      isValidPage1: false,
+      isValidPage2: false,
+      isValidPage3: false,
+      isFinalSubmitLoading: false,
+      isFinalSubmitSuccess: false,
+      errorFromResponse: {},
+      validatingProcessing: false,
+      isValidated: false,
+      instProgBatchMap: new Map(),
+      instituteArr: [],
+      batchArr: [],
+      qualificationArr: [],
+      selectedInstitute: {
+        label: "Select Institute",
+        value: null
+      },
+      selectedQualification: {
+        label: "Select Program",
+        value: null
+      },
+      selectedBatch: {
+        label: "Select Batch",
+        value: null
+      },
+      regNumber: ''
+    };
+  }
+  componentDidMount() {
+    this.getInstituteList();
+  }
+  render() {
+    const {
+      captchaCount = 0,
+      isUserExists,
+      isValidated,
+      validatingProcessing,
+      isDisabled,
+      isRegistratinoExists = false,
+      validationMsg = "",
+      totalRegistrationCount
+    } = this.state;
+    const {
+      FooterComponent,
+      formType = 'applicantReg',
+      studType = 'pvtStud'
+    } = this.props;
+    $("#mobile_no").keypress(function (e) {
+      var keyCode = e.which ? e.which : e.keyCode;
+      var result = !(keyCode >= 65 && keyCode <= 90 || keyCode >= 33 && keyCode <= 47 || keyCode == 126 || keyCode >= 97 && keyCode <= 122 || keyCode >= 58 && keyCode <= 64 || keyCode >= 91 && keyCode <= 96);
+      return result;
+    });
+    var otpTypeIndex = window?.gLoginStatus?.otpType || '0';
+    var isOtpNotReqired = otpTypeIndex == '0';
+    var isOtpSameForBoth = otpTypeIndex == '1';
+    var isOtpDiffForBoth = otpTypeIndex == '2';
+    var isRegiClosed = window?.gLoginStatus?.isRegiClosed || false;
+    //console.log("this.state.selectedInstitute::", this.state.selectedInstitute)
+    this.validateDataOnRender();
+    const LineComponent = () => /*#__PURE__*/React.createElement("div", {
+      className: "line",
+      style: {
+        backgroundColor: "rgba(255,255,255,.5)"
+      }
+    });
+    return /*#__PURE__*/React.createElement(Card, {
+      className: "mb-2",
+      style: {
+        height: '98.6%'
+      }
+    }, /*#__PURE__*/React.createElement(Card.Header, null, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-question-circle-o pull-right",
+      "aria-hidden": "true"
+    }), isRegiClosed && /*#__PURE__*/React.createElement("h6", {
+      style: {
+        color: '#FF0000'
+      }
+    }, "  Applicant Registration is Closed."), !isRegiClosed && /*#__PURE__*/React.createElement("h6", null, /*#__PURE__*/React.createElement("b", null, "New Student, Register/Validate Login Id here"))), (!isValidated || !isRegistratinoExists || isUserExists || totalRegistrationCount > 1) && /*#__PURE__*/React.createElement(Card.Body, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, {
+      onSubmit: this.onSubmit,
+      autoComplete: "on"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      className: this.state.errors['inst'] ? 'is-invalid' : '',
+      id: "instSelect",
+      options: this.state.instProgBatchMap,
+      labelKey: "instName",
+      valueKey: "instId",
+      onSelect: this.onInstituteSelect,
+      selectedOption: this.state.selectedInstitute,
+      placeholder: "Select Institute"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['inst'] || '')), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "qualSelect",
+      options: this.state.qualificationArr,
+      labelKey: "courseName",
+      valueKey: "courseId",
+      onSelect: this.onQualificationSelect,
+      selectedOption: this.state.selectedQualification,
+      placeholder: "Select Program"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['course'] || ''))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "batchSelect",
+      options: this.state.batchArr,
+      labelKey: "batch",
+      valueKey: "instCrsStrngthId",
+      onSelect: this.onBatchSelect,
+      selectedOption: this.state.selectedBatch,
+      placeholder: "Select Academic Batch"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['batch'] || '')), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "regNumber"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['regNumber'] ? 'is-invalid' : '',
+      disabled: isRegiClosed,
+      type: "text",
+      name: "regNumber",
+      onChange: this.handleChange,
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.regNumber || '',
+      placeholder: "Registration Number",
+      autoComplete: "given-regnumber"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['regNumber'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed,
+      value: this.state.email || '',
+      type: "email",
+      name: "email",
+      placeholder: "Enter email",
+      autoComplete: "email"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 6,
+      md: 6
+    }, validatingProcessing != true && /*#__PURE__*/React.createElement(Button, {
+      className: "btn-block",
+      size: "sm",
+      onClick: e => this.validateUserExistance(),
+      disabled: this.state.isValidPage1 == true ? false : true
+    }, "Validate"), validatingProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Validating...")))), (isUserExists || !isRegistratinoExists || totalRegistrationCount > 1) && /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 12,
+      md: 12
+    }, /*#__PURE__*/React.createElement("p", {
+      className: "text-danger medium"
+    }, validationMsg)))))), isValidated && !isUserExists && isRegistratinoExists && totalRegistrationCount == 1 && /*#__PURE__*/React.createElement(Card.Body, null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(Form, {
+      onSubmit: this.onSubmit,
+      autoComplete: "on"
+    }, /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      className: this.state.errors['instName'] ? 'is-invalid' : '',
+      id: "instSelect",
+      options: this.state.instProgBatchMap,
+      labelKey: "instName",
+      valueKey: "instId",
+      onSelect: this.onInstituteSelect,
+      selectedOption: this.state.selectedInstitute,
+      placeholder: "Select Institute",
+      isDisabled: isRegiClosed || isValidated ? true : false
+    })), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "qualSelect",
+      options: this.state.qualificationArr,
+      labelKey: "courseName",
+      valueKey: "courseId",
+      onSelect: this.onQualificationSelect,
+      selectedOption: this.state.selectedQualification,
+      placeholder: "Select Program",
+      isDisabled: isRegiClosed || isValidated ? true : false
+    }))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(ReactSelectComponent, {
+      id: "batchSelect",
+      options: this.state.batchArr,
+      labelKey: "batch",
+      valueKey: "instCrsStrngthId",
+      onSelect: this.onBatchSelect,
+      selectedOption: this.state.selectedBatch,
+      placeholder: "Select Academic Batch",
+      isDisabled: isRegiClosed || isValidated ? true : false
+    })), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "regNumber"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['regNumber'] ? 'is-invalid' : '',
+      type: "text",
+      disabled: isRegiClosed || isValidated ? true : false,
+      name: "regNumber",
+      onChange: this.handleChange,
+      onKeyUp: this.handleChangeForCaps,
+      value: this.state.regNumber || '',
+      placeholder: "Registration Number",
+      autoComplete: "given-regnumber"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['regNumber'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed || isValidated ? true : false,
+      value: this.state.email || '',
+      type: "email",
+      name: "email",
+      placeholder: "Enter email",
+      autoComplete: "email"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "formBasicPassword"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      disabled: isRegiClosed || isValidated ? true : false,
+      name: "tel",
+      id: "mobile_no",
+      placeholder: "Enter Mobile Number",
+      value: this.state.tel || '',
+      autoComplete: "tel",
+      maxLength: "10"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel'] || '')))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "password"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['password'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed,
+      type: "password",
+      name: "password",
+      placeholder: "Enter Password",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['password'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "formBasicPassword"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['confirmPassword'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      disabled: isRegiClosed,
+      type: "password",
+      name: "confirmPassword",
+      placeholder: "Confirm Password",
+      autoComplete: ""
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['confirmPassword'] || '')))), isOtpNotReqired == false && this.state.email != undefined && this.state.email.length > 0 && this.state.tel != undefined && this.state.tel.length > 0 && /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: isOtpSameForBoth ? 6 : 3,
+      md: isOtpSameForBoth ? 6 : 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "email_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['email_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      value: this.state.email_otp || '',
+      type: "text",
+      name: "email_otp",
+      placeholder: isOtpSameForBoth ? "Enter Email / Mobile OTP" : "Enter Email OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['email_otp'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, isOtpSameForBoth && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      tel: this.state.tel,
+      otpType: "sameForBoth"
+    }), isOtpSameForBoth != true && /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      email: this.state.email,
+      otpType: "email"
+    })), isOtpSameForBoth && /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }), isOtpDiffForBoth == true && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      className: "mb-3",
+      controlId: "tel_otp"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['tel_otp'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      name: "tel_otp",
+      placeholder: "Enter Mobile OTP",
+      autoComplete: "otp"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['tel_otp'] || ''))), /*#__PURE__*/React.createElement(Col, {
+      xs: 6,
+      lg: 3,
+      md: 3
+    }, /*#__PURE__*/React.createElement(OtpSendButtonComponent, {
+      tel: this.state.tel,
+      otpType: "tel"
+    })))), /*#__PURE__*/React.createElement(Row, null, /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Image, {
+      src: "/imageCaptcha.jpg?dd=" + captchaCount,
+      style: {
+        height: "45px"
+      },
+      className: "",
+      fluid: true
+    }), /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "relodCaptcha",
+      onClick: () => {
+        this.setState({
+          captchaCount: captchaCount + 1
+        });
+      }
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa fa-refresh",
+      style: {
+        color: "#0e3e88"
+      }
+    }))), /*#__PURE__*/React.createElement(Col, {
+      xs: 12,
+      lg: 6,
+      md: 6
+    }, /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "captchaTxt"
+    }, /*#__PURE__*/React.createElement(Form.Control, {
+      className: this.state.errors['captchaTxt'] ? 'is-invalid' : '',
+      onChange: this.handleChange,
+      type: "text",
+      value: this.state.captchaTxt || '',
+      name: "captchaTxt",
+      autoComplete: "off",
+      placeholder: "Enter Captcha"
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['captchaTxt'] || '')))), this.state.errors['commonErrorBlock'] && /*#__PURE__*/React.createElement(Form.Group, {
+      controlId: "commonErrorBlock"
+    }, /*#__PURE__*/React.createElement("div", {
+      className: 'is-invalid'
+    }), /*#__PURE__*/React.createElement(Form.Control.Feedback, {
+      type: "invalid"
+    }, this.state.errors['commonErrorBlock'] || '')), /*#__PURE__*/React.createElement(StepperDirectionButtons, {
+      isProcessing: this.state.isFinalSubmitLoading,
+      isSuccess: this.state.isFinalSubmitSuccess,
+      isDisabled: (this.state.isValidPage1 && this.state.isValidPage2 && this.state.isValidPage3) == true ? false : true,
+      nextStep: () => this.onFinalSubmit(),
+      btnPrimary: "btn btn-primary",
+      btnClassName: "btn-block",
+      nextStepLabel: "Register",
+      className: ""
+    }))))), /*#__PURE__*/React.createElement(Card.Footer, {
+      className: "text-center"
+    }, FooterComponent != undefined && FooterComponent));
+  }
+}
+class OtpSendButtonComponent extends React.Component {
+  constructor(props) {
+    super(props);
+    _defineProperty(this, "sendOTP", () => {
+      const {
+        email,
+        tel,
+        otpType = 'email'
+      } = this.props;
+      this.setState({
+        otpProcessing: true,
+        otpSent: true
+      }, () => {
+        $.ajax({
+          url: '/anon_applRegistrationOtp.json',
+          data: {
+            email: email,
+            tel: tel,
+            otpType: otpType,
+            loginFormType: window.gLoginStatus.loginFormType
+          },
+          type: 'POST',
+          dataType: 'json',
+          success: function (res) {
+            if (res.isError == true) {
+              this.setState({
+                otpSent: false,
+                otpProcessing: false
+              });
+            } else {
+              this.setState({
+                otpProcessing: false,
+                otpSent: true,
+                otp: res.otp_no
+              });
+            }
+          }.bind(this)
+        });
+      });
+    });
+    this.state = {
+      otpProcessing: false,
+      otpSent: false
+    };
+  }
+  render() {
+    return /*#__PURE__*/React.createElement("div", null, this.state.otpSent != true && /*#__PURE__*/React.createElement(Button, {
+      className: "btn-block",
+      size: "sm",
+      onClick: e => this.sendOTP()
+    }, "Send OTP"), this.state.otpProcessing && /*#__PURE__*/React.createElement("p", {
+      className: "text-primary small"
+    }, /*#__PURE__*/React.createElement("i", {
+      className: "fa fa-circle-o-notch fa-spin fa-lg fa-fw"
+    }), " Sending..."), this.state.otpProcessing == false && this.state.otpSent && /*#__PURE__*/React.createElement("p", {
+      className: "text-success small"
+    }, this.state.otp), this.state.otpSent == true && /*#__PURE__*/React.createElement("a", {
+      href: "#",
+      className: "btn-block",
+      size: "sm",
+      style: {
+        color: "#0e3e88",
+        fontSize: "12px",
+        marginLeft: "-171px"
+      },
+      onClick: e => this.sendOTP()
+    }, "Resend OTP"));
+  }
+}”ò¿Ÿ,  &       Ê3ÃŒ      _defineProperty    ﬂN#9      obj    B¸ø;      key    |ÀL√      _toPropertyKey     âœ#¸      _toPrimitive   IŸX´,      @@toPrimitive must return a primitive value.   tl=      StepperDirectionButtons    ‰~n9      ./../Modules/ApplAdmissionForm/StepperDirectionButtons.js      ø≠      SearchableDropdown	     Ià’Á      ./SearchableDropdown.js
+    8Û*      ReactSelectComponent   h …_      ./ReactSelectComponent.js      ≠K˝ó	      Container      Ö∫∂      Row    ˜v†      Col    û“      Image      G’†ÿ      Button     >oí…      Form   ◊m<=      Card   KïB…
+      InputGroup     N¿Í9      Spinner    ¿]ö      ReactBootstrap     fÖ3Î&      AffiliatedStudentRegistrationComponent     ,ï
+x      React      ≤xi	      Component       ¶      props      5®	‘      getInstituteList   æd»ê      ajax   â:Õ=      /restApi/aflInstUser_getInstituteProgramBatch.json?campusId=2      DoÄw      dataType   ≈ô¸
+      GET    Ñ–ˇ
+      beforeSend      Dï»á      complete!   …©\9      success"    «ßan      instArr#    ˘GÕ“      state$      Ô“l2      instProgBatchMap%   ‡Õ      bind&   Òp^      jAlert'     º‡ß.	      Error...!(      +ÿÌ      getQualificationList)   õF&3      qualList*   ·BÖ      selectedInstitute+      ™'—	      courseArr,      *∆Î      setState-   Gıﬂ9      qualificationArr.   ‘Á      onInstituteSelect/      LXy      selectedInstArr0    Åàéñ      onQualificationSelect1      0›≤˙      selectedQualificationArr2   €z      selectedQualification3      ıtN]      batchArr4   d:™@      onBatchSelect5      ú*∆      selectedBatchArr6   8ˇW      selectedBatch7      ;Ëyv      handleChange8   &⁄õ      val9    ÿy*      checkbox:   »:0ó      checked;    ö˙…é      handleChangeForCaps<    ¨‚s◊      toUpperCase=    Èp~      onSubmit>   B9∫¿      preventDefault?     πµëG      onSubmitPage1@      £Lj      onFinalSubmitA      ∆=`Ω      isFinalSubmitLoadingB   M\±Á      isFinalSubmitSuccessC   <€Ò      emailD      IPJM      telE    •      termsF      µÃ¨
+      captchaTxtG     ¯©òﬂ      passwordH   öz      confirmPasswordI    Ûx&∞	      email_otpJ      Z/k      tel_otpK    MiF	      regNumberL      ï¬      instIdM     Ôı{<      courseIdN   Dƒì⁄      qualIdO     o¨ _      instCourseStrngthIdP    ∑°{      instCrsStrngthIdQ   Ù°NJ      userTypeR   7/?      AFFILIATED_STUDENTS     ˚vtÒ      formTypeT   Ã±      customerUIDU    ≠I≈™      studTypeV   `è)      pageLinkW   ¯2áâ      windowX     0+QA      locationY   =®Ä;      originZ     ˛Q1      console[    =X˚      log\    ÌåE3"      /restApi/registerNewApplicant.json]     ﬂ:      POST^   6ó(Å      data_   ª:0      res`    †“ñ!      fielda      Ò¿r6      USER_ALREADY_EXISTb     cOhÄ      otpSentOnemailc     KÒŸ4      errorFromResponsed      E
+uU      That email address is already associated with your account, Please login to continue.e      J=·`      USER_ALREADY_EXIST_IN_USERSf    ƒ‘« T      That email address is already exist in system, Please enter email never used before.g   c/ü•      USER_REG_NOT_EXISTh     ló˛¯      commonErrorBlocki   ‹±(m      Your record does not match the university's records. Please select the correct institute, program, and batch.j      ¬'∆É*      An error occurred. Please try again later.k     ËZC!      captchaCountl   3AtŸ
+      setTimeoutm     {/
+      aflUserRegn     få£j      distanceStudento    \w∏      /aflsDashBoard.htmp     —˝Ë      guestRegFormq   ˛Õ/:      /guestUserDashBoard.htmr    H'î      /anon_applWelcomePage.htm?id=s      67b      gLoginStatust   uπI 
+      applFormIdu     ∫éÉ      validateUserExistancev      Ø¢ßp      validatingProcessingw   ¸U,“      isValidatedx    <#Æ+      restApi/aflInstUser_checkUserExistance.jsony    ¨¢a1      isUserExistsz   ØB      isRegExists{    •s0      regId|      9ÂŒw      registrationNumber}     ÜùÂ      nameAsPer10thCert~      ÑB2	      contactNo      Öî00	      regStatusÄ      ~èJ      totalRegistrationCountÅ     µ∂GÖ      isRegistratinoExistsÇ   ~Ì∫      validationMsgÉ      É5iU      Entered Email Id does not belong to University Record. Please contact your Institute.Ñ      R•Äá      Multiple registration records were found for the entered email Id. Please contact your institute or university to update your email Id.Ö    ò∞6≥      Your login credentials have already been created. Please use your email to log in. If you have forgotten your password, you can reset it by clicking on the 'Forgot password' link.Ü    U_Í      validateDataOnRenderá   &dù
+      defaultValà     D>É›      fnameâ      Ë˚
+œ      mnameä      úê≤4      lnameã      3…      nameRegPatternå     Úq\Â      ^[a-zA-Z ]+$ç   6ß	N      regNumberRegPatterné    rg·      ^[0-2]\d-[a-zA-Z]+-(?!0)\d{1,}$è    ∑œM      emailRegPatternê    áæá`      ^[a-zA-Z0-9]+[a-zA-Z0-9_.-]+[a-zA-Z0-9_-]+@[a-zA-Z0-9]+[a-zA-Z0-9.-]+[a-zA-Z0-9]+.[a-zA-Z]{1,4}$ë   ÑÌúA      mobileRegPatterní   ≈Ïéj      ^([+]\d{2})?\d{10}$ì    qÊëÁ      isValidPage1î   qÆ˚9      instï   	ôSs      Please select Institute!ñ   [Å◊m      courseó     ~¿$      Please select Program!ò     >÷ä      batchô      iW8˜      Please select Batch!ö   óñôb      trimõ   n‘'      Please enter valid Registration Number!ú    ⁄3™Í      Please enter Email!ù    ë6è»      Please enter valid Email Id!û   *`…Ö      isValidPage2ü   ∞°N#      Please enter Mobile No.!†   ºØÅ+      Please enter valid Mobile No!°      ¿q'      Please enter Password!¢     í˝◊Î      Please enter Confirm Password!£     £D+      Password and Confirm Password are not same!§    „Ÿ $      isValidPage3•   ^\p      Please enter captcha!¶      tÎ3u      instituteArrß   MQX      Select Institute®   Ì`≈ç      Select Program©     1@\      Select Batch™   dJ∆      componentDidMount´      ‘ÍÕ˜      render¨     ›7
+      isDisabled≠     ⁄ˇ˝      FooterComponentÆ    t≠Ç      applicantRegØ   G"      pvtStud∞    [);ï
+      #mobile_no±     ®±V      keypress≤   ≠5      keyCode≥    ≈∏0      which¥      ·ÑÊó      otpTypeIndexµ   u´÷      otpType∂    
+9	^      isOtpNotReqired∑    %‰√}      isOtpSameForBoth∏   i¯      isOtpDiffForBothπ   üg/Û      isRegiClosed∫   KI]      LineComponentª      DC      createElementº      ú≥ÊŸ      divΩ    6CY>	      classNameæ      ∂Cõ      backgroundColorø    πY¢I      rgba(255,255,255,.5)¿   o¡      mb-2¡   ∑…≈      height¬     ˛Ññ      98.6%√      πºç$      Headerƒ     ñ:Ô"      fa fa-question-circle-o pull-right≈     CâÎ4      aria-hidden∆    Ï
+ó      color«      “gÛæ      #FF0000»    πüπ˘#        Applicant Registration is Closed.…    ˛«&,      New Student, Register/Validate Login Id here    ¨◊Ñ      BodyÀ   ≥"      autoCompleteÃ   úøG.
+      is-invalidÕ     ÈÔs
+      instSelectŒ      :yã      optionsœ    >‘Ò      labelKey–   íÆ…      instName—   `ö‘"      valueKey“   hcºa      onSelect”   b=ï
+      selectedOption‘     ﬁ∞π:      placeholder’    ø      Control÷    µ…nµ      Feedback◊   õ…      invalidÿ    ⁄2´
+      qualSelectŸ      ÈäÃ
+      courseName⁄     π·€      batchSelect€    IΩzˇ      Select Academic Batch‹      ÃàR      Group›      ©È¯¶      mb-3ﬁ   hæ08	      controlIdﬂ      ûzÉw      disabled‡   à3¿µ      text·   t®$ä      onChange‚   T—©      onKeyUp„    ÷üU      Registration Number‰    `«Ô      given-regnumberÂ    ∫ˇp      Enter emailÊ    &⁄»	      btn-blockÁ      ;ã¢Ô      onClickË    Ãß!ß      ValidateÈ   =ÿÿT      text-primary smallÍ     ZU P(      fa fa-circle-o-notch fa-spin fa-lg fa-fwÎ   ˇ¿       Validating...Ï     ‡Z«      text-danger mediumÌ     9ï¶í      formBasicPasswordÓ      KdÅT	      mobile_noÔ      smƒg      Enter Mobile Number    -«8	      maxLengthÒ      içÌ      Enter PasswordÚ     	û!      Confirm PasswordÛ   `ô‹ç      Enter Email / Mobile OTPÙ   ’ß*      Enter Email OTPı    è9Ì      otpˆ    }mQ      OtpSendButtonComponent˜     ’e€      sameForBoth¯    Mkc      Fragment˘   ó≈a˚      Enter Mobile OTP˙   ú∑»õ      src˚    ;qƒ;      /imageCaptcha.jpg?dd=¸      _ÇÂ      45px˝   ¶n„Y      fluid˛      ª©`X      hrefˇ   1™Å      relodCaptcha   ⁄<–≠      fa fa fa-refresh  bj¯®      #0e3e88   ˙¯Öﬂ      off   ÉÏ∆¶      Enter Captcha     wÊu      isProcessing  ·¸ÅM	      isSuccess     ªÓM      nextStep  ˘“¢:
+      btnPrimary    ø[Ú      btn btn-primary	   ßZ˚∂      btnClassName
+  ¬‹‰      nextStepLabel     ^ƒ±Î      Register  68E      Footer    µ—9‡      text-center   }6ë∏      sendOTP   „!8„      otpProcessing     æ,¬∏      otpSent   ﬂÈ{Í      /anon_applRegistrationOtp.json    ¿[éR      loginFormType     x.¡Ä      otp_no    É+ä&      Send OTP  „˝j       Sending...   ∑‚@      text-success small    ˜ûe      fontSize  5˜í;      12px  GÁ$W
+      marginLeft    Ï∂)$      -171px    Z\0
+      Resend OTP    ˝¡"È(      AffiliatedStudentRegistrationComponent/<  lVõ3      AffiliatedStudentRegistrationComponent/</<.success<!   S∞«ô*      AffiliatedStudentRegistrationComponent/</<"    ôé#5      AffiliatedStudentRegistrationComponent/</</<.success<#     @ºd7      AffiliatedStudentRegistrationComponent/</</<.success</<$   ﬂ^≥ÿ9      AffiliatedStudentRegistrationComponent/</</<.success</</<%     :ˆ‘      render/<)  ¢?Ãz      OtpSendButtonComponent/<*  Zƒlß      OtpSendButtonComponent/</<+    ±|3Ê%      OtpSendButtonComponent/</</<.success<     )   ¸  4   )          Å   Ô%,â                                                                                                                                                                                        	                 
+                                                                                                                                                                                                                                                                                                                                                                                         !                                                 $               %                 %                 %                 %                  %           !                       +          "      ,           #      -                .           $      /           %      +          &      1           '      1           (      ≥Oåc                      
+     P  P  P  Pˆ  P    P  P  P  P  P  P    ∑ `                 ˙              t  i              t  r  e  i                               w  `s                                                               "  w                                                )               /               1               5              e  8              e  8               e                                                               C  D  E  F  G  H  I  J  *  2  6  K  L  M  N  O  Q  S  PT  U  V              _  w                Ú   `                                                                 C  K  *  2  6  L  M  P              _  w   	   
+       	   y  z  {  |  Q  }  ~    Ä                w               á  §  ë  û  ì  ã  ç  è               P  M    â  2  *  L  D  à  Ú   E  F  ä  `  K  6  C               G  H                w                 ¥  ∂  ∑  ∏  π  w  `             k  Py  w  v  ¨  Å  Ç  Ä  ≠  S  U  ∫              e  ≤  ó                               e                                               ˆ                w  `s                                 C  PD  Pµ  P                            _  w                  w  `             e               e  Ø¬0∞å      é      ê      í      IÙ$KEÆ˙ö         ˙  É   @        (      Û    ‰          !  Ü            -     
+     *  -     
+    2  3         6     
+     A  B         Û  ‰  ^    !     K     C  D  E  F  S  G  I  J  T  V  L  M  N  O  Q        Ú   `          Ú   `          Ú   `          Ú   `          A  B  k  F             
+     A  B     
+    v  w         Û  ^  ‰    !  Ü          C  L  M  P  K          v  w  y     <   v  w  y  Å  |  Q  }  D    {  Ä  Ç           v  w  y     
+   v  w     Z    k  á   ì  û  §  A  B  c  v  w  $  ¶  3  -  *  2  6  K                     
+        ˙     
+      ˙     
+      ˙     
+    Ω  ¿         æ     
+     Ω  ¿         ¡     
+     Ω  ≈         ¿          ∆     
+     =  À         \ P ç    (   Ω  ç Œ  œ  —  “  ”  ‘           ‰          \ P ç    #   ç Œ  œ  —  “  ”  ‘        ‰          \ P ç    #   ç Œ  œ  —  “  ”  ‘        ‰          \ P ç    
+   Ω  ﬁ  	   -    Ω  ﬂ  ‰  =  ·  ‚  ˙  ‘  À          ‰          \ P ç    
+   Ω  ﬁ     (    Ω  ·  ﬂ  ˙  ‰  =  ‘  À           ‰          \ P ç       Ω  ≤  Á  ﬂ           Ω          Ω          \ P ç       Ω     
+     =  À         \ P ç 	   -   Ω  ç Œ  œ  —  “  ”  ‘  ¨          \ P ç    (   ç Œ  œ  —  “  ”  ‘  ¨           \ P ç    (   ç Œ  œ  —  “  ”  ‘  ¨           \ P ç    
+   Ω  ﬁ  	   -    Ω  ‰  ﬂ  =  ·  ‚  ˙  ‘  À          ‰          \ P ç    
+   Ω  ﬁ     (    Ω  ·  ﬂ  ˙  ‰  =  ‘  À           ‰          \ P ç    
+   Ω  ﬁ  
+   2    Ω  ·  ‰  ﬂ  =  ç ‘  ˙  À           ‰          \ P ç    
+   Ω  ﬁ     #    Ω  ·  ﬂ  ‰  =  ‘  À        ‰          \ P ç    
+   Ω  ﬁ     #    Ω  ·  ﬂ  ‰  =  ‘  À        ‰          \ P ç    
+   Ω  ﬁ     #    Ω  ·  ˙  ‰  =  ‘  À        ‰          \ P ç       C  D  µ     
+   C  µ         \ P ç       \ P ç    
+   Ω  ﬁ         Ω  ·  ‰  =  ‘  À         ‰          \ P ç    
+   D  µ         \ P ç       ˙  ¿  Ω  ˝           ¡          ˛  Ω  Á        k     
+     Ω  ¿         ∆          \ P ç       ﬁ     #     Ω  ·  ‰  ˙  =  À  ‘        ‰          ﬁ          Ω          ‰     (       ¨    	 
+ Ω           Ω     
+              Û  ^  ‰    !          C  D  µ      
+                 ı     
+            Ω  ≤  Á        Ω          Ω          Ω          ˛  Ω  ≤  ¿  Á          ∆    á&’™ç!´!)   ƒ   $u◊›§  Q                       ≥¥   ¥  ¥  ‰æ   gÊL   ¥   ‰ÊL   ∂  	  ‰ÊL   ∂  
+  ‰ÊL   ∂    ‰ÊL	   ∂    ‰ÊL
+   ∂    ‰ÊL   ∂    ‰ÊL   ¥  ‰ÊL   ¥  ‰‰≥¥  ‰æ   L   rÊú   ô   ÊL   õ   ô   ‰tô   =Ès   ÈÁ@   ?   o   ?   o   ?   ‰¥  ’∂    ‰≥¥  ‰æ   L   rÊú   ô   ÊL   õ   ô   ‰tô   =Ès   ÈÁ@   ?   o   ?   ‰¥  ’∂    ‰ß>@`ˆ fƒ@Ä ¸ ó0Ä åfƒ@Ä πó@Ä –Pƒ     Ñ   d   ˇˇˇˇ   Ô   Z   ˇˇˇˇ»   cy$'»   v                         ƒ     ø u œ ‰ø ø  $úD   ô   æ   ÊL   Èø  ø ;   ø >   >   >   >   y ‰õ   ô   ø  ø ø Q‰ô   ø  §ß `ˇˇˇÒP``ˇˇˇ±Pk`ê `Qà   à&Ù}à   I                        ƒ     ø     u –   ‰¡   ú   ô   ¡   õ   ô   æ    ¡   u ô   §ß `ˇˇˇˇP` § ˇˇˇ˘PQÄÄX  ,ü¡X  Â                        ø  Åü   ô   ‰ø  ô   ú   ô   ø  §ô   ø  æ   L   M–   ‰¡   úe   ô	   ¡   ÊL   Èø  ø ü   ô   ‰   ô   u –  ‰¡  Åú   ô   ¡  §ô   æ   Ç   Ë  É ©ô      ø ú   ô   æ   õ   ô   æ	   ô    ø  u §ß ` ê ì `Ä  ˘ˇˇˇ`ì ``ò ˇˇˇ¯P` ê 
+`ˇˇˇã`P	A`® ˇˇˇˇPQÄÄÄ  π€éñÄ  a               =      „—    ‰7–   ‰…àÇø  ¡   Ö ƒ    â‰∂    ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π	   o
+   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    ƒ    π   o   y ‰ƒ    π;   >   ;   >   >   >   >   >    >!   ;"   >#   >$   >%   æ&   ÇË  É  >'   j    >(   j    >)   j    >*   ;+   ,   >-   >.   >/   ;0   1   >-   >.   >2   ;3   4   >-   >.   >5   6   >7   O8   ‰ƒ    ®¶ß.`ˇˇˇ˚ˇˇˇ˙Pí `ˇˇˇÂPD`ˇˇˇ·PD`ˇˇˇ‰PD(`ˇˇˇ‡PD1`ˇˇˇËPD9`ˇˇˇÈPDD`ˇˇˇ‚PDK`ˇˇˇÌPDN`ˇˇˇËPDR`ˇˇˇËPDÄ  –`ˇˇˇ‡PDÄ `ˇˇˇ·PDÄ Ã`,&*&&&&&*&&
+P(***%	*	 %	*	 %	*	 ê Xº   {ª$≥º   s                          æ   ÊL   È;      >      >      >	   >
+   o   >   o   >   o   ÊL   Èƒ    πu >   o   >   y ‰ß `%	*	*	*	&	J		J	Lˇˇˇ˚P(	J	PDP(   ÀÃ(                               ß@	ÄÄÄ(   ÀÃ(                               ß@	ÄÄÄD   vhA\D                          „–   ‰¡   L   ø  O   ‰ß&`í 	PÄÄÄ<   Í-Œy<                             æ       y ‰ß `P$	PÄÄê   ≤G=hÄ   E                        ≥¥   ‰ƒ    πL   L   L   ¥   ‰ƒ    πÊL   È;   ¡   M>   y ‰’ß &`õ@`%	KPEPê          D   ˇˇˇˇx   HEÇx   A                         ø   ú6   ô   ƒ    πÊL   È;   ø  >   ø  L   >   y ‰ô   ß `,	`%(MPI
+Px   2µ@éx   A                         ø   ú6   ô   ƒ    πÊL   È;   ø  >   ø  L   >   y ‰ô   ß `,	`%(MPIPl   {xÈl   4                         ø   ú)   ô   ƒ    πÊL   È;   ø  >   y ‰ô   ß `,	`%HPIPÄÄÄ∞   ‚è≥Ã∞   n                        ø  L   L   –   ‰ø  L   L      ú   ô   ø  L   L   –   ‰ô   ƒ    πÊL   È:ø  L   L   1¡   Ay ‰ß@`í@`ù 	`ó@`"	ì@PD
+PÄÄà   wèîÔà   M                        ø  L   L   –   ‰¡   ÊL   Èu  –   ‰ƒ    πÊL   È:ø  L   L   1¡   Ay ‰ß `í `
+P(`"	ì@PDP<   ÒNÚÚ<                            ø  ÊL   Èy  ‰ß `
+P$PÄÄÄ(   ?õ![(                               ß@ÄÄÄ`   CøU6`   )                          ƒ    πÊL   È;   >   >   o   y ‰ß `%	&	&
+EPD}PÄÄÄ  h·n  q                7       ”   ≥¥   ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥	  ¥
+  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ‰ƒ   πL   gÊL   ¥   ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL	   ¥  ‰ÊL
+   ¥  ‰ÊL   ¥  ‰ÊL   ¥	  ‰ÊL   ¥
+  ‰ÊL   ¥  ‰‰¡  L   ¥  ‰¡	  L   ¥  ‰¡	  L   ¥  ‰¡
+  L   ¥  ‰   ¥  ‰ƒ   πL   gÊL   ∂    ‰ÊL   ¥  ‰ÊL   ¥  ‰‰æ   L   L   ¥  ‰æ   ÊL   Èƒ    ¡  ¡  y ‰æ   ÊL   È;       >!   "   >#   ;$   ¡   >   ¡  >   ¡  >   ¡  >   ƒ    >   ¡  >   ¡  >	   ¡  >
+   ¡  >   ¡  >%   ¡  >   ¡  >   ¡  >   ¡  >&   ¡  >'   >(   )   >*   o+   ÊL,   Èƒ   πu >-   y ‰‘ß ◊0@`ˇì `.`.`.%`.`@`± `î 	`
+ˇˇˇÂPD 	`%**%))))+)))))))))N4*Lvˇˇˇ˚PH PExPÄÄÄ        k  ˇˇˇˇt  ôÈ	d  ≠        	       D      „–   ‰≥¥  ¥  ¥  ‰ø  gÊL   Ê ú   ô   ‰ô   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰‰¡  ú„  ô   ¡     úF  ô	   ¡     úM   ô   ¡   L   O   ‰¡   L   ;	   >   
+   >      >   O   ‰õ‡   ô   ¡     úM   ô   ¡   L   O   ‰¡   L   ;   >   
+   >      >   O   ‰õÑ   ô   ¡     ú=   ô   ¡   L   ;   >      >      >   O   ‰õ8   ô%   ¡   L   ;   >      >      >   O   ‰ô+   õE   ô+   ¡  
+   ú   ô-   ¡   L   O   ‰ô/   ¡   L   ø  O   ‰ô1   ¡   ÊL   È;   >   >   ¡   L   L   (>      >   y ‰õC   ô;   ¡   L   ;   O   ‰¡   ÊL   È;   >   >   o   y ‰ôD   ’ß@`ô0†§ê@`.`î `î `ê `.&*ö@`î `ê `.&*ö@`î `.&*ö0 `.&*ü0# `î `ï@'`ó@)`%&&ï J)P>/ `î `%&&E1PJAPt        ¶  ˇˇˇˇD   †TºD                             æ    o   ‹y ‰ß `5
+CPDPÄ  "Wöh  ¬                          ƒ    ∏       ü   ô   ‰ƒ       ô   ú)   ô   æ   L   ÊL   È   y ‰õj   ô   ƒ    ∏       ú)   ô
+   æ   L   ÊL   È   y ‰õ*   ô   æ   	   æ   L
+   L   (O   ‰ô   ß `∏ `ñ P.`ú `ñ P> `
+4õ@	PÄÄÄ®  uïYò                  2       ≥¥   ¥  ¥  ¥  ¥  ¥  ¥  ¥  ‰ƒ    πL   gÊL   ¥   ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰‰¡   û   ô	   ‰¡  L	    ô   ú   ô   ¡  L	   õ   ô   ô   ¥  ‰¡   û   ô   ‰¡  L
+    ô   ú   ô   ¡  L
+   õ   ô   ô   ¥  ‰¡   û   ô   ‰¡  L    ô   ú   ô   ¡  L   õ   ô   ô   ¥  ‰ƒ    πÊL   È;   >   >   y ‰æ   ÊL   È;      >   ;   ¡   >   ¡  >	   ¡  >
+   ¡  >   ¡  >   >      >      >   o   ÊL   Èƒ    πu >   o   >   y ‰’ß ¢@`≠0±@`ñ )Ø `ñ /Ø  `ñ /Ø `%	&	FPD`E	*	%))))N	*	*	LCˇˇˇ˚P(	J	PEKP®           ˇˇˇˇ¯  KΩÖjË  *     
+          _      „–   ‰ø   û   ô   ‰ø  L    ô   ú‘  ô   ø  L   ú5   ô   ¡   ÊL   È;   >   >   >   y ‰õÜ  ô   ≥¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥	  ‰ø  L    û.   ô   ‰ø  L      ü   ô   ‰ø  L   ô   ú   ô   õ   ô   ô   ¥  ‰ø  L	    û.   ô   ‰ø  L	      ü   ô   ‰ø  L	   ô   ú   ô    õ   ô    ô    ¥  ‰ø  L
+    ú   ô#   ø  L
+   õ   ô$      ô$   ¥  ‰ø  L    ú   ô'   ø  L   õ   ô(      ô(   ¥  ‰ø  L    ú   ô+   ø  L   õ   ô,      ô,   ¥  ‰ø  L    ú   ô/   ø  L   õ   ô0      ô0   ¥  ‰ø  L    ú   ô3   ø  L   õ   ô4      ô4   ¥  ‰ø  L    ú   ô7   ø  L   õ   ô8      ô8   ¥  ‰ø  L    ú    ô;   æ    ø  L   u õ   ô>   ô>   ¥	  ‰¡   ÊL   È;   >   >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >   ¡  >
+   ¡	  >   ø  L	    ü   ôM   ‰ø  L	      ôO   ú   ôP      õp   ôP   ¡	   ú   ôR      õQ   ôR   ø  L   ü   ôT   ‰ø  L      ôV   ú   ôW      õ   ôW      ôW   >   y ‰’ôY   õ0   ôY   ¡   ÊL   È;   >   >   >   y ‰ô_   ß&`ï ë `î `%&&FPN¶ $`’ #`’ `≠ *`≠  `≠ )`≠ !`≠ !`≠ .`í ˇˇˇ˘Pò `%&&)))))))))ˇ≥@Pî0! `%&&F"PI(	PÄ¯     s   |  ˇˇˇˇ\   Óuúµ\   '                        „–   ‰¡   ÊL   È;   >   >   y ‰ß&`%&FPD	PÄÄÄ‡  .<0∑¿  ~                €      ≥¥  ¥  ¥	  ¥
+  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ¥  ‰ƒ    πL   gÊL   Ê ú   ô   ‰ø  ô   ¥  ‰ÊL   Ê ú   ô   ‰ø  ô   ¥
+  ‰ÊL   Ê ú   ô   ‰ø  ô   ¥  ‰‰n   –  ‰n   –  ‰n   –  ‰n	   –  ‰–  ‰ƒ    πL   gÊL
+   Ê ú   ô
+   ‰ø  ô
+   ¥  ‰ÊL   Ê ú   ô   ‰ø  ô   ¥  ‰ÊL   Ê ú   ô   ‰ø  ô   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰‰¡   û'   ô   ‰¡  û   ô   ‰¡  L    ô   ú   ô   ¡  L   õ   ô   ô   ¥  ‰¡   û'   ô   ‰¡  û   ô   ‰¡  L    ô   ú   ô    ¡  L   õ   ô!   ô!   ¥  ‰¡   û'   ô#   ‰¡  û   ô%   ‰¡  L    ô'   ú   ô(   ¡  L   õ   ô)   ô)   ¥  ‰¡   úÅ   ô+   ¡  ü   ô-   ‰¡     ô.   ú1   ô/   ƒ    πL   L      O   ‰–  ‰õ!   ô2   ƒ    πL   L   S   ‰ô4   õ   ô4   –  ‰ô4   ¡   úÅ   ô6   ¡  ü   ô8   ‰¡     ô9   ú1   ô:   ƒ    πL   L      O   ‰–  ‰õ!   ô=   ƒ    πL   L   S   ‰ô?   õ   ô?   –  ‰ô?   ¡   úÅ   ôA   ¡  ü   ôC   ‰¡     ôD   ú1   ôE   ƒ    πL   L      O   ‰–  ‰õ!   ôH   ƒ    πL   L   S   ‰ôJ   õ   ôJ   –  ‰ôJ   ¡   ú®   ôL   ¡  ÊL   Èu     ú&   ôP   ƒ    πL   L   S   ‰õi   ôR   ¡  ÊL   È¡  u ù1   ôU   ƒ    πL   L      O   ‰–  ‰õ!   ôX   ƒ    πL   L   S   ‰ôZ   ¡   úΩ   ô\   ¡  ÊL   Èu     ú1   ô`   ƒ    πL   L      O
+   ‰–  ‰õi   ôc   ¡  ÊL   È¡  u ù1   ôf   ƒ    πL   L       O
+   ‰–  ‰õ!   ôi   ƒ    πL   L   S
+   ‰ôk   õ   ôk   –  ‰ôk   ƒ    πL   ¡  O!   ‰–  ‰¡   ú∏   ôo   ¡  ÊL   Èu     ú,   ôs   ƒ    πL   L   S   ‰–  ‰õi   ôu   ¡  ÊL   È¡  u ù1   ôx   ƒ    πL   L      O   ‰–  ‰õ!   ô{   ƒ    πL   L   S   ‰ô}   õ   ô}   –  ‰ô}   ¡   úΩ   ô   ¡  ÊL   Èu     ú1   ôÉ   ƒ    πL   L   "   O   ‰–  ‰õi   ôÜ   ¡  ÊL   È¡  u ù1   ôâ   ƒ    πL   L   #   O   ‰–  ‰õ!   ôå   ƒ    πL   L   S   ‰ôé   õ   ôé   –  ‰ôé   ƒ    πL$   L%   &   üD   ôí   ‰ƒ    πL$   L%   '   ü"   ôñ   ‰ƒ    πL$   L%   (   ôô   ú∂  ôö   ≥¥  ¥  ‰ƒ    πL   gÊL*   Ê ú   ôù   ‰ø  ôù   ¥  ‰ÊL+   Ê ú   ôü   ‰ø  ôü   ¥  ‰‰¡   úu   ô°   ¡  ÊL   Èu     ú1   ô•   ƒ    πL   L   ,   O*   ‰–  ‰õ!   ô®   ƒ    πL   L   S*   ‰ô™   õ   ô™   –  ‰ô™   ¡   úÆ   ô¨   ¡  ÊL   Èu     ú1   ô∞   ƒ    πL   L   -   O+   ‰–  ‰õZ   ô≥   ¡  ¡  ú+   ôµ   ƒ    πL   L   .   O+   ‰õ!   ô∏   ƒ    πL   L   S+   ‰ô∫   õ   ô∫   –  ‰ô∫   ’ô∫   ƒ    πL   ¡  O/   ‰ƒ    πL   gÊL0   Ê ú$   ôø   ‰ø  ú   ô¿   õ   ô¿    ô¿   ¥  ‰ÊL1   Ê ú   ô¬   ‰ø  ô¬   ¥  ‰‰–   ‰¡   úu   ôƒ   ¡  ÊL   Èu     ú1   ô»   ƒ    πL   L   2   O1   ‰–   ‰õ!   ôÀ   ƒ    πL   L   S1   ‰ôÕ   õ   ôÕ   –   ‰ôÕ   ƒ    πL   L3   gÊL4   Ê ú   ô—   ‰ô—   ¥  ‰ÊL5   Ê ú   ô”   ‰   ô”   ¥  ‰ÊL6   Ê ú   ô’   ‰   ô’   ¥	  ‰‰¡  ú%   ô÷   ƒ    πL   L   ¡  ¡	  Q‰ôŸ   ƒ    πL   ¡   O7   ‰’ß ∆@`¢0¢¢N`*!`*`*`*`6@`¢0¢¢Ø@`ß FØ `ß PØ  `ß HØ `
+,`™ `ú `ê `¶0 	`K!`,`™ `ú `ê `¶0( 	`K+`,`™ `ú `ê `¶02 	`K5`L7`
+Pì `° `ˇˇˇ˚P-`ú `ê `ú@@`	,`Pì `ú `ê `ˇˇˇ˚P-`ú `ê `¶0J 	`KM`ñ `&`LQ`
+Pì `ó `ê `ˇˇˇ˚P-`ú `ê `¶0Z 	`K]`,`Pì `ú `ê `ˇˇˇ˚P-`ú `ê `¶0g 	`Kl`Í z@p`¢0n¢Nq`,`	Pì `ú `ê `¶0x `K{`,`Pì `ú `ê `/`¶ `¶ `ë `ñ `¢0Ä  ã∏ `&` `Pì `ú `ê `¶ 	` `ß0Ä  õ†§ê `.	`†@Ä  Æ`ó PÄÄ‡         }  ˇˇˇˇ)   ˝  ¨      @   !’‚@                           „–   ‰¡   ÊL   Èy  ‰ß&`P$P +  9À≥#‡*  t"        C             „—    ‰”   ≥¥  ¥  ¥  ¥  ¥	  ¥
+  ¥  ¥  ¥  ¥  ¥  ‰ƒ   L   gÊL   Ê ú   ô   ‰ô   ∂    ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   ¥  ‰ÊL   Ê ú   ô	   ‰ô	   ¥	  ‰ÊL	   Ê ú   ô   ‰
+   ô   ¥
+  ‰ÊL   ¥  ‰‰ƒ   L   gÊL   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰ÊL   Ê ú   ô   ‰   ô   ¥  ‰‰æ       u ÊL   Èo   y ‰æ   4ù$   ô   L   4ù   ô   L   õ   ô   ‰ ô   ü   ô   ‰   ô   –   ‰¡      –  ‰¡      –  ‰¡      –  ‰æ   4ù$   ô"   L   4ÌG∏ù   ô$   L   õ   ô%   ‰ ô%   ü   ô&   ‰ô&   –  ‰ƒ   ÊL   Èy  ‰o   ¥  ‰æ   ÊL    Èƒ   ∏   ;!   "   >#   ;$   %   >&   >'   æ   ÊL    Èƒ   L(   æ   ÊL    È)   ;*   +   >#   ,   >-   u ¡  û=   ô:   ‰æ   ÊL    È.   ;/   ;0   1   >2   >'   3   u ôA   ¡  û:   ôC   ‰æ   ÊL    È.   æ   ÊL    È4   5   u u ôI   u ¡  ü0   ôL   ‰¡	  ü    ôN   ‰¡  ü   ôO   ‰¡   ôP   ûÏ  ôQ   ‰æ   ÊL    Èƒ   L6   æ   ÊL    È7   æ   ÊL    È7   æ   ÊL    Èƒ   ∏   ;8   ƒ   L9   >9   :   >;   æ   ÊL    Èƒ 	  ∏ 	  æ   ÊL    Èƒ 
+  ∏ 
+  ;<   >=   >>   >?   æ   ÊL    È∆@   ;A   ƒ   L   LB   LC   ú   ôn   D   õ   ôn   
+   ôn   >#   E   >F   ƒ   L   LG   >H   I   >J   K   >L   ƒ   LM   >N   ƒ   L   LO   >P   Q   >R   u æ   ÊL    Èƒ   LS   LT   ;U   V   >W   ƒ   L   LB   LC   ü   ôÜ   ‰
+   ôÜ   u u æ   ÊL    Èƒ 
+  ;X   >=   >>   >?   æ   ÊL    È∆@   ;Y   Z   >F   ƒ   L   L[   >H   \   >J   ]   >L   ƒ   L^   >N   ƒ   L   L_   >P   `   >R   u æ   ÊL    Èƒ   LS   LT   ;a   V   >W   ƒ   L   LB   Lb   ü   ô©   ‰
+   ô©   u u u æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;c   >=   >>   >?   æ   ÊL    È∆@   ;d   e   >F   ƒ   L   Lf   >H   g   >J   h   >L   ƒ   Li   >N   ƒ   L   Lj   >P   k   >R   u æ   ÊL    Èƒ   LS   LT   ;l   V   >W   ƒ   L   LB   Lg   ü   ôœ   ‰
+   ôœ   u u æ   ÊL    Èƒ 
+  ;m   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;o   p   >#   q   >r   æ   ÊL    Èƒ   LS   ;s   ƒ   L   LB   Lq   ú   ôÂ   D   õ   ôÂ   
+   ôÂ   >#   ¡  >t   u   >W   q   >v   ƒ   Lw   >x   ƒ   Ly   >z   ƒ   L   Lq   ü   ô   ‰
+   ô   >{   |   >R   }   >;   u æ   ÊL    Èƒ   LS   LT   ;~   V   >W   ƒ   L   LB   Lq   ü   ô˛   ‰
+   ô˛   u u u u æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;Ä   p   >#   Å   >r   æ   ÊL    Èƒ   LS   ;Ç   ƒ   L   LB   LÅ   ú   ô  D   õ   ô  
+   ô  >#   ƒ   Lw   >x   ¡  >t   ƒ   L   LÅ   ü   ô  ‰
+   ô  >{   Å   >W   Å   >v   É   >R   Å   >;   u æ   ÊL    Èƒ   LS   LT   ;Ñ   V   >W   ƒ   L   LB   LÅ   ü   ô/  ‰
+   ô/  u u u æ   ÊL    Èƒ 
+  ;Ö   >=   >>   >?   ¡  ûÄ   ô:  ‰æ   ÊL    Èƒ   ∏   ;Ü   á   >#   à   >â   oä   >ã   ƒ   L   Lå   ú   ôE  õ   ôE  ôE  >t   ç   u ôG  ¡  ûV   ôH  ‰æ   ÊL    Èé   ;è   ê   >#   æ   ÊL    È)   ;ë   í   >#   u ì   u ôR  u u u ¡  ü!   ôV  ‰¡	  ü   ôX  ‰¡   ôY  ûw   ôZ  ‰æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;î   >=   >>   >?   æ   ÊL    Èé   ;ï   ñ   >#   ¡
+  u u u ôi  u u u ôl  ¡  û°  ôm  ‰¡  ûë  ôo  ‰¡	  ûÇ  ôp  ‰¡  ûq  ôr  ‰æ   ÊL    Èƒ   L6   æ   ÊL    È7   æ   ÊL    È7   æ   ÊL    Èƒ   ∏   ;ó   ƒ   L9   >9   :   >;   æ   ÊL    Èƒ 	  ∏ 	  æ   ÊL    Èƒ 
+  ∏ 
+  ;ò   >=   >>   >?   æ   ÊL    È∆@   ;ô   ƒ   L   LB   LI   ú   ôè  D   õ   ôè  
+   ôè  >#   E   >F   ƒ   L   LG   >H   I   >J   K   >L   ƒ   LM   >N   ƒ   L   LO   >P   Q   >R   ¡  ü   ôù  ‰¡  ôù  ú   ôû  õ   ôû  ôû  >   u u æ   ÊL    Èƒ 
+  ;ö   >=   >>   >?   æ   ÊL    È∆@   ;õ   Z   >F   ƒ   L   L[   >H   \   >J   ]   >L   ƒ   L^   >N   ƒ   L   L_   >P   `   >R   ¡  ü   ô∏  ‰¡  ô∏  ú   ôπ  õ   ôπ  ôπ  >   u u u æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;ú   >=   >>   >?   æ   ÊL    È∆@   ;ù   e   >F   ƒ   L   Lf   >H   g   >J   h   >L   ƒ   Li   >N   ƒ   L   Lj   >P   k   >R   ¡  ü   ô÷  ‰¡  ô÷  ú   ô◊  õ   ô◊  ô◊  >   u u æ   ÊL    Èƒ 
+  ;û   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;ü   p   >#   q   >r   æ   ÊL    Èƒ   LS   ;†   ƒ   L   LB   Lq   ú   ôÓ  D   õ   ôÓ  
+   ôÓ  >#   u   >W   ¡  ü   ôÒ  ‰¡  ôÒ  ú   ôÚ  õ   ôÚ  ôÚ  >t   q   >v   ƒ   Lw   >x   ƒ   Ly   >z   ƒ   L   Lq   ü   ô˚  ‰
+   ô˚  >{   |   >R   }   >;   u æ   ÊL    Èƒ   LS   LT   ;°   V   >W   ƒ   L   LB   Lq   ü   ô	  ‰
+   ô	  u u u u æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;¢   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;£   p   >#   Å   >r   æ   ÊL    Èƒ   LS   ;§   ƒ   L   LB   LÅ   ú   ô#  D   õ   ô#  
+   ô#  >#   ƒ   Lw   >x   ¡  ü   ô'  ‰¡  ô'  ú   ô(  õ   ô(  ô(  >t   ƒ   L   LÅ   ü   ô,  ‰
+   ô,  >{   Å   >W   Å   >v   É   >R   Å   >;   u æ   ÊL    Èƒ   LS   LT   ;•   V   >W   ƒ   L   LB   LÅ   ü   ô<  ‰
+   ô<  u u u æ   ÊL    Èƒ 
+  ;¶   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;ß   p   >#   ®   >r   æ   ÊL    Èƒ   LS   ;©   ƒ   L   LB   L™   ú   ôS  D   õ   ôS  
+   ôS  >#   ƒ   Lw   >x   u   >W   ¡  ü   ôX  ‰¡  ôX  ú   ôY  õ   ôY  ôY  >t   ™   >v   ´   >F   ¨   >R   ƒ   L   L™   ü   ô`  ‰
+   ô`  >{   ™   >;   ≠   >Æ   u æ   ÊL    Èƒ   LS   LT   ;Ø   V   >W   ƒ   L   LB   L™   ü   ôn  ‰
+   ôn  u u u u æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;∞   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;±   p   >#   ≤   >r   æ   ÊL    Èƒ   LS   ;≥   ƒ   L   LB   L≤   ú   ôà  D   õ   ôà  
+   ôà  >#   ƒ   Lw   >x   ¡  >t   ≤   >W   ≤   >v   ¥   >R   
+   >;   u æ   ÊL    Èƒ   LS   LT   ;µ   V   >W   ƒ   L   LB   L≤   ü   ôõ  ‰
+   ôõ  u u u æ   ÊL    Èƒ 
+  ;∂   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;∑   p   >#   ®   >r   æ   ÊL    Èƒ   LS   ;∏   ƒ   L   LB   Lπ   ú   ô≤  D   õ   ô≤  
+   ô≤  >#   ƒ   Lw   >x   ¡  >t   ≤   >W   π   >v   ∫   >R   
+   >;   u æ   ÊL    Èƒ   LS   LT   ;ª   V   >W   ƒ   L   LB   Lπ   ü   ô≈  ‰
+   ô≈  u u u u ¡  ûí  ôÀ  ‰ƒ   L   LÅ    ûu  ôœ  ‰ƒ   L   LÅ   Lº    ûS  ô‘  ‰ƒ   L   L™    û6  ôÿ  ‰ƒ   L   L™   Lº    û  ô›  ‰æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;Ω   >=   ¡  ú   ô‰  õ   ô‰  ô‰  >>   ¡  ú   ôÊ  õ   ôÊ  ôÊ  >?   æ   ÊL    Èƒ   Ln   ;æ   p   >#   ø   >r   æ   ÊL    Èƒ   LS   ;¿   ƒ   L   LB   Lø   ú   ôı  D   õ   ôı  
+   ôı  >#   ƒ   Lw   >x   ƒ   L   Lø   ü   ô˚  ‰
+   ô˚  >{   u   >W   ø   >v   ¡  ú   ôˇ  ¡   õ   ôˇ  ¬   ôˇ  >R   √   >;   u æ   ÊL    Èƒ   LS   LT   ;ƒ   V   >W   ƒ   L   LB   Lø   ü   ô  ‰
+   ô  u u u æ   ÊL    Èƒ 
+  ;≈   >=   >>   >?   ¡  û_   ô  ‰æ   ÊL    Èƒ   ∏   ;∆   ƒ   L   LÅ   >Å   ƒ   L   L™   >™   «   >   u ô!  ¡  ûJ   ô#  ‰æ   ÊL    Èƒ   ∏   ;»   ƒ   L   LÅ   >Å   Å   >   u ô+  u ¡  û:   ô-  ‰æ   ÊL    Èƒ 
+  ;…   >=   >>   >?   u ô4  ¡  û·  ô6  ‰æ   ÊL    Èæ   L    æ   ÊL    Èƒ 
+  ;À   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;Ã   p   >#   Õ   >r   æ   ÊL    Èƒ   LS   ;Œ   ƒ   L   LB   LÕ   ú   ôN  D   õ   ôN  
+   ôN  >#   ƒ   Lw   >x   u   >W   Õ   >v   œ   >R   √   >;   u æ   ÊL    Èƒ   LS   LT   ;–   V   >W   ƒ   L   LB   LÕ   ü   ô`  ‰
+   ô`  u u u æ   ÊL    Èƒ 
+  ;—   >=   >>   >?   æ   ÊL    Èƒ   ∏   ;“   ƒ   L   L™   >™   ™   >   u u u ôs  u ôt  æ   ÊL    Èƒ 	  æ   ÊL    Èƒ 
+  ;”   >=   >>   >?   æ   ÊL    Èƒ   ∏   ;‘   ’   ƒ    (>÷   ;◊   ÿ   >&   >'   
+   >#   >Ÿ   u æ   ÊL    È⁄   ;€   ‹   >›   ﬁ   >#   oﬂ   >ã   æ   ÊL    È)   ;‡   ·   >#   ;‚   „   >2   >'   u u u æ   ÊL    Èƒ 
+  ;‰   >=   >>   >?   æ   ÊL    Èƒ   Ln   ;Â   Ê   >r   æ   ÊL    Èƒ   LS   ;Á   ƒ   L   LB   LÊ   ú   ô´  D   õ   ô´  
+   ô´  >#   ƒ   Lw   >x   u   >W   ƒ   L   LÊ   ü   ô≤  ‰
+   ô≤  >{   Ê   >v   Ë   >;   È   >R   u æ   ÊL    Èƒ   LS   LT   ;Í   V   >W   ƒ   L   LB   LÊ   ü   ô¡  ‰
+   ô¡  u u u u ƒ   L   LB   LÎ   ûØ   ô…  ‰æ   ÊL    Èƒ   Ln   ;Ï   Î   >r   æ   ÊL    È7   ;Ì   D   >#   u æ   ÊL    Èƒ   LS   LT   ;Ó   V   >W   ƒ   L   LB   LÎ   ü   ô›  ‰
+   ô›  u u ôﬂ  æ   ÊL    È∆Ô   ;   ƒ   L   LÒ   >Ú   ƒ   L   LÛ   >Ù   ƒ   L   Lå   û6   ôÏ  ‰ƒ   L   Lı   û   ôÔ  ‰ƒ   L   Lˆ   ôÒ  ú   ôÛ  õ   ôÛ  ôÛ  >   o˜   >¯   ˘   >˙   á   >˚   ¸   >˝   
+   >#   u u
+ u u u ôˇ  æ   ÊL    Èƒ   L˛   ;ˇ      >#   ¡   û   ô  ‰¡  ô  u u ¶‘ß‘ß≥@
+	`°0Œ0†õ0@	`¨0§ê@`P
+ˇˇˇ˜PD`– `/`/`/`Ã@`P$`J"`(%*%	O' ë %*J'OPC*	† 7%%	?.E*,PH.0¢ Kó Pˇˇˇ”PH'PC.Ä  Œê ¡ ií .í .%ê *%'''%Ω *ï **ê ï J5PC>ê %*™@>PC1GPC@8%'''%*ï **ê ï JDPCLê %*™@LPC@>PC1PCN;%'''%*ï **ê ï JRPCZê %*™@ZPCNmPC\9%'''%**%Ω )**ê ê ™ *JcPCmê %*™@mPC`PC\?PCNAPCo?%'''%**%Ω ê )™ ***JvPCê %*™@PCsPCoqPCÄ  Å:%'''ù A%***≤EÄ  Ö;PHÄ  ä† >%*ë %JÄ  åPEÄ  ä@PHÄ  Å@PCoEPC.Ä «PCÄ  é ≤ Y%'''ë %*DÄ  íPCÄ  éÄ  ßPˇˇˇ‘PH.Ä ôPˇˇˇ“PˇˇˇŒPHÄ  îº ií .í .%ê *%'''%Ω *ï **ê ï *∏@Ä  õPCÄ  óGPCÄ  •%'''%*ï **ê ï *∏@Ä  ©PCÄ  •PCÄ  óPCÄ  ≤%'''%*ï **ê ï *∏@Ä  ∂PCÄ  ≤JPCÄ  ø%'''%**%Ω *∏ *ê ê ™ *JÄ  ∆PCÄ  –ê %*™@Ä  –PCÄ  √PCÄ  øPCÄ  ≤PCÄ  “?%'''%**%Ω ê ∏ ™ ***JÄ  ŸPCÄ  ‚ê %*™@Ä  ‚PCÄ  ÷PCÄ  “qPCÄ  ‰:%'''%**%Ω ê *∏ ***™ *JÄ  ÎPCÄ  ˆê %*™@Ä  ˆPCÄ  ËPCÄ  ‰@PCÄ  “EPCÄ  ¯9%'''%**%Ω ê )***JÄ  ˇPCÄ ê %*™@Ä PCÄ  ¸PCÄ  ¯kPCÄ 	=%'''%**%Ω ê )***JÄ PCÄ ê %*™@Ä PCÄ PCÄ 	CPCÄ  ¯?PCÄ 8° 0ø >ª K%'¶ ¶ %**%Ω ê ™ **¨ JÄ !PCÄ )ê %*™@Ä )PCÄ PCÄ Ä PCÄ +>%'''õ 5%ï ï JÄ //P 	ù =%ï JÄ 38PHÄ +DPCÄ 6
+õ 5%''GÄ 61P 	ù =#%'''%**%Ω ê ***JÄ APCÄ Hê %*™@Ä HPCÄ >PCÄ :oPCÄ J<%'''%ï JÄ NPCÄ JBPCÄ :8PHÄ Ä  „PHÄ Q%'''%,%	 *FÄ UPCÄ \ë %**JÄ dë %*%	OÄ dPCÄ \PCÄ QKPCÄ i%'''%*%Ω ê *™ **JÄ oPCÄ wê %*™@Ä wPCÄ mPCÄ iPCÄ QPCÄ y3¨ J%*ë %JÄ {P ê %*™@Ä }PCÄ yoPHÄ D%ï ï Ì ****JÄ JPCÄ  îÄ Pˇˇˇ“Pˇˇˇ“PˇˇˇŒPHÄ à%*ñ@Ä à PC"PCÄ ãTÄÄÄ +        f"  ˇˇˇˇ    q"         H  ¯âÿ„H                         ø  L   ú   ô   ø  L   õ   ô   ø  L   ô   –   ‰¡   A"û   ô   ‰¡   Z!ô   ü±   ô   ‰¡   !"û   ô
+   ‰¡   /!ô   üà   ô   ‰¡   ~üv   ô   ‰¡   a"û   ô   ‰¡   z!ô   üM   ô   ‰¡   :"û   ô   ‰¡   @!ô   ü$   ô   ‰¡   ["û   ô   ‰¡   `!ô   –  ‰¡  §ß `∂ `ˇ€ `$QÄÄl   º∑ûl   8                          æ   ÊL   È   ;      >   ;      >	   >
+   u § `ë %*%	O 4PC<   ¶.!Z<                            ƒ   ÊL   Èu  § `PÄÄ\   V≤-©\   *                          ƒ   ÊL   È;   ƒ    ∏    (>   y ‰ß 	`%ì@PDPÄ<   T™ƒ'<                             ƒ   ÊL   Èu  § `PÄÄ∏   ø≤E∏   m                      „—    ‰7–   ‰…àÇø  ¡   Ö ƒ    â‰∂    ‰ƒ    ƒ    π   o   y ‰ƒ    π;   >   >   O   ‰ƒ    ®¶ß.`ˇˇˇ˚ˇˇˇ˙Pí `ˇˇˇÓPD'`,&L+XÄÄ‘   Sh™ƒ   }                         ”   ƒ   πL   gÊL   ∂    ‰ÊL   ∂    ‰ÊL   Ê ú   ô   ‰   ô   ∂    ‰‰ƒ   πÊL   È;   >   >	   o
+   y ‰‘ß @`º0í@`%	&	&
+EPE$PÄÄÄ‘         w   ˇˇˇˇ   ?Ñ3   †                          æ   ÊL   È;      >   ;   ƒ    ∏    >   ƒ    ∏    >   ƒ    ∏    >	   æ
+   L   L   >   >      >      >   o   ÊL   Èƒ   πu >   y ‰ß 	`%*%ë ë ë ô@	**Lˇˇˇ˚PHPDPÄÄ¿   w,é¿   w                       „–   ‰ø  L   ú/   ô   ¡   ÊL   È;   >   >   y ‰õ7   ô   ¡   ÊL   È;   >   >   ø  L   >   y ‰ô   ß&`î `%&FP> `%&&MPIPÄÄt  ’«Âat  Ô                <        „—    ‰æ   ÊL   È   ƒ    L   L   ûN   ô   ‰æ   ÊL   Èƒ   ∏   ;      >   	   >
+   o   >      u ô   ƒ    L   L   ûV   ô   ‰æ   ÊL   È   ;      >   æ   ÊL   È   ;      >   u    u ô   ƒ    L   L   ûY   ô   ‰ƒ    L   L   û>   ô"   ‰æ   ÊL   È   ;      >   ƒ    L   L   u ô)   ƒ    L   L   ûy   ô-   ‰æ   ÊL   È   ;      >      >   	   >
+   ;      >       >!   "   >#   >$   o%   >   &   u ô;   u §ß(`í 5© ?%**EkPH¨ B%*ë %JP3	EDPH	… a%*ê@	gPHÆ D%***%	*	*	OEJPHPCQÄÄ<   Öîú<                            ƒ    ÊL   Èu  § `PÄÄ<   Öîú<                            ƒ    ÊL   Èu  § `PÄÄ3ıÿ  `'  \      @˙  É   @       `!  0    `T  ç  ,   Y   :    !  0  /    `  `	  `#  $  
+  `&  '    `$      @  Û        ‰       p    p     p%  !  	  pÜ     `  `#  *  +  ,    @-    `,    @*  +  -    `,    @2  3    `,    @6    `≈  ˙  ‰  9  :  ,  =    `≈  ˙  <  ,  =    `>    `  `m  n  W  X  à  o  p  q  r  s  t    `l    p  `  `Ú   `  z     a  #  b  	  @C  d  c  e  
+  @f  g    @h  i    @j  ,    @A  B  k  F    @  @  p  `  `#  C  D  E  F  G  H  I  J  *  2  6  K  L  M  N  P  R    S  T  U  W  X  Y  Z  [  $      @\  Û  ]  ‰    @V  O  Q  ^        p%  !    `,    @A  B    p  `Ú   ,    @v  w  y    `·  z  {  z   |  Q  }  ~    Ä  /    @Å  D  ë   É  Ñ  Ö  Ç    @  `,    @v  w    `  `#  C  K  z   *  2  6  L  M  P  ,    @v  w  $      @x  Û    @^    ‰        p%  !    pÜ      `!  `#  à  â  ä     P  P  P  PC  D  K  *  2  6  L  M  P  0  á   ï  î  ó  ñ  ô  ò  ö  z   ∆  õ  ú  ù  ì  ü  †    S  m  n  p  "  `G  H  °  ¢  £  û  E  F  •  c  Ú   `    §    `    p(  
+  p.    p0    p4    p7    p;    p=    p?    p@    pu    pÜ    p  @k    @á   ì  û  §  A  B    @c  v  w  Q  $  ¶  3  -    @ß    ˙  *    @®  2    @©  6  z   K  #  #  `  &  `≥  ≤  '  `  ª  º    @
+  Ω    @ø  æ  ¿  (  `u  )  `,  i  @k  *  `@  $  `%  `#  k  y  w  v  ¨  Å  Ç  z   Ä    ≠  S  Æ  U  Ø  $  ∞  ±    pW  s  µ  0  1  2  π  Ü    p  ª    @¿  Ω     @¬  ¡  ¿  √  i  !  @ƒ  ·  ≈  F "  @#  @«  ∆  »  b  …     º  $  @=   À  %  @\ P ç 
+  &  @á   î  Ã  Õ  ç $  Œ  –  œ  L  —  .  “  *  ”  ß  ‘  ’  ÷  '  @◊  ‰  (  @)  @ÿ  -  Ÿ  M  0  2  ®  *  @ñ  +  @,  @⁄  3  ò  P  4  6  €  -  @.  @‹  /  @›  K  ﬁ  0  @ﬂ  ‡  =  7  ·  ;  ‚  ˙  „  ‰  1  @2  @3  @C  4  @Â  5  @6  @7  @Ê   ≤    pÁ  ì  Ë  p  8  @È  9  @Í  Î  :  @;  @Ï  <  @=  @>  @?  @@  @A  @B  @C  @D  @E  @F  @G  @H  @I  @J  @K  @L  @Ì  M  @D  Ó  Ô  @    N  @O  @P  @G  Q  @Ò  R  @S  @T  @U  @H  Ú  V  @  W  @X  @I  Y  @Û  Ù  ı  Z  @[  @\  @˜  ]  @^  @¯  _  @`  @J  a  @˘  b  @c  @d  @e  @f  @˚  ˙  g  @¸  ˝  a  h  @#  ˛  ˇ     pj  @  k  @ l  @m  @F  n  @  o  @h  p  @q  @r  @  s  @A   B   û  §  !  p   	  
+  t  @ 0  `Ú   ,  x  @  y  @ ı  /  `$    v  @ Û  w  @C  D  µ  W  s   ^  ]  ‰      %  p%  !  -  `.  `  C  D  µ  ,  u  @  $  p,  ` #  pz  @  #  2  ` 3  ` 1  `  ª  º  #   {  @Ê  Ω   ≤  '  pÁ    p  |  @È  i  }  @Í   ~  @ ı  a    @#  ˛  Ä  @ ∆      ¿  (  p    `  p  p  p                      `    Ä    pD     p™    p´  +  `"  p&  pˇXÑ·                                                 
+           4  9         #            !                                                 Ü         1           ! 9           ! ?           ! D           ! H           ! P           ! V           ! X           ! µ           ! á   .   !     ! h      "       e      #     ! Y      $     ! ‹            ! ª             ◊      Ü         ¸   8        ! m     ™      "  Ö    ´      "  o     %       r     ∫      !
+ }     Á      !
+      Á      !
+ É          !
+ Ø     ˆ      # §     )     ! è     *     ! Ü  	   +       ∫  '   ´      "  ∂     Á      !
+ ∏     Á      !
+ ùH©“      ì      ì                     Ï       Ï                    [  Ì   [                 q  î  \  î               ä C  ÅK  Ô  ä                 ç  ©  ç  ©     /             T  î  K  î                  ±  Â  ®  Â                   G  ¯  G  !               l  ô  c  ô  $                ﬁ  ü  ﬁ  ü  )   3             —  P	  —  P	  0   0            Ü	  ÷
+  Ü	  ÷
+  ;   4              Ì    Ì  D   ,              '    '  L   +            [  „  [  „  W   2              2    2  ^   '            `  ã  `  ã  a   ,             π  Í   π  Í   e   ,             (  ‚   (  ‚   i   
+            ø  √   ∂  √   û               ^  ß   ^  ß   “                Å  è   Å  è   ”                 !  0   !  0  „   4            ^%  ]/  U%  ]/  ˛              Ç/   0  y/   0  '               E0  ΩH  E0  ΩH  /  3           ïK  ∫K  ÑK  ∫K  ˝             Ç √K  Óä  ΩK  Óä     	             IM  mN  @M  mN    '            P  £P  P  £P                 äa  ´a  äa  ´a  à              ÍÉ  FÑ  ÍÉ  FÑ  _               øâ  Ÿâ  øâ  Ÿâ  É             ä 5ã  Mè  Òä  ì  é              vã  ¸é  vã  ¸é  ê  &             *å  Ùé  *å  Ùé  ô  
+            nç  ’é  eç  ’é  §            Ç Vè  ˇí  Pè  ˇí  ∫  	             ê  /ê  ê  /ê  æ              —í  ‰í  —í  ‰í  Œ            mŒ˝î             	                                          %                                           "            Y                  Y                
+  Y                ˇˇˇˇ      Y                                  5°›IÅmX›Ñà      	i’¬fi’¬fI]“ti÷›Ô   Ö    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scriptReactCompiled/login/AffiliatedStudentRegistrationComponent.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"37633-1774889042000"
+Last-Modified: Mon, 30 Mar 2026 16:44:02 GMT
+Content-Type: text/javascript
+Content-Length: 37633
+Date: Wed, 08 Apr 2026 02:47:38 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+ original-response-headers Date: Thu, 02 Apr 2026 04:19:55 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"37633-1774889042000"
+Last-Modified: Mon, 30 Mar 2026 16:44:02 GMT
+Content-Type: text/javascript
+Content-Length: 37633
+Keep-Alive: timeout=5, max=97
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 21 net-response-time-onstop 22 alt-data 1;37633,javascript/moz-module-bytecode-20260309231353-8l alt-data-from-child 1  €	

@@ -1,0 +1,64 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+int partition(int a[], int low, int high) {
+    int temp, key = a[low], i = low + 1, j = high;
+    while (i <= j) {
+        while (key >= a[i] && i <= high)
+            i++;
+        while (key < a[j] && j >= 0)
+            j--;
+        if (i < j) {
+            temp = a[i];
+            a[i] = a[j];
+            a[j] = temp;
+        }
+    }
+    temp = a[low];
+    a[low] = a[j];
+    a[j] = temp;
+    return j;
+}
+
+void quicksort(int a[], int low, int high) {
+    int k;
+    if (low < high) {
+        k = partition(a, low, high);
+        quicksort(a, low, k - 1);
+        quicksort(a, k + 1, high);
+    }
+}
+
+int main() {
+    int i, n;
+    printf("Enter the size of the array: ");
+    scanf("%d", &n);
+    int *a = (int *)malloc(n * sizeof(int));
+    }
+
+    srand(time(0));
+    printf("Original array:\n");
+    for (i = 0; i < n; i++) {
+        a[i] = rand() % 97;
+        printf("%d\t", a[i]);
+    }
+
+    clock_t start, end;
+    start = clock();
+    quicksort(a, 0, n - 1);
+    end = clock();
+
+    printf("\n\nSorted array:\n");
+    for (i = 0; i < n; i++) {
+        printf("%d\t", a[i]);
+    }
+    printf("\n");
+
+    double time_taken = ((double)(end - start)) / CLOCKS_PER_SEC;
+    printf("Time taken: %f seconds\n", time_taken);
+
+    free(a); 
+    return 0;
+}
+

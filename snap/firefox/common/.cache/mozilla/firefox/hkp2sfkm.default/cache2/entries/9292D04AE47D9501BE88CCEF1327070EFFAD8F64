@@ -1,0 +1,1982 @@
+$(function(){
+	$('input[rel=tooltip]').tooltip();
+});
+ 
+$(function(){
+	$('a[rel=tooltip]').tooltip();
+});
+
+$(function(){
+	$('span[rel=tooltip]').tooltip();
+});
+
+var AllowedFileSize = {};
+var TypeOfSponsorship = {};
+
+$(function(){
+	AllowedFileSize = 
+						{
+							DEFAULT:1048576,//(1 MB)
+							DOCUMENT_UPLOAD:26214400,
+							DOCUMENT_UPLOAD_2MB:2000000,
+							DOCUMENT_UPLOAD_8MB:8388603,
+							DOCUMENT_UPLOAD_DISPLAY:25,
+							PROFILE_PHOTO:350000,//(350 KB) 256000
+							PROFILE_PHOTO_MIN_SIZE:10000,//(10 KB) 256000
+							PROFILE_SIGNATURE:20000,
+							SIGNATURE_MIN_SIZE:10000,
+							EXCELSHEET_UPLOAD:5242880,//(5 MB)
+							LOGO:512000,//(512 KB)
+							SIGNATURE:51200,//(50 KB)
+							PROFILE_UPLOAD_DOCUMENTS:3145728,//3 MB
+							DOCUMENT_UPLOAD_35MB:36700160,
+							DOCUMENT_UPLOAD_25MB:26214400,
+							DOCUMENT_UPLOAD_50MB:51700160,
+							DOCUMENT_UPLOAD_250MB:262144000
+						};
+	
+	
+	TypeOfSponsorship = {
+			TYPE_Gender : 'Gender',
+			TYPE_EBC : 'EBC',
+			TYPE_Category : 'Category',
+			TYPE_GenderAndCategory : 'Gender And Category',
+			TYPE_GenderAndEBC : 'Gender And EBC',
+			TYPE_EBCAndCategory : 'EBC And Category',
+	};
+});
+
+var gFileTypeIconMapping = {
+		doc:'css/icons/icon_msdoc.gif',
+		docx:'css/icons/icon_msdoc.gif',
+		xls:'css/icons/icon-xls.png',
+		xlsx:'css/icons/icon-xls.png',
+		pdf:'css/icons/icon-pdf.gif',
+		jpg:'css/icons/icon_img.png',
+		jpeg:'css/icons/icon_img.png',
+		text:'css/img/add_attachment_icon.png',
+		png:'css/icons/icon_img.png',
+		gif:'css/icons/icon_img.png',
+		xcf:'css/icons/icon_img.png',
+		ppt:'css/icons/icon_ppt.gif',
+		pptx:'css/icons/icon_ppt.gif',
+		DOC:'css/icons/icon_msdoc.gif',
+		DOCX:'css/icons/icon_msdoc.gif',
+		XLS:'css/icons/icon-xls.png',
+		XLSX:'css/icons/icon-xls.png',
+		PDF:'css/icons/icon-pdf.gif',
+		JPG:'css/icons/icon_img.png',
+		TEXT:'css/img/add_attachment_icon.png',
+		PNG:'css/icons/icon_img.png',
+		GIF:'css/icons/icon_img.png',
+		XCF:'css/icons/icon_img.png',
+		PPT:'css/icons/icon_ppt.gif',
+		PPTX:'css/icons/icon_ppt.gif',
+		folder:'css/icons/icon_folder.gif',
+		txta:'css/icons/icon_attachment.gif',
+		txt:'css/icons/Notepad_1.png',
+};
+
+
+var gFileTypeIcon = {
+		doc:'img/files/doc.png',
+		docx:'img/files/docx.png',
+		xls:'img/files/xls.png',
+		xlsx:'img/files/xlsx.png',
+		pdf:'img/files/pdf.png',
+		jpg:'img/files/jpg.png',
+		jpeg:'img/files/jpg.png',
+		text:'img/files/text.png',
+		png:'img/files/png.png',
+		gif:'img/files/gif.png',
+		xcf:'img/files/xcf.png',
+		ppt:'img/files/ppt.png',
+		pptx:'img/files/ppt.png',
+		DOC:'img/files/doc.png',
+		DOCX:'img/files/docx.png',
+		XLS:'img/files/xls.png',
+		XLSX:'img/files/xlsx.png',
+		PDF:'img/files/pdf.png',
+		JPG:'img/files/jpg.png',
+		TEXT:'img/files/text.png',
+		PNG:'img/files/png.png',
+		GIF:'img/files/gif.png',
+		XCF:'css/icons/icon_img.png',
+		PPT:'img/files/ppt.png',
+		folder:'css/icons/icon_folder.gif',
+		txta:'css/icons/icon_attachment.gif',
+		txt:'img/files/txt.png',
+		java:'img/files/java.png',
+		xml:'img/files/xml.png',
+		PPTX:'img/files/ppt.png',
+		csv:'img/files/csv.png',
+};
+
+function nthOccurrence(str,c,n) {
+	var pos = str.indexOf(c, 0);
+	while (n-- > 0 && pos != -1)
+		pos = str.indexOf(c, pos+1);
+	return pos;
+}
+
+function requiredField(id)
+{
+
+	$('#'+id).qtip({
+		content: 'Required Field is Empty!..', // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomLeft', // Use the corner...
+				target: 'topRight' // ...and opposite corner
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		},
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+	});
+}
+
+
+function loadDynamicHelp(typeuser,cont)
+{
+
+	$('#'+typeuser).html(cont);
+
+}
+
+
+function requiredMessageShow(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+function requiredMessageShowLeft(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'rightMiddle',
+				target: 'leftMiddle' // ...and opposite corner
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+
+function messageShow(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomLeft', // Use the corner...
+				target: 'topRight' // ...and opposite corner
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		},
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+	});
+}
+function requiredMessageShowElement(element,content)
+{
+	$(element).qtip({
+		content: '<lable>'+content+'</lable>', // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			adjust: {
+				resize: true,
+				scroll: true
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'light' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+
+function requiredMessageShowObject(object,content)
+{
+	$(object).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+/**
+ * @name: showErrorMessage()
+ * @author: vimal kr.
+ * @date 17 Apr 2012
+ * @param strErrorText : Error text which is to be displayed
+ * @param intTimeInterval : time( in sec)  to hide the message
+ */
+function showErrorMessage(strErrorText,intTimeInterval) {
+
+	$('.response-widget').find('p').html('<span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>'+strErrorText);
+	$('.response-widget').show();
+	setTimeout('$(".response-widget").hide("slow")',intTimeInterval);
+	$('.responsebar').html(strErrorText);
+	$('.responsebar').addClass('error');
+	setTimeout('$(".responsebar").removeClass("error")',intTimeInterval);
+}
+
+/**
+ * @name: showSuccessMessage()
+ * @author: vimal kr.
+ * @date 17 Apr 2012
+ * @param strErrorText : Success text which is to be displayed
+ * @param intTimeInterval : time( in sec)  to hide the message
+ */
+function showSuccessMessage(strSuccessText,intTimeInterval) {
+	//alert("In success");
+	$('.response-widget').find('p').html('<span class="ui-icon ui-icon-check" style="float: left; margin-right: .3em;"></span>'+strSuccessText);
+	$('.response-widget').show();
+	setTimeout('$(".response-widget").hide("slow")',intTimeInterval);
+	$('.responsebar').html(strSuccessText);
+	$('.responsebar').addClass('success');
+	setTimeout('$(".responsebar").removeClass("success")',intTimeInterval);
+	
+	$('.responsebar-post').html(strSuccessText);
+	$('.responsebar-post').addClass('success-post');
+	setTimeout('$(".responsebar-post").removeClass("success-post")',intTimeInterval);
+}
+
+function showInformation(strInfoText,intTimeInterval) {
+	$('.response-widget').find('p').html('<span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'+strInfoText);
+	$('.response-widget').show();
+	setTimeout('$(".response-widget").hide("slow")',intTimeInterval);
+	$('.responsebar').html(strInfoText);
+	$('.responsebar').addClass('info');
+	setTimeout('$(".responsebar").removeClass("info")',intTimeInterval);
+}
+
+
+
+/**
+ * 
+ * @param amount should be of type string
+ * @returns
+ */
+function commaFormatted(amount)
+{
+	var delimiter = ","; // replace comma if desired
+	var a = amount.split('.',2);
+	var d = a[1];
+	var i = parseInt(a[0]);
+	if(isNaN(i)) { return ''; }
+	var minus = '';
+	if(i < 0) { minus = '-'; }
+	i = Math.abs(i);
+	var n = new String(i);
+	var a = [];
+	while(n.length > 3)
+	{
+		var nn = n.substr(n.length-3);
+		a.unshift(nn);
+		n = n.substr(0,n.length-3);
+	}
+	if(n.length > 0) { a.unshift(n); }
+	n = a.join(delimiter);
+	if(d.length < 1) { amount = n; }
+	else { amount = n + '.' + d; }
+	amount = minus + amount;
+	return amount;
+}
+
+
+function getCurrentYearList(){
+
+	var yearList = new Array();
+	var year = parseInt(new Date().getFullYear());
+	for(var yr = year + 5 ;yr >  year - 15 ; yr--){
+		yearList.push(yr+"");
+	}
+	return yearList;
+}
+
+
+
+
+jQuery.fn.shiftSelect = function() {
+	var checkboxes = this;
+	var lastSelected;
+	var executing = false;
+	jQuery(this).click( function(event) {
+
+		if (executing)
+			return;
+
+		if ( !lastSelected ) {
+			lastSelected = this;
+			return;
+		}
+
+		if ( event.shiftKey ) {
+			var selIndex = checkboxes.index(this);
+			var lastIndex = checkboxes.index(lastSelected);
+			/*
+			 * if you find the "select/unselect" behavior unseemly,
+			 * remove this assignment and replace 'checkValue'
+			 * with 'true' below.
+			 */
+			var checkValue = lastSelected.checked;
+			if ( selIndex == lastIndex ) {
+				return true;
+			}
+			executing = true;
+			var end = Math.max(selIndex,lastIndex);
+			var start = Math.min(selIndex,lastIndex);
+			for(i=start;i<=end;i++) {
+				if (checkboxes[i].checked != checkValue)
+					$(checkboxes[i]).click();
+				$(checkboxes[i]).attr('checked','checked');
+			}
+			executing = false;
+		}
+		lastSelected = this;
+	});
+}
+
+function createEditor(id)
+{
+	var instance = CKEDITOR.instances[id];
+	if(instance)
+	{
+		/*if($('#'+id).val()=='')
+			return;
+		CKEDITOR.remove(instance);*/
+		instance.destroy(true);
+	}
+	CKEDITOR.replace(id,
+			{uiColor: '#ffffff',
+		/*  filebrowserImageBrowseUrl : "http://118.139.182.191:9080/GEMS/image", */
+		width: "95%",
+		height: "300px",
+			});
+}
+
+//by vimal
+jQuery.fn.reset = function(fn) {
+	return fn ? this.bind("reset", fn) : this.trigger("reset");
+};
+///1.required
+function numberFormatValidation(id)
+{
+	$(function(){
+		$("#"+id).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || 
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+			
+		});
+	});
+}
+/*******************
+ * Nikhil Vanjara
+ * Allow . sign with numbers
+ * @param id
+ */
+function floatNumberFormatValidation(id)
+{
+	$(function(){
+		$("#"+id).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || event.keyCode == 110 || event.keyCode == 190 ||
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+		});
+	});
+}
+
+function numberFormatValidationByClass(className)
+{
+	$(function(){
+		$("."+className).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || 
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+		});
+	});
+}
+
+function floatNumberFormatValidationByClass(className)
+{
+	$(function(){
+		$("."+className).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || event.keyCode == 110 || event.keyCode == 190 ||
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+		});
+	});
+}
+
+function eventRegistrationForEmployee(id)
+{
+	if($.session("eventMenu")!='ok' && $.session("eventMenu")!='no')
+	{
+		//alert(id);
+		$.ajax({
+			url:'eventRegistrationForEmployee.json',
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+	
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				
+				if(jArray["flag"]==1)
+				{
+					$.session("eventMenu","ok");
+						$('#'+id).show();
+						$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+				}
+				else
+				{
+					$.session("eventMenu","no");
+					$('#'+id).hide();
+					$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+				}
+			},
+			error:function()
+			{
+				
+			}
+		});
+	}
+	else if($.session("eventMenu")=='ok')
+	{
+		$('#'+id).show();
+		$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+	}
+	else
+	{
+		$('#'+id).hide();
+		$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+	}
+}
+
+function eventRegistrationForStudent(id)
+{
+	if($.session("eventMenu")!='ok' && $.session("eventMenu")!='no')
+	{
+		//alert(id);
+		$.ajax({
+			url:'eventRegistrationForStudent.json',
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+	
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				
+				if(jArray["flag"]==1)
+				{
+					$.session("eventMenu","ok");
+						$('#'+id).show();
+				}
+				else
+				{
+					$.session("eventMenu","no");
+					$('#'+id).hide();
+				}
+			},
+			error:function()
+			{
+				
+			}
+		});
+	}
+	else if($.session("eventMenu")=='ok')
+	{
+		$('#'+id).show();
+	}
+	else
+	{
+		$('#'+id).hide();
+	}
+}
+
+function startLoading(cnt){
+	if(cnt == undefined)
+		cnt= '';
+
+	$('.preview'+cnt).addClass('loading');
+}
+
+function stopLoading(cnt){
+	if(cnt == undefined)
+		cnt= '';
+	$('.preview'+cnt).removeClass('loading');
+}
+
+
+function generateBarcode(value,barcodeTargetId){
+
+	var btype = 'code 93';
+
+
+	var settings = {
+			output:'css',
+			bgColor:'inherit',
+			color: '#000000',
+			barWidth: '1',
+			barHeight: '50'
+				/* moduleSize: $("#moduleSize").val(),
+       posX: $("#posX").val(),
+       posY: $("#posY").val(),
+       addQuietZone: $("#quietZoneSize").val()*/
+	};
+	$("#"+barcodeTargetId).barcode(value, btype, settings);
+}
+function loadGEMSURL(url){
+	
+	//<iframe src="" id = "GEMSCommonIframe" width="100%" height="100%" frameborder="0"></iframe>
+	
+	$('#divGEMSHomeBody').html('<iframe src="" id = "GEMSCommonIframe" width="100%" height="100%" frameborder="0" ></iframe>');
+	$('#GEMSCommonIframe').attr('src',url);
+}
+
+
+function redirect(URL)
+{
+  document.location=URL;
+  return false;
+}
+
+/*document.body.addEventListener("click",function(e) {
+    var t = e.srcElement || e.target;
+    if( !t.tagName) t = t.parentNode;
+    if( t.tagName.toLowerCase() == "a") {
+        location.href = t.href;
+        return false;
+    }
+},false);  */  
+
+
+//dom.disable_window_status_change = false;
+/*$('document').ready(function(){
+	//alert(' document ready for mouse over');
+	$('a').mouseover(function(){
+		//alert('mouse over');
+		window.status='This is a link';
+		return false;
+	});
+
+	$('a').mouseout(function(){
+		//alert('mouse out');
+		window.status='asdfasdfas';
+		return false;
+	});
+});
+*/
+
+
+function formatRupee(num) {
+    var p = num.toFixed(2).split(".");
+    return "<span class='WebRupee'></span>" + p[0].split("").reverse().reduce(function(acc, num, i, orig) {
+        return  num + (i && !(i % 3) ? "," : "") + acc;
+    }, "") + "." + p[1];
+}
+
+function getAbsoluteURL(){
+	var fullURL = window.location.href;
+	var startIndex = fullURL.indexOf('_')+1;
+	var endIndex = fullURL.indexOf('?');
+	var url = '';
+	//alert('endIndex: '+endIndex);
+	if(endIndex == -1){
+		url = fullURL.substring(startIndex);+'</b>'
+	} else {
+		url = fullURL.substring(startIndex,endIndex);
+	}
+	//alert(url);
+	return url;
+}
+
+
+String.prototype.nthIndexOf = function(pattern, n) {
+    var i = -1;
+    while (n-- && i++ < this.length) {
+        i = this.indexOf(pattern, i);
+        if (i < 0) break;
+    }
+
+    return i;
+};
+
+function indexToChar(i){
+	return String.fromCharCode(97+i);
+}
+
+
+
+/*****
+ * @Owner: anil kateliya
+ */
+
+function showMyToolTip(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 1,
+				radius: 2
+			},
+			padding: 2, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'dark' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+
+function formatAmount(x){
+	if(x!=null && x!=undefined && x!='' && x!='-'){
+		x=x.toString();
+		var afterPoint = '';
+		if(x.indexOf('.') > 0)
+		   afterPoint = x.substring(x.indexOf('.'),x.length);
+		x = Math.floor(x);
+		x=x.toString();
+		var lastThree = x.substring(x.length-3);
+		var otherNumbers = x.substring(0,x.length-3);
+		if(otherNumbers != '')
+		    lastThree = ',' + lastThree;
+		var res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
+
+		return res;
+	}else{
+		return "-";
+	}
+}
+function requiredMessageShowByClass(className,content)
+{
+	$('.'+className).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}        4’  x4’À*   20260309231353-8l’  ≥$:N2   https://erp.cmrit.ac.in/js/normalHtmlValidation.js      äS  $(function(){
+	$('input[rel=tooltip]').tooltip();
+});
+ 
+$(function(){
+	$('a[rel=tooltip]').tooltip();
+});
+
+$(function(){
+	$('span[rel=tooltip]').tooltip();
+});
+
+var AllowedFileSize = {};
+var TypeOfSponsorship = {};
+
+$(function(){
+	AllowedFileSize = 
+						{
+							DEFAULT:1048576,//(1 MB)
+							DOCUMENT_UPLOAD:26214400,
+							DOCUMENT_UPLOAD_2MB:2000000,
+							DOCUMENT_UPLOAD_8MB:8388603,
+							DOCUMENT_UPLOAD_DISPLAY:25,
+							PROFILE_PHOTO:350000,//(350 KB) 256000
+							PROFILE_PHOTO_MIN_SIZE:10000,//(10 KB) 256000
+							PROFILE_SIGNATURE:20000,
+							SIGNATURE_MIN_SIZE:10000,
+							EXCELSHEET_UPLOAD:5242880,//(5 MB)
+							LOGO:512000,//(512 KB)
+							SIGNATURE:51200,//(50 KB)
+							PROFILE_UPLOAD_DOCUMENTS:3145728,//3 MB
+							DOCUMENT_UPLOAD_35MB:36700160,
+							DOCUMENT_UPLOAD_25MB:26214400,
+							DOCUMENT_UPLOAD_50MB:51700160,
+							DOCUMENT_UPLOAD_250MB:262144000
+						};
+	
+	
+	TypeOfSponsorship = {
+			TYPE_Gender : 'Gender',
+			TYPE_EBC : 'EBC',
+			TYPE_Category : 'Category',
+			TYPE_GenderAndCategory : 'Gender And Category',
+			TYPE_GenderAndEBC : 'Gender And EBC',
+			TYPE_EBCAndCategory : 'EBC And Category',
+	};
+});
+
+var gFileTypeIconMapping = {
+		doc:'css/icons/icon_msdoc.gif',
+		docx:'css/icons/icon_msdoc.gif',
+		xls:'css/icons/icon-xls.png',
+		xlsx:'css/icons/icon-xls.png',
+		pdf:'css/icons/icon-pdf.gif',
+		jpg:'css/icons/icon_img.png',
+		jpeg:'css/icons/icon_img.png',
+		text:'css/img/add_attachment_icon.png',
+		png:'css/icons/icon_img.png',
+		gif:'css/icons/icon_img.png',
+		xcf:'css/icons/icon_img.png',
+		ppt:'css/icons/icon_ppt.gif',
+		pptx:'css/icons/icon_ppt.gif',
+		DOC:'css/icons/icon_msdoc.gif',
+		DOCX:'css/icons/icon_msdoc.gif',
+		XLS:'css/icons/icon-xls.png',
+		XLSX:'css/icons/icon-xls.png',
+		PDF:'css/icons/icon-pdf.gif',
+		JPG:'css/icons/icon_img.png',
+		TEXT:'css/img/add_attachment_icon.png',
+		PNG:'css/icons/icon_img.png',
+		GIF:'css/icons/icon_img.png',
+		XCF:'css/icons/icon_img.png',
+		PPT:'css/icons/icon_ppt.gif',
+		PPTX:'css/icons/icon_ppt.gif',
+		folder:'css/icons/icon_folder.gif',
+		txta:'css/icons/icon_attachment.gif',
+		txt:'css/icons/Notepad_1.png',
+};
+
+
+var gFileTypeIcon = {
+		doc:'img/files/doc.png',
+		docx:'img/files/docx.png',
+		xls:'img/files/xls.png',
+		xlsx:'img/files/xlsx.png',
+		pdf:'img/files/pdf.png',
+		jpg:'img/files/jpg.png',
+		jpeg:'img/files/jpg.png',
+		text:'img/files/text.png',
+		png:'img/files/png.png',
+		gif:'img/files/gif.png',
+		xcf:'img/files/xcf.png',
+		ppt:'img/files/ppt.png',
+		pptx:'img/files/ppt.png',
+		DOC:'img/files/doc.png',
+		DOCX:'img/files/docx.png',
+		XLS:'img/files/xls.png',
+		XLSX:'img/files/xlsx.png',
+		PDF:'img/files/pdf.png',
+		JPG:'img/files/jpg.png',
+		TEXT:'img/files/text.png',
+		PNG:'img/files/png.png',
+		GIF:'img/files/gif.png',
+		XCF:'css/icons/icon_img.png',
+		PPT:'img/files/ppt.png',
+		folder:'css/icons/icon_folder.gif',
+		txta:'css/icons/icon_attachment.gif',
+		txt:'img/files/txt.png',
+		java:'img/files/java.png',
+		xml:'img/files/xml.png',
+		PPTX:'img/files/ppt.png',
+		csv:'img/files/csv.png',
+};
+
+function nthOccurrence(str,c,n) {
+	var pos = str.indexOf(c, 0);
+	while (n-- > 0 && pos != -1)
+		pos = str.indexOf(c, pos+1);
+	return pos;
+}
+
+function requiredField(id)
+{
+
+	$('#'+id).qtip({
+		content: 'Required Field is Empty!..', // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomLeft', // Use the corner...
+				target: 'topRight' // ...and opposite corner
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		},
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+	});
+}
+
+
+function loadDynamicHelp(typeuser,cont)
+{
+
+	$('#'+typeuser).html(cont);
+
+}
+
+
+function requiredMessageShow(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+function requiredMessageShowLeft(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'rightMiddle',
+				target: 'leftMiddle' // ...and opposite corner
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+
+function messageShow(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomLeft', // Use the corner...
+				target: 'topRight' // ...and opposite corner
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		},
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+	});
+}
+function requiredMessageShowElement(element,content)
+{
+	$(element).qtip({
+		content: '<lable>'+content+'</lable>', // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			adjust: {
+				resize: true,
+				scroll: true
+			}
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'light' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+
+function requiredMessageShowObject(object,content)
+{
+	$(object).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+/**
+ * @name: showErrorMessage()
+ * @author: vimal kr.
+ * @date 17 Apr 2012
+ * @param strErrorText : Error text which is to be displayed
+ * @param intTimeInterval : time( in sec)  to hide the message
+ */
+function showErrorMessage(strErrorText,intTimeInterval) {
+
+	$('.response-widget').find('p').html('<span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>'+strErrorText);
+	$('.response-widget').show();
+	setTimeout('$(".response-widget").hide("slow")',intTimeInterval);
+	$('.responsebar').html(strErrorText);
+	$('.responsebar').addClass('error');
+	setTimeout('$(".responsebar").removeClass("error")',intTimeInterval);
+}
+
+/**
+ * @name: showSuccessMessage()
+ * @author: vimal kr.
+ * @date 17 Apr 2012
+ * @param strErrorText : Success text which is to be displayed
+ * @param intTimeInterval : time( in sec)  to hide the message
+ */
+function showSuccessMessage(strSuccessText,intTimeInterval) {
+	//alert("In success");
+	$('.response-widget').find('p').html('<span class="ui-icon ui-icon-check" style="float: left; margin-right: .3em;"></span>'+strSuccessText);
+	$('.response-widget').show();
+	setTimeout('$(".response-widget").hide("slow")',intTimeInterval);
+	$('.responsebar').html(strSuccessText);
+	$('.responsebar').addClass('success');
+	setTimeout('$(".responsebar").removeClass("success")',intTimeInterval);
+	
+	$('.responsebar-post').html(strSuccessText);
+	$('.responsebar-post').addClass('success-post');
+	setTimeout('$(".responsebar-post").removeClass("success-post")',intTimeInterval);
+}
+
+function showInformation(strInfoText,intTimeInterval) {
+	$('.response-widget').find('p').html('<span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>'+strInfoText);
+	$('.response-widget').show();
+	setTimeout('$(".response-widget").hide("slow")',intTimeInterval);
+	$('.responsebar').html(strInfoText);
+	$('.responsebar').addClass('info');
+	setTimeout('$(".responsebar").removeClass("info")',intTimeInterval);
+}
+
+
+
+/**
+ * 
+ * @param amount should be of type string
+ * @returns
+ */
+function commaFormatted(amount)
+{
+	var delimiter = ","; // replace comma if desired
+	var a = amount.split('.',2);
+	var d = a[1];
+	var i = parseInt(a[0]);
+	if(isNaN(i)) { return ''; }
+	var minus = '';
+	if(i < 0) { minus = '-'; }
+	i = Math.abs(i);
+	var n = new String(i);
+	var a = [];
+	while(n.length > 3)
+	{
+		var nn = n.substr(n.length-3);
+		a.unshift(nn);
+		n = n.substr(0,n.length-3);
+	}
+	if(n.length > 0) { a.unshift(n); }
+	n = a.join(delimiter);
+	if(d.length < 1) { amount = n; }
+	else { amount = n + '.' + d; }
+	amount = minus + amount;
+	return amount;
+}
+
+
+function getCurrentYearList(){
+
+	var yearList = new Array();
+	var year = parseInt(new Date().getFullYear());
+	for(var yr = year + 5 ;yr >  year - 15 ; yr--){
+		yearList.push(yr+"");
+	}
+	return yearList;
+}
+
+
+
+
+jQuery.fn.shiftSelect = function() {
+	var checkboxes = this;
+	var lastSelected;
+	var executing = false;
+	jQuery(this).click( function(event) {
+
+		if (executing)
+			return;
+
+		if ( !lastSelected ) {
+			lastSelected = this;
+			return;
+		}
+
+		if ( event.shiftKey ) {
+			var selIndex = checkboxes.index(this);
+			var lastIndex = checkboxes.index(lastSelected);
+			/*
+			 * if you find the "select/unselect" behavior unseemly,
+			 * remove this assignment and replace 'checkValue'
+			 * with 'true' below.
+			 */
+			var checkValue = lastSelected.checked;
+			if ( selIndex == lastIndex ) {
+				return true;
+			}
+			executing = true;
+			var end = Math.max(selIndex,lastIndex);
+			var start = Math.min(selIndex,lastIndex);
+			for(i=start;i<=end;i++) {
+				if (checkboxes[i].checked != checkValue)
+					$(checkboxes[i]).click();
+				$(checkboxes[i]).attr('checked','checked');
+			}
+			executing = false;
+		}
+		lastSelected = this;
+	});
+}
+
+function createEditor(id)
+{
+	var instance = CKEDITOR.instances[id];
+	if(instance)
+	{
+		/*if($('#'+id).val()=='')
+			return;
+		CKEDITOR.remove(instance);*/
+		instance.destroy(true);
+	}
+	CKEDITOR.replace(id,
+			{uiColor: '#ffffff',
+		/*  filebrowserImageBrowseUrl : "http://118.139.182.191:9080/GEMS/image", */
+		width: "95%",
+		height: "300px",
+			});
+}
+
+//by vimal
+jQuery.fn.reset = function(fn) {
+	return fn ? this.bind("reset", fn) : this.trigger("reset");
+};
+///1.required
+function numberFormatValidation(id)
+{
+	$(function(){
+		$("#"+id).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || 
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+			
+		});
+	});
+}
+/*******************
+ * Nikhil Vanjara
+ * Allow . sign with numbers
+ * @param id
+ */
+function floatNumberFormatValidation(id)
+{
+	$(function(){
+		$("#"+id).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || event.keyCode == 110 || event.keyCode == 190 ||
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+		});
+	});
+}
+
+function numberFormatValidationByClass(className)
+{
+	$(function(){
+		$("."+className).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || 
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+		});
+	});
+}
+
+function floatNumberFormatValidationByClass(className)
+{
+	$(function(){
+		$("."+className).keydown(function(event) {
+			// Allow: backspace, delete, tab and escape
+			//alert(event.keyCode);
+			if ( event.keyCode == 46 || event.keyCode == 8 || event.keyCode == 9 || event.keyCode == 27 || event.keyCode == 110 || event.keyCode == 190 ||
+					// Allow: Ctrl+A
+					(event.keyCode == 65 && event.ctrlKey === true) || 
+					// Allow: home, end, left, right
+					(event.keyCode >= 35 && event.keyCode <= 39)) {
+				// let it happen, don't do anything
+				return;
+			}
+			else {
+				// Ensure that it is a number and stop the keypress
+				if ((event.keyCode < 48 || event.keyCode > 57) && (event.keyCode < 96 || event.keyCode > 105 )) {
+					event.preventDefault(); 
+				}   
+			}
+		});
+	});
+}
+
+function eventRegistrationForEmployee(id)
+{
+	if($.session("eventMenu")!='ok' && $.session("eventMenu")!='no')
+	{
+		//alert(id);
+		$.ajax({
+			url:'eventRegistrationForEmployee.json',
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+	
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				
+				if(jArray["flag"]==1)
+				{
+					$.session("eventMenu","ok");
+						$('#'+id).show();
+						$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+				}
+				else
+				{
+					$.session("eventMenu","no");
+					$('#'+id).hide();
+					$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+				}
+			},
+			error:function()
+			{
+				
+			}
+		});
+	}
+	else if($.session("eventMenu")=='ok')
+	{
+		$('#'+id).show();
+		$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+	}
+	else
+	{
+		$('#'+id).hide();
+		$('#EVENTS').menu({ content: $('#EVENTS').next().html(), flyOut: true });
+	}
+}
+
+function eventRegistrationForStudent(id)
+{
+	if($.session("eventMenu")!='ok' && $.session("eventMenu")!='no')
+	{
+		//alert(id);
+		$.ajax({
+			url:'eventRegistrationForStudent.json',
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+	
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				
+				if(jArray["flag"]==1)
+				{
+					$.session("eventMenu","ok");
+						$('#'+id).show();
+				}
+				else
+				{
+					$.session("eventMenu","no");
+					$('#'+id).hide();
+				}
+			},
+			error:function()
+			{
+				
+			}
+		});
+	}
+	else if($.session("eventMenu")=='ok')
+	{
+		$('#'+id).show();
+	}
+	else
+	{
+		$('#'+id).hide();
+	}
+}
+
+function startLoading(cnt){
+	if(cnt == undefined)
+		cnt= '';
+
+	$('.preview'+cnt).addClass('loading');
+}
+
+function stopLoading(cnt){
+	if(cnt == undefined)
+		cnt= '';
+	$('.preview'+cnt).removeClass('loading');
+}
+
+
+function generateBarcode(value,barcodeTargetId){
+
+	var btype = 'code 93';
+
+
+	var settings = {
+			output:'css',
+			bgColor:'inherit',
+			color: '#000000',
+			barWidth: '1',
+			barHeight: '50'
+				/* moduleSize: $("#moduleSize").val(),
+       posX: $("#posX").val(),
+       posY: $("#posY").val(),
+       addQuietZone: $("#quietZoneSize").val()*/
+	};
+	$("#"+barcodeTargetId).barcode(value, btype, settings);
+}
+function loadGEMSURL(url){
+	
+	//<iframe src="" id = "GEMSCommonIframe" width="100%" height="100%" frameborder="0"></iframe>
+	
+	$('#divGEMSHomeBody').html('<iframe src="" id = "GEMSCommonIframe" width="100%" height="100%" frameborder="0" ></iframe>');
+	$('#GEMSCommonIframe').attr('src',url);
+}
+
+
+function redirect(URL)
+{
+  document.location=URL;
+  return false;
+}
+
+/*document.body.addEventListener("click",function(e) {
+    var t = e.srcElement || e.target;
+    if( !t.tagName) t = t.parentNode;
+    if( t.tagName.toLowerCase() == "a") {
+        location.href = t.href;
+        return false;
+    }
+},false);  */  
+
+
+//dom.disable_window_status_change = false;
+/*$('document').ready(function(){
+	//alert(' document ready for mouse over');
+	$('a').mouseover(function(){
+		//alert('mouse over');
+		window.status='This is a link';
+		return false;
+	});
+
+	$('a').mouseout(function(){
+		//alert('mouse out');
+		window.status='asdfasdfas';
+		return false;
+	});
+});
+*/
+
+
+function formatRupee(num) {
+    var p = num.toFixed(2).split(".");
+    return "<span class='WebRupee'></span>" + p[0].split("").reverse().reduce(function(acc, num, i, orig) {
+        return  num + (i && !(i % 3) ? "," : "") + acc;
+    }, "") + "." + p[1];
+}
+
+function getAbsoluteURL(){
+	var fullURL = window.location.href;
+	var startIndex = fullURL.indexOf('_')+1;
+	var endIndex = fullURL.indexOf('?');
+	var url = '';
+	//alert('endIndex: '+endIndex);
+	if(endIndex == -1){
+		url = fullURL.substring(startIndex);+'</b>'
+	} else {
+		url = fullURL.substring(startIndex,endIndex);
+	}
+	//alert(url);
+	return url;
+}
+
+
+String.prototype.nthIndexOf = function(pattern, n) {
+    var i = -1;
+    while (n-- && i++ < this.length) {
+        i = this.indexOf(pattern, i);
+        if (i < 0) break;
+    }
+
+    return i;
+};
+
+function indexToChar(i){
+	return String.fromCharCode(97+i);
+}
+
+
+
+/*****
+ * @Owner: anil kateliya
+ */
+
+function showMyToolTip(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 1,
+				radius: 2
+			},
+			padding: 2, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'dark' // Style it according to the preset 'cream' style
+		}
+
+	});
+}
+
+function formatAmount(x){
+	if(x!=null && x!=undefined && x!='' && x!='-'){
+		x=x.toString();
+		var afterPoint = '';
+		if(x.indexOf('.') > 0)
+		   afterPoint = x.substring(x.indexOf('.'),x.length);
+		x = Math.floor(x);
+		x=x.toString();
+		var lastThree = x.substring(x.length-3);
+		var otherNumbers = x.substring(0,x.length-3);
+		if(otherNumbers != '')
+		    lastThree = ',' + lastThree;
+		var res = otherNumbers.replace(/\B(?=(\d{2})+(?!\d))/g, ",") + lastThree + afterPoint;
+
+		return res;
+	}else{
+		return "-";
+	}
+}
+function requiredMessageShowByClass(className,content)
+{
+	$('.'+className).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+			/*adjust: {
+                resize: true,
+                scroll: true
+             }*/
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 5,
+				radius: 10
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue' // Style it according to the preset 'cream' style
+		}
+
+	});
+}”ò¿Ÿ-  %       ^ÃœE      input[rel=tooltip]     /}ø8      tooltip    ≠YÈÿ      a[rel=tooltip]      55ë      span[rel=tooltip]      ⁄ëh`      AllowedFileSize    ™—‹d      TypeOfSponsorship      Ÿa˘Ï      DEFAULT    &      DOCUMENT_UPLOAD    ™∞      DOCUMENT_UPLOAD_2MB	    ÀeÇÿ      DOCUMENT_UPLOAD_8MB
+    ˜Ys      DOCUMENT_UPLOAD_DISPLAY    ∫	/¨      PROFILE_PHOTO      Û‡`      PROFILE_PHOTO_MIN_SIZE     Ëm8      PROFILE_SIGNATURE      uÓ b      SIGNATURE_MIN_SIZE     ¢€ö      EXCELSHEET_UPLOAD      Ê∑≈      LOGO    ü]V	      SIGNATURE      ∆3x      PROFILE_UPLOAD_DOCUMENTS   ≥M∏)      DOCUMENT_UPLOAD_35MB   á ÑL      DOCUMENT_UPLOAD_25MB   h>^‡      DOCUMENT_UPLOAD_50MB   W€Ñb      DOCUMENT_UPLOAD_250MB      —õK      TYPE_Gender    à€y.      Gender     ©Üÿ      TYPE_EBC   ’ÿã      EBC    ‚ƒè      TYPE_Category      Â,Km      Category   ÍMÚL      TYPE_GenderAndCategory     dÑnà      Gender And Category    »¿≈„      TYPE_GenderAndEBC       ∏ﬂ Ó      Gender And EBC!     ó˙W’      TYPE_EBCAndCategory"    <Jó      EBC And Category#   ]Ï„–      gFileTypeIconMapping$   ?U3      doc%    pæ†‹      css/icons/icon_msdoc.gif&   ŒÃìL      docx'   ÓMUe      xls(    —ì$˘      css/icons/icon-xls.png)     + i      xlsx*   ewÓ      pdf+    ]OØW      css/icons/icon-pdf.gif,     ú⁄t      jpg-    1/ÇÊ      css/icons/icon_img.png.     ÈÅ¡ô      jpeg/   à3¿µ      text0   
+&u¯      css/img/add_attachment_icon.png1    ñƒ$=      png2    Eo®Á      gif3    <Âe      xcf4    Úvøç      ppt5    =Thl      css/icons/icon_ppt.gif6     °Ïn€      pptx7   DöÄ      DOC8    ®œ*      DOCX9   @V¸      XLS:    
+SS      XLSX;   Û1¶•      PDF<    jâ∆Ç      JPG=    ¥ÿ;é      TEXT>   @6ˇæ      PNG?    åGëΩ      GIF@    jB‰X      XCFA    Â_N      PPTB    )≥˛≥      PPTXC   =—Ô⁄      folderD     ‰¸õf      css/icons/icon_folder.gifE      ïº¨      txtaF   û–o      css/icons/icon_attachment.gifG      æÇÅÂ      txtH    È…ù°      css/icons/Notepad_1.pngI    ßº8∆      gFileTypeIconJ      Er™e      img/files/doc.pngK      P±¢>      img/files/docx.pngL     6ﬂN      img/files/xls.pngM      ñ⁄	      img/files/xlsx.pngN     ≥Íø8      img/files/pdf.pngO      ˆ…})      img/files/jpg.pngP      ﬂäÀW      img/files/text.pngQ     +\      img/files/png.pngR      ™∏∂<      img/files/gif.pngS      Tiò?      img/files/xcf.pngT      ”ûïÜ      img/files/ppt.pngU      Ÿl9°      img/files/txt.pngV      4√ïS      javaW   ∫ù¸5      img/files/java.pngX     ç~s˜      xmlY    Ãú»      img/files/xml.pngZ      h›â      csv[    %0Ñ      img/files/csv.png\      'jé      nthOccurrence]      Ñ6¶1      str^    U,2ñ      pos_    ⁄Eú¡      indexOf`    N∆∑      requiredFielda      Of°      qtipb   4W»      contentc    Ó°¢      Required Field is Empty!..d     »Åí      positione   |f§      cornerf     ´Ï7
+      bottomLeftg     çbÚï      topRighth   HáíK      showi   €ÖlÍ      whenj   ¢Ñ
+      readyk      üvÙ}      hidel   å≤ÜX      fixedm      πÛp·      bordern     ÎƒJ˚      widtho      R†t9      radiusp     /·´B      paddingq    ì˙@	      textAlignr      rLtö      centers     J!ŸÍ      tipt    õ‹!k      blueu   =\/:      loadDynamicHelpv    w(ö«      typeuserw   …·¥≥      contx   ‘„X      htmly   .Ç•      requiredMessageShowz    ^è@∏      bottomMiddle{   Ü¶Óà	      topMiddle|      åYú+      requiredMessageShowLeft}    Â`À      rightMiddle~    1`
+      leftMiddle     ÚD®…      messageShowÄ    ‡Iàå      requiredMessageShowElementÅ     ÃÜâΩ      <lable>Ç    Ÿ¸Ê      </lable>É   ≤ä±≤      adjustÑ     ?/$_      resizeÖ     \z˚      scrollÜ     "q˚D      lightá      7Â∂^      requiredMessageShowObjectà      w›ûÏ      showErrorMessageâ   j•@      strErrorTextä   yÑSú      intTimeIntervalã    «˝‡      .response-widgetå   ÚM±uT      <span class="ui-icon ui-icon-alert" style="float: left; margin-right: .3em;"></span>ç   3AtŸ
+      setTimeouté     h∞Óñ"      $(".response-widget").hide("slow")è     Ö c      .responsebarê   Bå|      addClassë   u◊^&      $(".responsebar").removeClass("error")í     y8g      showSuccessMessageì     £¿"˙      strSuccessTextî     Ûs
+T      <span class="ui-icon ui-icon-check" style="float: left; margin-right: .3em;"></span>ï   …©\9      successñ    |Õ¡Ã(      $(".responsebar").removeClass("success")ó   Ú·`      .responsebar-postò      ’F•      success-postô   «Àù˝2      $(".responsebar-post").removeClass("success-post")ö     a˛4Á      showInformationõ    çt∂b      strInfoTextú    ÕO°S      <span class="ui-icon ui-icon-info" style="float: left; margin-right: .3em;"></span>ù    ¸ı‰      infoû   ;”%      $(".responsebar").removeClass("info")ü      ƒ¡ô0      commaFormatted†     ÍÄ˛w      amount°     $ﬁ"q	      delimiter¢      gZZÏ      minus£      ˛ .      abs§    6ôfÿ      substr•     Yæçl      unshift¶    Êq<†      getCurrentYearListß     µ¯¿      yearList®   %k‚5      getFullYear©    Ñu2      push™   >Â/      jQuery´     ú?      shiftSelect¨    Såm¢
+      checkboxes≠      =–û      lastSelectedÆ   ≈u·a	      executingØ      ü™‚X      click∞      II∑P      event±      ô,Åÿ      shiftKey≤   yŸ™§      selIndex≥   ô~¨y
+      checkValue¥     »:0ó      checkedµ    Kk.      max∂    €U ≥      min∑    A¢Ωê      attr∏   }…„>      createEditorπ   ‰§ÎÙ      instance∫   ë(e      CKEDITORª   El\‰	      instancesº      ŒÛ˝      destroyΩ    xWK«      uiColoræ    ˚EÅ      #ffffffø    ~Ìÿ      95%¿    ∑…≈      height¡     >S∂û      300px¬      ÛWÄπ      reset√      ‡Õ      bindƒ   ˘!p¬      trigger≈    s¡f      numberFormatValidation∆     ù∫”      keydown«    ≠5      keyCode»    
+@•&      ctrlKey…    B9∫¿      preventDefault      ≥¢Â7      floatNumberFormatValidationÀ     å÷      numberFormatValidationByClassÃ      6CY>	      classNameÕ      ¸ m+"      floatNumberFormatValidationByClassŒ     H€?%      eventRegistrationForEmployeeœ   “60¨      session–    —ŒpM	      eventMenu—      æd»ê      ajax“   ú∞	!      eventRegistrationForEmployee.json”      DoÄw      dataType‘   Ñ–ˇ
+      beforeSend’     qm+Ô      startCommonAjaxSpinner÷     Dï»á      complete◊   Ü*F      stopCommonAjaxSpinnerÿ      ı≤z      jArrayŸ     Ä≠•ù      flag⁄   õƒ‘Ø      #EVENTS€    ™€q      menu‹   ™rt¥      flyOut›     ˚œñí      eventRegistrationForStudentﬁ    Å;7       eventRegistrationForStudent.jsonﬂ    xn      startLoading‡   ê©ò∆      cnt·    ÉJ¥      .preview‚   cÅÁÙ      loading„    }≥˘      stopLoading‰    ˆ+      removeClassÂ    “;1      generateBarcodeÊ    GC[      barcodeTargetIdÁ    ™˝—e      btypeË      ™˘«â      code 93È    —ôKö      settingsÍ   [>√ˇ      outputÎ     Ê»Á      bgColorÏ    D!%,      inheritÌ    Ï
+ó      colorÓ      á)m      #000000Ô    —⁄]      barWidth   SœtÀ	      barHeightÒ      ã^¶l      barcodeÚ    ÖÜ†      loadGEMSURLÛ    dÇ,6      #divGEMSHomeBodyÙ   }∂ \      <iframe src="" id = "GEMSCommonIframe" width="100%" height="100%" frameborder="0" ></iframe>ı   ·π˛      #GEMSCommonIframeˆ      ú∑»õ      src˜    ”Fÿ      redirect¯   Z1≤H      URL˘    ∏OÄ      document˙   0+QA      location˚   ‹ÀoB      formatRupee¸    Ív.|      num˝    ÿ8ª      toFixed˛    z8œÀ      <span class='WebRupee'></span>ˇ     ∆e=?      reverse    ?ª
+      reduce    ¬èÈÑ      acc   5ï˛      orig  YéS˝      getAbsoluteURL    egò∂      fullURL   ¯2áâ      window    ª©`X      href  2íQ
+      startIndex    -œFm      endIndex	  ﬂY„	      substring
+     £•ï˛      </b>  2EW‰
+      nthIndexOf    Â7‹g      indexToChar   >¬≈      fromCharCode  eê¯Ç      showMyToolTip     îv⁄4      dark  $ )      formatAmount  #Í-å
+      afterPoint    `-Ñó      floor     ærN	      lastThree     n#ö≠      otherNumbers  ª:0      res   CkÆ      \B(?=(\d{2})+(?!\d))  Ln∏g      requiredMessageShowByClass    ≠%[$      jQuery.fn.shiftSelect     òu      jQuery.fn.shiftSelect/<   ä1‹π      jQuery.fn.reset   3ˆ`E      numberFormatValidation/<  _ª4      numberFormatValidation/</<    Gò      floatNumberFormatValidation/<     M¥ñ      floatNumberFormatValidation/</<   #[3©      numberFormatValidationByClass/<    (>N!      numberFormatValidationByClass/</<!     ≈∂)Ñ$      floatNumberFormatValidationByClass/<"  œ˙L˚&      floatNumberFormatValidationByClass/</<+    ¿∑&      formatRupee/<,     H=≠]      String.prototype.nthIndexOf     9   ∏  9   9          G   Ô%,â                                                                                                          	                  
+                                                                                                                                                                                                                                                                                                                                                             !                 "                 #                 $                 %                 &                 '                  (                  )                  *                  +                  ,                  -                  .                  /                  0                  1      *           2                  3                  5                  6                  7                  8                                                                                               5                                               4      ≥Oåc#   #   #   À  ê    êÂ  êÚ  ê¶  ê ê›  ê#  ˜  êÕ  ê∏  ê≈  êy  êﬂ  ê   ê\  ê ê|  êà  ê ê  Ä  êI  ˚  êö  ê êí  êü  ê„  êu  êŒ  ê`  ê êá  ê            ]  c  n  ^               ç              v  w               ç b               ç b               ç b               x   b                 b               â  ä               ì  ä               õ  ä              †  °  a  d  i  ¢  n  ◊               ß    õ             ç π               ç`                             ∞               ç`                             ∞               Ã  P                             ∞               Ã  P                             ∞               ç`                                             ÿ                               ç`                                             ÿ                               ‡               ‡              ˙  Ê  Á  È               Û               ¯              ¸  p                ¸  i                    Û               i               ç b              x                   Ã  b                                                                                ¨  P≠  PÆ  Pw               ∞  ≤    ≥  ~   ∏  w               ◊ w               u  n  i  w   Ø¬0∞    IÙ$KEÆ˙ö         b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o         b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o         b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o         b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o         b  d  h  k  ¿     
+     e  É     
+      ≈     
+    Ñ  Ö     
+    i  j         l          m  p  q  s  =     
+     n  o         b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o         Ω  n  ¿     #   Û  ”     ‘  ÷  ï  Ü      
+   b  ‹     
+    b  ‹     
+    b  ‹     
+    b  ‹     #    Û  ”     ‘  ÷  ï  Ü         Í  Î  Ì  Ô            b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o         b  d  h  k  ¿          e     
+       ≈     
+    i  j         l          m  p  q  s  =     
+     n  o                     U            	  
+                                            !     ¸    $  %  &  %  '  (  )  (  *  +  ,  -  .  -  /  0  1  -  2  -  3  -  4  5  6  5  7  %  8  %  9  (  :  (  ;  +  <  -  =  0  >  -  ?  -  @  -  A  5  B  5  C  D  E  F  G  H          $  J  &  K  '  L  )  M  *  N  ,  O  .  O  /  P  1  Q  2  R  3  S  4  T  6  T  7  J  8  K  9  L  :  M  ;  N  <  O  =  P  >  Q  ?  R  @  -  A  T  C  D  E  F  G  U  V  W  X  Y  B  T  Z  [  á&’™ç!´!9   8   ≥©8  ¡                 "        ﬂ   æ     o!   y ‰æ     o"   y ‰æ     o#   y ‰∫$   ;%   Õ$   ‰∫&   ;'   Õ&   ‰æ     o(   y ‰∫)   <*   Õ)   ‰∫+   <,   Õ+   ‰æ-   L.   o/   N0   ‰æ-   L.   o1   N2   ‰æ3   L4   o5   N6   ‰ßeˇˇˇˇP4`ˇˇˇˇP4`ˇˇˇˇPDe+e;`ˇˇˇˇPD0eKPe;Ä •`ï0Ä ‡`ï0Ä 	`ï@Ä vPÄH   ˆåH                             æ       u ÊL   Èy  ‰ß `P
+PPÄÄH   1oªH                             æ       u ÊL   Èy  ‰ß `P
+PPÄÄH   ÈÌH                             æ       u ÊL   Èy  ‰ß `P
+PPÄÄT  TΩÒGT  ı                          ∫   ;   	  >     ê>   	ÄÑ>   	˚ˇ>   >   	0W>   '>	    N>
+   '>   	  P>   	 –>    »>   	  0>     0>     ê>   ¿·>     †>   Õ   ‰∫   ;      >      >      >      >      >       >!   Õ   ‰ß `%)*))')((())()***ê@`******ê0PÄÄÄÃ   NJŸ<º   t                       ø  ÊL   Èø u –   ‰ö   ø 2Ê+œ ‰ û   ô   ‰¡   ˇô   ú*   ô   ø  ÊL   Èø ¡   (u –   ‰õ≤ˇˇˇô   ¡   §ß `
+ˇˇˇ¯P(	f≠ `
+ˇˇˇıPí `QÄÃ             S      b   æ                         æ       ø  (u ÊL   È;      >   ;   ;   	   >
+      >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>      >   >      >    >!   y ‰ß@`ˇˇˇ˚P
+%*%%*î@%&K%K%%'L'*&OP4P\   ÖÀF\   !                         æ       ø  (u ÊL   Èø y ‰ß@`ˇˇˇ˚P
+ˇˇˇ˚P4P   ∑t   º                         æ       ø  (u ÊL   È;   ø >   ;   ;      >	   
+   >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>      >   >      >   >    y ‰ß `ˇˇˇ˚P
+%(%%*î@%&K%K%%'L'*&OP4"PÄÄÄ   Où   º                         æ       ø  (u ÊL   È;   ø >   ;   ;      >	   
+   >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>      >   >      >   >    y ‰ß `ˇˇˇ˚P
+%(%%*î@
+%&K%K%%'L'*&OP4PÄÄÄ   ÄSF   º                         æ       ø  (u ÊL   È;   ø >   ;   ;      >	   
+   >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>      >   >      >   >    y ‰ß `ˇˇˇ˚P
+%(%%*î@
+%&K%K%%'L'*&OP4PÄÄÄ@  yc@  ÿ                  #       æ    ø  u ÊL   È;      ø (   (>   ;   ;   	   >
+      >   >   ;   >   >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>       >!   >"   #   >$   >%   y ‰ß `ˇˇˇˇP
+%/%%*O	%&ê@%&K%K%%'L'*&OP4"P  2582  ∂                         æ    ø  u ÊL   È;   ø >   ;   ;      >   	   >
+   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>      >   >      >   >   y ‰ß `ˇˇˇˇP
+%(%%*î@%&K%K%%'L'*&OP4"PÄÄÄ  Pç≈  ©                         æ       u ÊL   È   u ÊL   È   ø  (y ‰æ       u ÊL   Èy  ‰æ    	   ø y ‰æ    
+   u ÊL   Èø  y ‰æ    
+   u ÊL   È   y ‰æ       ø y ‰ß@`PP
+Wˇˇˇ§P$`P
+P$`0ˇˇˇ⁄P$`P
+ˇˇˇ˚P$`PP$`4ˇˇˇ÷PPÄÄà  .sà  ı                  !       æ       u ÊL   È   u ÊL   È   ø  (y ‰æ       u ÊL   Èy  ‰æ    	   ø y ‰æ    
+   u ÊL   Èø  y ‰æ    
+   u ÊL   È   y ‰æ       ø y ‰æ       u ÊL   Èø  y ‰æ       u ÊL   È   y ‰æ       ø y ‰ß@`PP
+Wˇˇˇ§P$`P
+P$`0ˇˇˇ⁄P$`P
+ˇˇˇ˚P$`PP$`6ˇˇˇ‘PD	`P
+ˇˇˇ˚P$`PP$`@ˇˇˇ PPÄÄÄ  î™!  ©                         æ       u ÊL   È   u ÊL   È   ø  (y ‰æ       u ÊL   Èy  ‰æ    	   ø y ‰æ    
+   u ÊL   Èø  y ‰æ    
+   u ÊL   È   y ‰æ       ø y ‰ß `PP
+Vˇˇˇ•P$`P
+P$`0ˇˇˇ⁄P$`P
+ˇˇˇ˚P$`PP$`3ˇˇˇ◊PPÄÄÄ¨  ì÷ûú  —                +         –   ‰ø  ÊL   È   u –  ‰¡  M–  ‰æ    ¡  Mu –  ‰æ    ¡  u ú   ô	      §ô	      –  ‰¡  ú   ô      –  ‰ô   æ   ÊL	   È¡  u –  ‰æ
+   Ç¡  Ë  É –  ‰j    –  ‰ö   ¡  L    úa   ô   ¡  ÊL   È¡  L   )u –  ‰¡  ÊL   È¡  y ‰¡  ÊL   È¡  L   )u –  ‰õíˇˇˇô   ¡  L    ú   ô!   ¡  ÊL   È¡  y ‰ô#   ¡  ÊL   È¡   u –  ‰¡  L   ú   ô(   ¡  œ  ‰õ   ô(   ¡     (¡  (œ  ‰ô*   ¡  ø  (œ  ‰ø  §ß `*
+`ë P(
+`+
+`	ˇˇˇˇP(`ˇˇˇˇP`5F`*`ê 	`/`ˇˇˇ¸P(
+`ˇˇˇı(
+`*fñ `	ˇˇˇ˘P(`
+ˇˇˇ¯P$`ˇˇˇ˜Pí@`ï `
+ˇˇˇ¯P)`ˇˇˇ˚P(`ï `í 	`
+.`(`QÄ¨         ≈   s      ﬁ˜U   ì                        æ   ÇË  É  –   ‰æ    æ   ÇË  É  ÊL   Èu  u –  ‰¡  (–  ‰ö	   ¡  ¡  ) ú3   ô   ¡   ÊL   È¡     (y ‰¡  2+–  ‰õ¿ˇˇˇô   ¡   §ß@`í `	Z
+PˇˇˇÙP( 	`
+fí `
+ˇˇˇ˚PD+`ï@`QÄÄÄ          C   E   x   äûïx   7                        „–   ‰¡   —    ‰—    ‰æ    ¡   u ÊL   Èo   y ‰ß&` `(`ˇˇˇˇP
+ˇˇˇ˘P4&PÄÄÄê  mF§∞Ä  º        
+       ,      „–  ‰ƒ    ú   ô    §ô   ƒ    ù   ô   ¡  —    ‰ §ô   ø  L   úd  ô   ƒ    ÊL   È¡  u –   ‰ƒ    ÊL   Èƒ    u –  ‰ƒ    L   –  ‰¡   ¡  ú   ô   §ô   —    ‰æ   ÊL   È¡   ¡  u –  ‰æ   ÊL   È¡   ¡  u –  ‰∫   ¡  Õ   ‰ö   æ   ¡  !úê   ô   ƒ    æ   ML   ¡  ú*   ô   æ    ƒ    æ   Mu ÊL	   Èy  ‰ô!   æ    ƒ    æ   Mu ÊL
+   È      y ‰∫   æ   2*Õ   ‰õeˇˇˇô,   —    ‰ô,   ¡  —    ‰ßF`ê `A!F`ê `+`A!F
+`í `ˇˇˇ˙P(`ˇˇˇ˙PH`ê 	`/`A!F`(`		ˇˇˇÛP(`		ˇˇˇÛP(`f/	`ë /`ˇˇˇˇP
+P)`ˇˇˇˇPî PD`ú@`M `+PÄÄê         ˛   †   ¥   €≤·≈¥   m                        æ   L   ø  M–   ‰¡   ú   ô   ¡   ÊL   Èy ‰ô   æ   ÊL   Èø  ;      >      >	   
+   >   y ‰ß `ì `@`	PI
+`#J*J
+P4PÄ   mûT…Ä   M                       „–   ‰ø  ú%   ô   ¡   ÊL   È   ø  u õ   ô   ¡   ÊL   È   u ô   §ß&`ù ˇˇˇÚPù PQL   Ä‘$‡L      
+                     ¿  —    ‰æ    o   y ‰ß `ˇˇˇˇP4PÄÄ`   —ΩÂ!`   &                          æ       ƒ    (u ÊL   Èo   y ‰ß `ˇˇˇ˚P
+ˇˇˇ¯PDPÄ  "9üÄ  :                 %       ø  L   .üü   ô   ‰ø  L   üâ   ô   ‰ø  L   	üs   ô	   ‰ø  L   ü]   ô   ‰ø  L   Aû   ô   ‰ø  L   ô   ü,   ô   ‰ø  L   #"û   ô   ‰ø  L   '!ô   ú   ô    §õy   ô   ø  L   0ü   ô   ‰ø  L   9 ô   û,   ô   ‰ø  L   `ü   ô    ‰ø  L   i ô"   ú   ô#   ø  ÊL   Èy  ‰ô%   ß@	`ÿ0±0∞@	`A;@
+`· `
+PIPÄÄL   9ˆL      
+                     ¿  —    ‰æ    o   y ‰ß `ˇˇˇˇP4PÄÄ`   —Ã9¶`   &                          æ       ƒ    (u ÊL   Èo   y ‰ß `ˇˇˇ˚P
+ˇˇˇ¯PDP¨  9gå¨  g                 +       ø  L   .üÃ   ô   ‰ø  L   ü∂   ô   ‰ø  L   	ü†   ô	   ‰ø  L   üä   ô   ‰ø  L   nüt   ô   ‰ø  L   æ ü]   ô   ‰ø  L   Aû   ô   ‰ø  L   ô   ü,   ô   ‰ø  L   #"û   ô   ‰ø  L   '!ô   ú   ô    §õy   ô   ø  L   0ü   ô    ‰ø  L   9 ô"   û,   ô#   ‰ø  L   `ü   ô&   ‰ø  L   i ô(   ú   ô)   ø  ÊL   Èy  ‰ô+   ß@	`ˇ6±0∞@	`A;@
+`· `
+PIPÄL   9ˆL      
+                     ¿  —    ‰æ    o   y ‰ß `ˇˇˇˇP4PÄÄ`   èI2ø`   &                          æ       ƒ    (u ÊL   Èo   y ‰ß `ˇˇˇ˚P
+ˇˇˇ¯PDPÄ  ”ú¨Ä  :                 %       ø  L   .üü   ô   ‰ø  L   üâ   ô   ‰ø  L   	üs   ô	   ‰ø  L   ü]   ô   ‰ø  L   Aû   ô   ‰ø  L   ô   ü,   ô   ‰ø  L   #"û   ô   ‰ø  L   '!ô   ú   ô    §õy   ô   ø  L   0ü   ô   ‰ø  L   9 ô   û,   ô   ‰ø  L   `ü   ô    ‰ø  L   i ô"   ú   ô#   ø  ÊL   Èy  ‰ô%   ß@	`ÿ0±0∞@	`A;@
+`· `
+PIPÄÄL   9ˆL      
+                     ¿  —    ‰æ    o   y ‰ß `ˇˇˇˇP4PÄÄ`   èI2ø`   &                          æ       ƒ    (u ÊL   Èo   y ‰ß `ˇˇˇ˚P
+ˇˇˇ¯PDP¨  9gå¨  g                 +       ø  L   .üÃ   ô   ‰ø  L   ü∂   ô   ‰ø  L   	ü†   ô	   ‰ø  L   üä   ô   ‰ø  L   nüt   ô   ‰ø  L   æ ü]   ô   ‰ø  L   Aû   ô   ‰ø  L   ô   ü,   ô   ‰ø  L   #"û   ô   ‰ø  L   '!ô   ú   ô    §õy   ô   ø  L   0ü   ô    ‰ø  L   9 ô"   û,   ô#   ‰ø  L   `ü   ô&   ‰ø  L   i ô(   ú   ô)   ø  ÊL   Èy  ‰ô+   ß@	`ˇ6±0∞@	`A;@
+`· `
+PIPÄt  B °t  √  
+              B       ¿  —    ‰æ   ÊL   È   u    û%   ô   ‰æ   ÊL   È   u    ô	   úf   ô
+   æ   ÊL   È;      >	   
+   >   >   o   >   o   >   o   >   o   >   y ‰õ  ô   æ   ÊL   È   u    úz   ô   æ       ƒ    (u ÊL   Èy  ‰æ       u ÊL   È;   æ       u ÊL   Èu  ÊL   Èu  >   >   y ‰õu   ô0   æ       ƒ    (u ÊL   Èy  ‰æ       u ÊL   È;   æ       u ÊL   Èu  ÊL   Èu  >   >   y ‰ôB   ß `ë P•  Pò@`%**&JJJJPN%
+`ë Pì `ˇˇˇ˚P
+	P$`P
+	P
+P
+Pˇˇˇ‘P>+ `ˇˇˇ˚P
+	P$`P
+	P
+P
+Pˇˇˇ‘P9/PÄÄ4   *¥µ™4                             æ    y  ‰ß `JPÄ4   »∆aÚ4                             æ    y  ‰ß `*PÄÄ¿  WÙ¿  .                 -       ø  L   úî   ô   æ   ÊL   È      y ‰æ       ƒ    (u ÊL   Èy  ‰æ       u ÊL	   È;
+   æ       u ÊL   Èu  ÊL   Èu  >   >   y ‰õè   ô   æ   ÊL   È      y ‰æ       ƒ    (u ÊL   Èy  ‰æ       u ÊL	   È;   æ       u ÊL   Èu  ÊL   Èu  >   >   y ‰ô-   ß@`î `ñ P$`ˇˇˇ˚P
+	P$`P
+	P
+P
+Pˇˇˇ‘P>	 `ñ P$`ˇˇˇ˚P
+	P$`P
+	P
+P
+Pˇˇˇ‘PIPÄ(   È$ò6(                               ß@ÄÄ®  üøt®  -  
+              (       ¿  —    ‰æ   ÊL   È   u    û%   ô   ‰æ   ÊL   È   u    ô	   úf   ô
+   æ   ÊL   È;      >	   
+   >   >   o   >   o   >   o   >   o   >   y ‰õx   ô   æ   ÊL   È   u    ú/   ô   æ       ƒ    (u ÊL   Èy  ‰õ*   ô#   æ       ƒ    (u ÊL   Èy  ‰ô(   ß `ë P•  Pò@`%**&JJJJPN#
+`ë Pì `ˇˇˇ˚P
+	P>( `ˇˇˇ˚P
+	P9+PÄÄ4   *¥µ™4                             æ    y  ‰ß `JPÄ4   »∆aÚ4                             æ    y  ‰ß `*PÄÄÙ   >J™*Ù   ò                         ø  L   úI   ô   æ   ÊL   È      y ‰æ       ƒ    (u ÊL   Èy  ‰õD   ô   æ   ÊL   È      y ‰æ       ƒ    (u ÊL	   Èy  ‰ô   ß@`î `ñ P$`ˇˇˇ˚P
+	P> `ñ P$`ˇˇˇ˚P
+	PIPÄ(   È$ò6(                               ß@ÄÄ|   Jè*|   @                         ø   ú   ô      œ  ‰ô   æ       ø  (u ÊL   È   y ‰ß `,`N`ˇˇˇÙPPP|   ¡ûÁò|   @                         ø   ú   ô      œ  ‰ô   æ       ø  (u ÊL   È   y ‰ß `,`.`ˇˇˇÙPPPÄ¿   u°·¿   o                           –   ‰;      >      >      >   	   >
+      >   –  ‰æ       ø (u ÊL   Èø  ¡   ¡  y ‰ß@`J`%****O`ˇˇˇ˚P
+ˇˇˇÍPPÄÄ|   ¿€i|   @                         æ       u ÊL   È   y ‰æ       u ÊL   È   ø  y ‰ß@`PP$`P!ˇˇˇıPPÄ<   _1Òå<                            æ   ø  N   ‰§ß `.`QÄ∞   ÎC$∞   k                        ø  ÊL   Èu ÊL   È   u –   ‰   ¡   MÊL   È   u ÊL   Èu  ÊL   Èo      u (   (¡   M(§ß `PP(`*í P
+
+P
+5EHPDQÄÄx   v–ªnx   G                         ø ø û   ô   ‰ø .ô   ú   ô      õ   ô      ô   (ø  (§ß 	`∞ $QÄÄÄ  ö™Gê  Ø                         æ   L   L   –   ‰¡   ÊL   È   u (–  ‰¡   ÊL   È   u –  ‰   –  ‰¡  ˇú-   ô
+   ¡   ÊL   È¡  u –  ‰	   ‰õ%   ô   ¡   ÊL   È¡  ¡  u –  ‰ô   ¡  §ß `î `ê P*`ê P(`J`ë `ˇˇˇˆP`ë `ˇˇˇÎPM`QÄÄÄÏ   wıö¿‹   ë                      „–  ‰ˇ–   ‰ö    ø 2Ê+œ ‰û!   ô   ‰¡   2Ê*–   ‰¡  L   ô   úC   ô   ¡  ÊL   Èø  ¡   u –   ‰¡   ú   ô   õ   ô   õåˇˇˇô   ¡   §ß&`'f° ô 	`	ˇˇˇÔP(`ê `î@`QÄÏ             y   H   S©ç/H                            æ   ÊL   Èaø  (u §ß `ˇˇˇPQÄ  ∂p#  ª                         æ       ø  (u ÊL   È;   ø >   ;   ;      >	   
+   >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   >   >   >      >   >      >   >    y ‰ß `ˇˇˇ˚P
+%(%%*î@%&K%K%%&L'*&OP4"P  0£Ó¶  Ç         	       '       ø  û8   ô   ‰ø   û(   ô   ‰ø     û   ô   ‰ø     ô   ú/  ô   ø  ÊL   Èu  œ  ‰   –   ‰ø  ÊL   È   u  ú6   ô   ø  ÊL   Èø  ÊL   È   u ø  L   u –   ‰ô   æ   ÊL	   Èø  u œ  ‰ø  ÊL   Èu  œ  ‰ø  ÊL   Èø  L   )u –  ‰ø  ÊL   Èø  L   )u –  ‰¡     ú   ô"   
+   ¡  (–  ‰ô#   ¡  ÊL   Èn   
+   u ¡  (¡   (–  ‰¡  §õ   ô'      §ô'   ß `ì π `
+P'`*`P/`
+PˇˇˇÁP-`ˇˇˇ˙P'`
+P'`
+ˇˇˇˆP(`ˇˇˇÙP(`î `/`
+ˇˇˇ¯P(J`4; `5VÄÄ   4Ññƒ   º                         æ       ø  (u ÊL   È;   ø >   ;   ;      >	   
+   >   >   >   ;   >   >   >   ;   >   >   ;   ;   >   
+>   >   
+>      >   >      >   >    y ‰ß `ˇˇˇ˚P
+%(%%*î@%&K%K%%'L'*&OP4"PÄÄÄ3ıÿ  `_    `$  #  a     @c  b    @  @f    g  ≈  e  d    @i  j  h    @l  k    @  @n  o  m  p  r  q  s  t  =  ¿    `$  #  x    `$  #  a    @b    @	  @z    {  ≈  e  d  
+  @i  j  h    @l  k    @  @n  o  m  p  r  q  s  t  =  ¿    `$  #  a    @b    @  @}    ~  ≈  e  d    @i  j  h    @l  k    @  @n  o  m  p  r  q  s  t  =  ¿    `$  #  a    @b    @  @f    g  ≈  e  d    @i  j  h    @l  k    @  @n  o  m  p  r  q  s  t  =  ¿    `$  a    @Å  Ç  b    @  @z    {  ≈  e    @Ñ  Ö  É  d     @i  j  h  !  @l  k  "  @#  @n  o  m  p  r  q  s  Ü  =  ¿    `$  a  $  @b  %  @&  @z    {  ≈  e  d  '  @i  j  h  (  @l  k  )  @*  @n  o  m  p  r  q  s  t  =  ¿  	  `$  ã  ñ   p  x  å  h  ç  é  è  ê  Ü   ë  
+  `$  ã  ñ   p  x  î  h  ç  é  è  ê  ï  ñ  ó  ò  ô    `$  ã  ñ   p  x  ú  h  ç  é  è  ê  ù  û    `,  å  .  t  Ù   z   -  .  £  0    §  •  ˝     `*  t  -  ®  ©  z     `∫  ª  º  à  +  @æ  Ω  ø  n  ¡  ¿    `«  »  …    `$  #  ∆    p  `$    p  `«  »  …    `$  #  ∆    p  `$    p  `«  »  …    `$  .  ∆    p  `$    p  `«  »  …    `$  .  ∆  !  p  `$     p  `’    `◊    `Ÿ  $  œ  –   #  h  ⁄  €  -  @F  x  b  ‹  ÿ k  .  @  `  `$  œ  –   ÿ —  ,  @“  Û    ”     #  p‘  $  p÷  %  pï  &  pÜ   #  h  ⁄  €  /  @F  x  b  ‹  k  0  @!  `’  "  `◊  #  `Ÿ  $  œ  –   #  h  ÿ k  $  `   `$  œ  –   ÿ —  1  @ﬁ  Û    ”     (  p‘  )  p÷  *  pï  +  pÜ   #  h  k  %  `z   $  ·  ê  ‚  &  `z   $  ·  ‰  ‚  '  `Ë  2  @M   Í  Ï  Î  Ó  Ì  1  Ô  @   $  #  Ò  (  `$  Û  x  Ù  ı  ∑  ˆ  )  `˘  ˙  +  `,  z   *  `˝  å  .  ˛  z   ˇ    2  p,  ` ˙   _  _  ?  z   	 
+ -  `0   .  `$  #  a  3  @b  4  @5  @z    {  ≈  e  d  6  @i  j  h  7  @l  k  8  @9  @n  o  m  p  r  q  s   =  ¿  /  `z   -  ◊  _  .  	   .   ,  à     P0  `$  .  a  :  @b  ;  @<  @z    {  ≈  e  d  =  @i  j  h  >  @l  k  ?  @@  @n  o  m  p  r  q  s  t  =  ¿  1  `$       2  `$      3  `$      4  `  C  @      	  
+                            D  @                     "  !  6  `±  ÿ   ¥  .  µ  ∂  i  $  Ø  ∑  5  `™  Ø    p7  `√  ¬  ƒ  8  `  _     `  p  p  p  p	  p
+  p  p  p  p  p  p  p  p  p  p  p  p  p"  p'  p,  p-  p.  p/  p0  p1  p3  p5  p6  p7  p8  p$    p  p  p  A  @  B  @  p#  E  @I  F  @™  ◊   p´    p¬  0  Ä  4  p ˇXÑÅ  7              =               A               E               I  "                    \           "   `        $      u        (   !   y        I   !   |        j   !           ã   &   Ä        ±       á        —      à        ﬂ      í              ö        ˛      ü             ¶        v            k                 ∏        z            )     ≈        $                         5              0            ,            A     À        <            8             M     Õ        H     !       D     "       g      Œ        P     ‘        R     ÷        T     ï        f     Ü         ñ     ›        á     ‘        â     ÷        ã  
+   ï        ï     Ü         Æ     ﬂ        ¥     „        ∫     Â              Ú        “     ˜        ÿ  	   ˚        ’     +       ·  
+          ~     ,       Î            Ó  !                        !          ùH©¿      äS      äS                  
+   3      3                   B   g   :   g                   u   ù   m   ù   	                ‚   Ñ  ⁄   Ñ                  ˇ  t  È  t  s               å  6  v  6  z               Q  É  9  É  ö               ¢  ù  Ü  ù  ¢               æ  \  û  \  ≈   !            r    ^    ‰               2  #    #    $            G  F  %  F  %  #            ,  —     —   O              æ!  9$  £!  9$  `              S$  Ò%  ;$  Ò%  n              N&  f(  7&  f(  ~              Ñ(  5)  i(  5)  ô             ÇZ)  ⁄,  R)  ⁄,  ¶  !            ø)  ÷,  ∑)  ÷,  ™              Ò,  <.  ‹,  <.  Œ             c.  ®.  [.  ®.  ·            Ä◊.  á1  ∏.  á1  Â              È.  É1  ·.  É1  Á               	/  ~1  /  ~1  Ë            Ä2  ‹4  ›1  ‹4    %           2  ÿ4  2  ÿ4                 32  ”4  +2  ”4              Ä5  æ7  ﬁ4  æ7    '           5  ∫7  5  ∫7                 D5  µ7  <5  µ7    $          ÄÎ7  ‘:  ¿7  ‘:  2  ,           8  –:  ¸7  –:  4               +8  À:  #8  À:  5  $          Ä˚:  À>  ÷:  À>  J  &            »;  Ò;  ¿;  Ò;  S               <  .<   <  .<  W               C<  £=  ;<  £=  Z              ∂=  «=  Æ=  «=  i             ÄÒ>  âA  Õ>  âA  {  %            Ω?  Ê?  µ?  Ê?  Ñ               ˝?  #@  ı?  #@  à               8@  ˘@  0@  ˘@  ã              A  A  A  A  ò               †A  ÚA  ãA  ÚA  ®              B  \B  ÙA  \B  Ø              wB  ˆC  _B  ˆC  ∂              D  E  ˜C  E  »              0E  bE  E  bE  —             ÕG  ∫H  πG  ∫H  Û              RH  •H  JH  •H  ı  W            ”H  J  ºH  J  ˙              BJ  ﬁJ  :J  ﬁJ  
+  '            ıJ  K  ·J  K                ]K  VN  GK  VN                mN  ]P  XN  ]P  B              ÅP  äS  ^P  äS  U  $          5°›≠î¯S0“;£ÂΩ      i’¬^i’¬^I^Kåi’¯Ü   \    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/js/normalHtmlValidation.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"21386-1773659602000"
+Last-Modified: Mon, 16 Mar 2026 11:13:22 GMT
+Content-Type: text/javascript
+Content-Length: 21386
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"21386-1773659602000"
+Last-Modified: Mon, 16 Mar 2026 11:13:22 GMT
+Content-Type: text/javascript
+Content-Length: 21386
+Keep-Alive: timeout=5, max=96
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 116 net-response-time-onstop 118 alt-data 1;21386,javascript/moz-script-bytecode-20260309231353-8l alt-data-from-child 1  (’

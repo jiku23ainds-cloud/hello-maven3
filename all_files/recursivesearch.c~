@@ -1,0 +1,28 @@
+#include<stdio.h>
+#include<stdlib.h>
+int main()
+{
+int i,n,x;
+int arr[n];
+
+printf("enter the number of elements: ");
+scanf("%d",&n);
+for(i=0;i<n;i++)
+{
+scanf("%d",&arr[i]);
+}
+printf("enter element to search: ");
+scanf("%d",&x);
+int rec(i)
+{
+if (x==arr[i])
+{
+printf("element found at position: %d",i+1);
+}
+else 
+{
+return rec(i+1);
+}
+}
+rec(0);
+}

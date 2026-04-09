@@ -1,0 +1,67 @@
+#include<stdio.h>
+#include<math.h>
+int stack[10],top = -1,n1,n2;
+void push(double a)
+{
+ top++;
+ stack[top]=a;
+ 
+ }
+ double pop()
+ {
+ 
+ return stack[top--];
+ }
+
+char post[20];
+void main()
+{
+     printf("enter the postfix expression");
+     scanf("%s",post);
+     
+     for (int i=0;post[i]!='\0';i++)
+     {
+       switch(post[i]){
+        case '^':
+              n1=pop();
+              n2=pop();
+              push(pow(n2,n1));
+              break;
+       case'/':
+              n1=pop();
+              n2=pop();
+              push(n2/n1);
+              break;
+       case'*':
+              n1=pop();
+              n2=pop();
+              push(n2*n1);
+              break;
+       case'%':
+              n1=pop();
+              n2=pop();
+              push(n2%n1);
+              break;
+       case'+':
+              n1=pop();
+              n2=pop();
+              push(n2+n1);
+              break;
+       case'-':
+              n1=pop();
+              n2=pop();
+              push(n2-n1);
+              break;
+       default:
+                push(post[i]-'0');
+                break;
+           }
+       }
+       
+      printf("\nthe answer is:%lf",pop());
+      return 0;     
+   }
+                                                               
+               
+        
+     

@@ -1,0 +1,19 @@
+#include<stdio.h>
+
+
+
+
+void toh(int n, char src,char dest,char aux)
+{ if (n==1)
+printf("\n %d shifted from %c to %c\n",n,src,dest);
+else
+{ toh(n-1,src,aux,dest);
+  printf("\n%d shifted from %c to %c\n",n,src,dest);
+  toh(n-1,aux,dest,src);
+  }
+  }
+void main()
+{int n;
+ scanf("%d hello",&n);
+ toh(n,'A','B','C') ;
+} 

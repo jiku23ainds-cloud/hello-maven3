@@ -1,0 +1,58 @@
+#include<stdio.h>
+struct process{
+int size;
+int flag;
+int holeid;
+}p[10];
+struct hole{
+int size;
+int actual;
+}h[10];
+int main()
+{
+int i,np,nh,j;
+printf("enter the number of holes: ");
+scanf("%d",&nh);
+for(i=0;i<nh;i++)
+{
+printf("enter size for hole H%d: ",i);
+scanf("%d",&h[i].size);
+h[i].actual=h[i].size;
+}
+printf("\nenter the number of process: ");
+scanf("%d",&np);
+for(i=0;i<np;i++)
+{
+printf("enter size for process P%d: ",i);
+scanf("%d",&p[i].size);
+p[i].flag=0;
+}
+for(i=0;i<np;i++)
+{
+for(j=0;j<nh;j++)
+{
+if(p[i].flag!=1)
+{
+if(p[i].size<=h[j].size)
+{
+p[i].flag=1;
+p[i].holeid=j;
+h[j].size-=p[i].size;
+}
+}
+}
+}
+printf("\n\t first fit\n");
+printf("\n process\tPsize\tHole");
+for(i=0;i<np;i++)
+{
+if(p[i].flag!=1)
+printf("\nP%d\t%d\t not allocated",i,p[i].size);
+else
+printf("\nP%d\t%d\tH%d",i,p[i].size,p[i].holeid);
+}
+printf("\n\n hole\tactual\tavailable");
+for(i=0;i<nh;i++)
+printf("\nH%d\t%d\t%d",i,h[i].actual,h[i].size);
+printf("\n");
+}

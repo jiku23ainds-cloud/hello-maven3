@@ -1,0 +1,578 @@
+/**
+ * @since Dec 3 2012 
+ */
+
+
+/**
+ * @author vimal kr.
+ * @since Dec 3 2012
+ */
+
+var gExtensionArray = ['doc','docx','xls','xlsx','xlsm','pdf','jpg','text','png','gif','ppt','zip'];
+var gCategoryType = '';
+
+
+var gjArrTextDocument= new Array();
+var gjArrUploadedDocument= new Array();
+function UploadStudentDocument(){
+	this.elementId = '';
+	this.categoryId = '';
+	this.barcode = ''; //optional parameter
+	uploadButtonCaption = ''; //optional parameter
+	fileSize = AllowedFileSize.DEFAULT;
+	fileType = gExtensionArray;
+
+	this.init = function(jObject,callback){
+		if(jObject == undefined){
+			jAlert('Object is undefined');
+			return undefined;
+		} else {
+			try{
+				this.elementId = jObject.elementId;
+				this.categoryId = jObject.categoryId;
+				if(this.elementId == '' || this.categoryId == undefined || this.categoryId == '' || this.categoryId=='null' || this.categoryId=='undefined'){
+					//jAlert('Error: undefined parameters');
+					return null;
+				}
+
+				if(jObject.fileSize == undefined || isNaN(jObject.fileSize)){
+					fileSize = AllowedFileSize.DEFAULT;
+				} else {
+					fileSize = jObject.fileSize;
+				}
+				
+				if(jObject.caption == undefined || jObject.caption == ''){
+					uploadButtonCaption = 'Upload Document';
+				} else {
+					uploadButtonCaption = jObject.caption;
+				}
+				
+				if(jObject.fileType != undefined){
+					if(typeof jObject.fileType != 'array' && typeof jObject.fileType != 'object' ){
+						jAlert('File type parameter must be an Array');
+						return null;
+					} else
+						fileType = jObject.fileType;
+				}
+			} catch(e){
+				alert(e);
+				return null;
+			}
+		}
+		paintBoiler(this.elementId,this.categoryId,function(){
+			$('.uploadButtonLabel').text(uploadButtonCaption);
+			$(document).ready(function(){
+				var fileElementId = 'txtUploadDocument-'+jObject.elementId+'-'+jObject.categoryId+'';
+				new AjaxUpload(fileElementId,{
+					action : 'uploadDocumentStudent.json',
+					name : 'fileData',
+					timeout:60000,
+					size:fileSize,
+					data:{},
+					onSubmit : function(file, extension) {
+						$('#'+fileElementId).attr('disabled','disabled');
+						if ($.inArray(extension.toString().toLowerCase(),fileType) != -1) {
+							$('#'+jObject.elementId).find('.preview').addClass('loading');
+							this.setData({
+								'categoryId':jObject.categoryId,
+								'fileSize':fileSize,
+							});
+							return true;
+						} else {
+							jAlert('File type is not valid ! Please upload only <strong>&nbsp;'+fileType.join(', ')+'&nbsp;<strong> files');
+							$('#'+fileElementId).removeAttr('disabled');
+							return false;
+						}
+					},
+					onComplete : function(file, response) {
+						$('#'+fileElementId).removeAttr('disabled');
+						try{
+							response = eval('('+response+')');
+							$('#'+jObject.elementId).find('.preview').removeClass('loading');
+							if(response[0].responseFlag == '1'){
+								callback(response[1]["eDocId"]);
+							} else {
+								throw response[0].responseText;
+							}
+						} catch (e){
+							jAlert(e);
+						}
+					}
+				});
+			});
+		});
+
+
+
+	};
+	this.getAllUserRootFolder = function(parentType,callback) {
+    	$.ajax({
+    		url:'getAllRootFolderForStudent.json?parentType='+parentType,
+    		dataType:'json',
+    		beforeSend: function() {
+    			$('.ulDMSCourseFileAttachmentTree').html('<div class="preview-large"></div>');
+    			$('.ulDMSCourseFileAttachmentTree').find('.preview-large').addClass('loading-large');
+    		},
+    		complete: function() {
+    			$('.ulDMSCourseFileAttachmentTree').find('.preview-large').removeClass('loading-large');
+    		},
+    		success:function(jArray){
+    			callback(jArray);
+    		},
+    		error:function(){
+    		}
+    	});
+    };
+	this.getDocument = function(categoryId,callback){
+		if(categoryId == undefined || categoryId == '' || categoryId=='null' || categoryId=='undefined'){
+			//jAlert('Error: define category id');
+			return null;
+		}		
+		try{
+			$.ajax({
+				url:'getUploadedDocumentAjaxStudent.json?categoryid='+categoryId,
+				dataType:'json',
+				beforeSend: function() {
+				},
+				complete: function() {
+				},
+				async:false,
+				success:function(jArray){
+					gjArrUploadedDocument=jArray;
+					var jsonArray = new Array();
+					for(var i = 0; i < jArray.length ; i++) {
+						var documentObj = new GemsDocument();
+						documentObj.categoryId = jArray[i]['categoryId'];
+						documentObj.eCatId = jArray[i]['eCatId'];
+						documentObj.catName = jArray[i]['catName'];
+
+						documentObj.documentName = jArray[i]['name'];
+						documentObj.name = jArray[i]['name'];
+						documentObj.hasProfileImage = jArray[i]['hasProfileImage'];
+						documentObj.gender = jArray[i]['gender'];
+						documentObj.sharedStatus = jArray[i]['sharedStatus'];
+						documentObj.documentId = jArray[i]['documentId'];
+						documentObj.eDocId = jArray[i]['eDocId'];
+						documentObj.creationDate = jArray[i]['creationDate'];
+						documentObj.ownerEmployeeId = jArray[i]['ownerStudentId'];
+						documentObj.extension = jArray[i]['extension'];
+						documentObj.type = jArray[i]['extension'];
+						documentObj.isTemporary = false;
+						documentObj.description = jArray[i]['description'];
+						documentObj.documentBody = jArray[i]['documentBody'];
+						jsonArray.push(documentObj);
+					}
+					callback(jsonArray);
+				},
+				error:function(){
+
+				}
+
+			});
+		} catch(e){
+			alert(e);
+		}
+
+	};
+
+	/**
+	 * student placement id is only required for getting the owner information of the document
+	 */
+	this.getDocumentByStudentPlacementId = function(categoryId,studentPlacementId,callback){
+		if(categoryId == undefined || categoryId == '' ||  categoryId=='null' || categoryId =='undefined'){
+			//jAlert('Error: define category id');
+			return null;
+		}		
+		try{
+			$.ajax({
+				url:'getUploadedDocumentAjaxStudentForTPO.json?categoryid='+categoryId+'&studentPlacementId='+studentPlacementId,
+				dataType:'json',
+				beforeSend: function() {
+				},
+				complete: function() {
+				},
+				async:false,
+				success:function(jArray){
+					gjArrUploadedDocument=jArray;
+					var jsonArray = new Array();
+					for(var i = 0; i < jArray.length ; i++) {
+						var documentObj = new GemsDocument();
+						documentObj.categoryId = jArray[i]['categoryId'];
+						documentObj.eCatId = jArray[i]['eCatId'];
+						documentObj.catName = jArray[i]['catName'];
+						documentObj.documentName = jArray[i]['name'];
+						documentObj.gender = jArray[i]['gender'];
+						documentObj.sharedStatus = jArray[i]['sharedStatus'];
+						documentObj.documentId = jArray[i]['documentId'];
+						documentObj.eDocId = jArray[i]['eDocId'];
+						documentObj.creationDate = jArray[i]['creationDate'];
+						documentObj.extension = jArray[i]['extension'];
+						documentObj.description = jArray[i]['description'];
+						documentObj.documentBody = jArray[i]['documentBody'];
+						jsonArray.push(documentObj);
+					}
+					callback(jsonArray);
+				},
+				error:function(){
+
+				}
+
+			});
+		} catch(e){
+			alert(e);
+		}
+
+	};
+
+	/** Showing document as in dms look*/
+
+	this.showDocument = function(jsonObject,callback) {
+
+		var gFileId = 1;
+		if(jsonObject == undefined){
+			jAlert('Error: Parameter expected!');
+			return; 
+
+		}  else {
+			try{
+				gjArrTextDocument=jsonObject;
+
+				if(jsonObject.elementId == '' || jsonObject.documentList == undefined){
+					if(jsonObject.elementId == ''){
+						jAlert('Error: Required parameter "elementId" is mission');
+						return null;
+					}
+					if(jsonObject.documentList == undefined) {
+						jAlert('Error: Required parameter "documentJArray" is mission');
+						return null;
+					}
+				} else {
+					var link = "";
+					for(var i = 0 ; i < jsonObject.documentList.length ; i++){
+						var eDocIdTmp = jsonObject.documentList[i]["eDocId"]!=undefined?jsonObject.documentList[i]["eDocId"]:jsonObject.documentList[i]["documentId"];
+						var eDocPathIdTmp = jsonObject.documentList[i]["eDocPathId"]!=undefined?jsonObject.documentList[i]["eDocPathId"]:jsonObject.documentList[i]["documentPathId"];
+						var downloadLink = 'javascript:void(0)';
+						var iconPath = 'css/img/add_attachment_icon.png';
+						if(jsonObject.documentList[i]["documentBody"] != undefined){ 
+							downloadLink = (juno.label['url.download.json'].setIndexedArgs(eDocIdTmp, "UPLOADED", encodeURIComponent(jsonObject.documentList[i]["documentName"])));
+						}
+						var fileType = jsonObject.documentList[i]["extension"].toLowerCase();
+						iconPath = gFileTypeIconMapping[fileType];
+
+						link += '<tr><td  class="ui-state-default" width="40px"><input type = "checkbox" id = "chkFileListIcon-uploaded-'+eDocIdTmp+'"  class = "chkFileListIcon" name = "chkFileListIcon" ></td><td class="context-menu-one tooltiplink ui-state-default" id = "tdFileListIcon-uploaded-'+eDocPathIdTmp+'" onmouseover = "showFileDetail(\'tdFileListIcon-uploaded-'+eDocIdTmp+'\')" style =  "cursor:pointer"><a class="ui-state-default" href = "'+downloadLink+'" ><span><image src = "'+iconPath+'" /></span>&nbsp;&nbsp;'+jsonObject.documentList[i]["documentName"]+'</a></td>';
+
+						if(jsonObject.documentList[i]["sharedStatus"]==1)
+						{
+							link += '<td width="20px;" class="ui-state-default"><a href="javascript:void(0);" onclick="#" title="view Shared Employees"><img src="img/share.png" alt="Shared" /></a></td>';
+						}
+						else
+						{
+							link += '<td width="20px;" class = "ui-state-default"></td>';
+						}
+						link += '<td valign="top" width="70px">'+
+						'<a href="#" class="btn btn-inverse btn-mini  ">Share</a></td>';
+
+						if(jsonObject.documentList[i]["sharedStatus"]==1)
+						{
+							link += '<td valign="top" width="70px;"><ul class="jbar">'+
+							'<li><a href="javascript:void(0);" class="has_down_arrow trigger first" onclick="showComment('+gFileId+','+jsonObject.documentList[i]["documentId"]+',\'uploaded\','+i+')"><span class="link_text">Comment</span></a></li>'+
+							'</td></tr>'+
+							'<tr id="trshowComment'+gFileId+'" style="display:none;"><td colspan="5"><table style="margin-left:95%"><tr><th align="right"><a href="#" onclick="javascript:$(\'#trshowComment'+gFileId+'\').hide();"><img src="img/remove.png" /></a></th></tr></table>'+
+							'<div id="showComment'+gFileId+'">'+
+							'<div class="commentPanel" id="commentPanel-first-'+gFileId+'" align="left">'+
+							'<div class="commentBox" align="right" id="commentBox-'+gFileId+'">';
+							if(jsonObject.documentList[i]["hasProfileImage"] == undefined) {
+
+								if(jsonObject.documentList[i]["ownerGender"] != undefined){
+									if(jsonObject.documentList[i]["ownerGender"].toString().toLowerCase() == 'male') {
+										link+='<img src="img/boy.gif" style="float:left; padding-right:6px;" width="37" height="37" border="0" alt="" class="CommentImg" />';
+										gProfileImgPath='img/boy.gif';
+									} else if(jsonObject.documentList[i]["ownerGender"].toString().toLowerCase() == 'male') {
+										link+='<img src="img/girl.gif" style="float:left; padding-right:6px;" width="37" height="37" border="0" alt="" class="CommentImg" />';
+										gProfileImgPath='img/girl.gif';
+									}
+								} else {
+									link+='<img src="img/girl.gif" style="float:left; padding-right:6px;" width="37" height="37" border="0" alt="" class="CommentImg" />';
+									gProfileImgPath='img/girl.gif';
+								}
+							} else {
+
+								link += '<img src="getStudentProfileImage.json?id='+jsonObject.documentList[i]["ownerStudentId"]+'" style="float:left; padding-right:6px;" width="37" height="37" border="0" alt="" class="CommentImg" />';
+
+							}
+							link+='<input type="hidden" id="owner" value="" />'+
+							'<label id="record-">'+
+							'<textarea class="commentMark" id="commentMark-first-'+gFileId+'" onblur="if (this.value==\'\') this.value = \'Write a comment\'" onfocus="if (this.value==\'Write a comment\') this.value = \'\'" onKeyPress="return SubmitComment(this,event,\'uploaded\','+jsonObject.documentList[i]["documentId"]+','+gFileId+');" wrap="hard" name="commentMark" style=" background-color:#fff; overflow: hidden;" cols="60">Write a comment</textarea>'+
+							'</label>'+
+							'<br clear="all" />'+
+							'</div>'+
+							'</div>'+
+							'</div>'+
+							'</div></td>';
+						}
+						else
+							link+='<td></td>';
+
+						link+='</tr>'+
+						'<tr id="trshowStudentShare'+gFileId+'" style="display:none;"><td colspan="6"><div id="showStudentShare'+gFileId+'"></div></td></tr>'+
+						'<tr id="trshowEmployeeShare'+gFileId+'" style="display:none;"><td colspan="6"><div id="showEmployeeShare'+gFileId+'"></div></td></tr>'+
+						'<tr id="trshowPrivateComment'+gFileId+'" style="display:none;"><td colspan="6"><div id="showPrivateComment'+gFileId+'"></div></td></tr>';
+						gFileId++;
+					}
+					$('#'+jsonObject.elementId).append(link);
+					$(document).ready(function(){	 $('.commentMark').elastic(); });
+					jQuery(function(){
+						jQuery('.jbar').jbar();
+					});
+					/**file detail data association with checkbox and td element id using jquery data function*/
+					for(var i = 0 ; i < jsonObject.documentList.length ; i++){
+						var eDocIdTmp = jsonObject.documentList[i]["eDocId"]!=undefined?jsonObject.documentList[i]["eDocId"]:jsonObject.documentList[i]["documentId"];
+						var eDocPathIdTmp = jsonObject.documentList[i]["eDocPathId"]!=undefined?jsonObject.documentList[i]["eDocPathId"]:jsonObject.documentList[i]["documentPathId"];
+						
+						var domIds = '#chkFileListIcon-uploaded-'+jsonObject.documentList[i]["documentId"]+', #chkFileListIcon-uploaded-'+eDocIdTmp;
+						var domIds2 = '#tdFileListIcon-uploaded-'+jsonObject.documentList[i]["documentId"]+', #tdFileListIcon-uploaded-'+eDocPathIdTmp;
+						$(domIds).data("Type","uploaded");
+						$(domIds).data('Id',jsonObject.documentList[i]["documentId"]);
+						$(domIds).data('CreationDate',jsonObject.documentList[i]["creationDate"]);
+						$(domIds).data('Name',jsonObject.documentList[i]["documentName"]);
+						$(domIds).data('Parent',jsonObject.documentList[i]["catName"]);
+						$(domIds).data('Description',jsonObject.documentList[i]["description"]);
+						$(domIds).data('DocumentPath',jsonObject.documentList[i]["documentPath"]);
+						
+						$(domIds2).data("Type","uploaded");
+						$(domIds2).data('Id',jsonObject.documentList[i]["documentId"]);
+						$(domIds2).data('CreationDate',jsonObject.documentList[i]["creationDate"]);
+						$(domIds2).data('Name',jsonObject.documentList[i]["documentName"]);
+						$(domIds2).data('Parent',jsonObject.documentList[i]["parentDocumentName"]);
+						$(domIds2).data('Description',jsonObject.documentList[i]["description"]);
+						$(domIds2).data('DocumentPath',jsonObject.documentList[i]["documentPath"]);
+					}
+				}	
+
+			} catch(e){
+				alert(e);
+				return null;
+			}
+		}
+
+
+	};
+
+	this.undoUploadedDocumentDelete = function undoUploadedDocumentDelete(documentId,callback){
+		$.ajax({
+			url:'undoUploadedDocumentDelete.json',
+			dataType:'text',
+			type:"POST",
+			data:{d__documentId:documentId},
+			success:function(flag){
+				callback(flag);
+			}
+		});
+	};
+	this.getCategoryPathWithId = function(documentCategoryId,callback){
+    	$.ajax({
+    		url:'getCategoryPathWithIdAjax.json?categoryId='+documentCategoryId,
+    		dataType:'json',
+    		async:false,
+    		success:function(jArray){
+    			try{
+    				callback(jArray);
+    			}catch(e){
+    			}
+    		},
+    		error:function(){
+
+    		}
+    	});
+    };
+    
+    this.getTextDocumentWithAttachment = function(documentId,callback){
+    	$.ajax({
+    		url:'getTextDocumentAjax.json?d__documentId='+documentId,
+    		beforeSend: function() {
+    			startCommonAjaxSpinner();
+    		},
+    		complete: function() {
+    			stopCommonAjaxSpinner();
+    		},
+    		dataType:'json',
+    		async:false,
+    		success:function(jArray){
+    			if(jArray.length > 0){
+					try{
+    					jArray[0].documentBody = jArray[0].documentBody!=undefined?jArray[0].documentBody.gemsDecode():'';
+    					jArray[0].description = jArray[0].description!=undefined?jArray[0].description.gemsDecode():'';
+    				}catch(e){
+						console.log(e);
+					}
+    				callback(jArray[0]);
+    			} else {
+    				jAlert('No Data Found!!!');
+    			}
+    		},
+    		error:function(){
+
+    		}
+    	});
+    };
+    
+    this.getAttachmentListAjax = function(documentId,callback) {
+    	try{
+    	$.ajax({
+    		url:'getAttachmentList.json?d__documentId='+documentId,
+    		async:false,
+    		dataType:'json',
+    		beforeSend: function() {
+    			$('#tblAttachementList').html('<div class = "preview-large"></div>');
+    			$('.preview-large').addClass('loading-large');
+    		},
+    		complete: function() {
+    			$('.preview-large').removeClass('loading-large');
+    		},
+    		success:function(jArray){
+    			callback(jArray);
+    		},
+    		error:function(){
+
+    		}
+    	});
+    	} catch(e){
+    		
+    	}
+    };
+    this.showDocumentAttachmentList = function(jArray,tableId,documentId,isOwner){
+    	var attachementBoiler = "";
+    	if(jArray.length > 0){
+    		for(var i = 0 ; i < jArray.length; i++){
+    			var attachmentFileName = jArray[i]["name"].toString(); 
+    			var trId = 'trAttachmentFile-'+documentId+'-'+i;
+    			
+    			var fileType = jArray[i]["type"];
+    			iconPath = gFileTypeIconMapping[fileType];
+    			
+    			var downloadLinkAnchor = (juno.label['a.download.json'].setIndexedArgs(documentId, "TEXT", encodeURIComponent(attachmentFileName), attachmentFileName));
+    			var downloadLinkIcon = (juno.label['a.download.json'].setIndexedArgs(documentId, "TEXT", encodeURIComponent(attachmentFileName), '<i class="icon-download-alt" title="Download"></i>'));
+    			
+    			if(isOwner == undefined || isOwner){
+    			attachementBoiler += 
+    				'<tr id = "'+trId+'"><td><img src="'+iconPath+'" />&nbsp;&nbsp;&nbsp;&nbsp;'+downloadLinkAnchor+'</td><td><i style = "cursor:pointer" title = "remove" class = "icon-remove-sign" onclick = "removeAttachmentAjax(\''+trId+'\',\''+attachmentFileName+'\')" ></i>&nbsp;&nbsp;&nbsp;&nbsp'+downloadLinkIcon+'</td></tr>';
+    			} else {
+    				attachementBoiler += 
+    					'<tr id = "'+trId+'"><td><img src="'+iconPath+'" />&nbsp;&nbsp;&nbsp;&nbsp;'+downloadLinkAnchor+'</td><td>&nbsp;&nbsp;&nbsp;&nbsp'+downloadLinkIcon+'</td></tr>';			
+    			}
+
+    		}
+			$('#showTextDocumentDialog').modal('hide');
+
+    		if(tableId == undefined)
+    			$('#tblAttachementList').html(attachementBoiler);
+    		else
+    			$('#'+tableId).html(attachementBoiler);		
+    		
+    		$('#divStdAlumpost').html(attachementBoiler);
+
+    	} else {
+    		$('#'+tableId).html('<div class="alert alert-info" style="padding:2px"><strong style="color:red">No attachments!!!</strong></div>');
+    	}
+    };
+}
+
+function  paintBoiler(elementId,categoryId,callback){
+	var boiler = 
+		'<form id = "uploadDocument" action="uploadDocumentStudent.json" method ="POST" enctype="multipart/form-data">'+
+		'<table class = "table">'+
+		'<tr>'+
+		'<td>'+
+		'<div>'+
+		'<div class="span2">'+
+    	'<div class="preview"></div></div>'+
+		'<div class="span4" style="text-align: center;">'+
+		'<div class="">'+/*btn btn-info style = "width:165px;height:20px"*/
+    	//	'<span class="uploadButtonLabel"> Upload file</span>'+
+		//	'<input style = "margin-top:-40px;margin-left:-10px;opacity:0;height:60px" type="file" name="fileData" id="txtUploadDocument-'+elementId+'-'+categoryId+'"></div>'+
+		'<div class="upload-btn-wrapper" style="width:170px">'+
+		  	'<button class="btn btn-info full-upload-btn" type="button">'+
+		  		'<i class="fa fa-upload" aria-hidden="true"></i> <span class="uploadButtonLabel"> Upload file</span>'+
+		  	'</button>'+
+		  	'<input type="file" name="fileData" id="txtUploadDocument-'+elementId+'-'+categoryId+'" />'+
+	  	'</div>'+
+		
+		'</div>'+
+		'</div>'+
+		'</td>'+
+		'</tr>'+
+		'</table>'+
+		'</form>';
+	
+	
+
+	$('#'+elementId).html(boiler);
+	$('#uploadDocument').reset();
+	try{
+		callback();
+	} catch(e){
+		alert(e);
+	}
+}
+
+
+
+/**
+ * @type GemsDocument
+ * @author Vimal Kr.
+ */
+function GemsDocument() {
+	this.documentId;
+	this.categoryId;
+	this.catName;
+	this.documentBody;
+	this.documentName;
+	this.hasProfileImage;
+	this.gender;
+	this.shareStatus;
+	this.creationDate;
+	this.description;
+	this.extension;
+	this.type;
+	this.isTemporary;
+	this.ownerEmployeeId;
+	this.name;
+}
+
+function removeUploadedDocumentById(docId,callback){
+	$.ajax({
+		url:'removeUploadedDocumentById.json?d__docId='+docId,
+		dataType:'json',
+		success:function(jObject){
+			callback(jObject);
+		}
+	});
+}
+
+
+function getUploadedDocumentById(docId,callback){
+	$.ajax({
+		url:'getUploadedDocumentById.json?d__docId='+docId,
+		dataType:'json',
+		success:function(jObject){
+			callback(jObject);
+		}
+	});
+}Kupåõ      iÕÂ0iÕÂ0I\†ŽiÚe   [    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/dms/dmsStudent.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"20526-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 20526
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"20526-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 20526
+Keep-Alive: timeout=5, max=90
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 291 net-response-time-onstop 291   P.

@@ -1,0 +1,30 @@
+#include<stdio.h>
+#include<stdlib.h>
+struct node *tree;
+struct node
+{
+   int data;
+   Tree *left,*right;
+}*root=NULL;
+Tree create(int new_data)
+{
+   struct node *temp;
+   temp->data=new_data;
+   temp->right=NULL;
+   temp->left=NULL;
+   return temp;
+}
+void insert(tree node,int data)
+{
+  if(root==NULL)
+       return create(data);
+  else if(data<root->data)
+       node->left=insert(root->left,data);
+  else if(data>root->data)
+       node->right=insert(root->right,data);
+      return node;
+}
+void display_inorder(Tree node)
+{
+                                         
+}

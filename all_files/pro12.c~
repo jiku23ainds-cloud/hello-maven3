@@ -1,0 +1,63 @@
+#include<stdio.h>
+#include<stdlib.h>
+
+int key[10],n,m;
+int*ht,index;
+int count=0;
+void insert(int key)
+{
+ index = key % m;
+ while(ht[index]!= -1)
+ {
+  index = (index + 1)%m;
+  }
+  ht[index] = key;
+  count++;
+  }
+  void display()
+  {
+  int i;
+  if(count==0)
+  {
+  printf("\n hash table is empty:");
+  return;
+  }
+  printf("\n hash table contents are:\n");
+  for(i=0;i<m;i++)
+  printf("\n T[%d]--> %d",i,ht[i]);
+  }
+  
+  int main()
+  {
+  int i;
+  FILE *file = fopen("employee_records","r");
+  if(file == NULL)
+  {
+  printf("could not open the file:");
+  return 1;
+  }
+  fscanf(file,"%d",&n);
+  fscanf(file,"%d",&n);
+  
+  ht = (int*)malloc(m*sizeof(int));
+  for(i-0;i<m;i++)
+  ht[i] = -1;
+  for(i=0;i<n;i++)
+  {
+  fscanf(file,"%d",&key[i]);
+  }
+  fclose(file);
+  for(i=0;i<n;i++)
+  {
+  if(count ==m)
+  {
+  printf("\n-----hash table is full.can't start the record %d key---",i+1);
+  break;
+  }
+  insert(key[i]);
+  }
+  display();
+  free(ht);
+  return 0;
+  }
+  

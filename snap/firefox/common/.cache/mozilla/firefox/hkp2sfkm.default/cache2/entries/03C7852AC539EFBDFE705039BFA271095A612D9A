@@ -1,0 +1,1560 @@
+/**
+ * AJAX Upload ( http://valums.com/ajax-upload/ ) 
+ * Copyright (c) Andris Valums
+ * Licensed under the MIT license ( http://valums.com/mit-license/ )
+ * Thanks to Gary Haran, David Mark, Corey Burns and others for contributions 
+ */
+(function () {
+    /* global window */
+    /* jslint browser: true, devel: true, undef: true, nomen: true, bitwise: true, regexp: true, newcap: true, immed: true */
+    
+    /**
+     * Wrapper for FireBug's console.log
+     */
+    function log(){
+        if (typeof(console) != 'undefined' && typeof(console.log) == 'function'){            
+            Array.prototype.unshift.call(arguments, '[Ajax Upload]');
+            console.log( Array.prototype.join.call(arguments, ' '));
+        }
+    } 
+
+    /**
+     * Attaches event to a dom element.
+     * @param {Element} el
+     * @param type event name
+     * @param fn callback This refers to the passed element
+     */
+    function addEvent(el, type, fn){
+        if (el.addEventListener) {
+            el.addEventListener(type, fn, false);
+        } else if (el.attachEvent) {
+            el.attachEvent('on' + type, function(){
+                fn.call(el);
+	        });
+	    } else {
+            throw new Error('not supported or DOM not loaded');
+        }
+    }   
+    
+    /**
+     * Attaches resize event to a window, limiting
+     * number of event fired. Fires only when encounteres
+     * delay of 100 after series of events.
+     * 
+     * Some browsers fire event multiple times when resizing
+     * http://www.quirksmode.org/dom/events/resize.html
+     * 
+     * @param fn callback This refers to the passed element
+     */
+    function addResizeEvent(fn){
+        var timeout;
+               
+	    addEvent(window, 'resize', function(){
+            if (timeout){
+                clearTimeout(timeout);
+            }
+            timeout = setTimeout(fn, 100);                        
+        });
+    }    
+    
+    // Needs more testing, will be rewriten for next version        
+    // getOffset function copied from jQuery lib (http://jquery.com/)
+    if (document.documentElement.getBoundingClientRect){
+        // Get Offset using getBoundingClientRect
+        // http://ejohn.org/blog/getboundingclientrect-is-awesome/
+        var getOffset = function(el){
+            var box = el.getBoundingClientRect();
+            var doc = el.ownerDocument;
+            var body = doc.body;
+            var docElem = doc.documentElement; // for ie 
+            var clientTop = docElem.clientTop || body.clientTop || 0;
+            var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+             
+            // In Internet Explorer 7 getBoundingClientRect property is treated as physical,
+            // while others are logical. Make all logical, like in IE8.	
+            var zoom = 1;            
+            if (body.getBoundingClientRect) {
+                var bound = body.getBoundingClientRect();
+                zoom = (bound.right - bound.left) / body.clientWidth;
+            }
+            
+            if (zoom > 1) {
+                clientTop = 0;
+                clientLeft = 0;
+            }
+            
+            var top = box.top / zoom + (window.pageYOffset || docElem && docElem.scrollTop / zoom || body.scrollTop / zoom) - clientTop, left = box.left / zoom + (window.pageXOffset || docElem && docElem.scrollLeft / zoom || body.scrollLeft / zoom) - clientLeft;
+            
+            return {
+                top: top,
+                left: left
+            };
+        };        
+    } else {
+        // Get offset adding all offsets 
+        var getOffset = function(el){
+            var top = 0, left = 0;
+            do {
+                top += el.offsetTop || 0;
+                left += el.offsetLeft || 0;
+                el = el.offsetParent;
+            } while (el);
+            
+            return {
+                left: left,
+                top: top
+            };
+        };
+    }
+    
+    /**
+     * Returns left, top, right and bottom properties describing the border-box,
+     * in pixels, with the top-left relative to the body
+     * @param {Element} el
+     * @return {Object} Contains left, top, right,bottom
+     */
+    function getBox(el){
+        var left, right, top, bottom;
+        var offset = getOffset(el);
+        left = offset.left;
+        top = offset.top;
+        
+        right = left + el.offsetWidth;
+        bottom = top + el.offsetHeight;
+        
+        return {
+            left: left,
+            right: right,
+            top: top,
+            bottom: bottom
+        };
+    }
+    
+    /**
+     * Helper that takes object literal
+     * and add all properties to element.style
+     * @param {Element} el
+     * @param {Object} styles
+     */
+    function addStyles(el, styles){
+        for (var name in styles) {
+            if (styles.hasOwnProperty(name)) {
+                el.style[name] = styles[name];
+            }
+        }
+    }
+        
+    /**
+     * Function places an absolutely positioned
+     * element on top of the specified element
+     * copying position and dimentions.
+     * @param {Element} from
+     * @param {Element} to
+     */    
+    function copyLayout(from, to){
+	    var box = getBox(from);
+        
+        addStyles(to, {
+	        position: 'absolute',                    
+	        left : box.left + 'px',
+	        top : box.top + 'px',
+	        width : from.offsetWidth + 'px',
+	        height : from.offsetHeight + 'px'
+	    });        
+    }
+
+    /**
+    * Creates and returns element from html chunk
+    * Uses innerHTML to create an element
+    */
+    var toElement = (function(){
+        var div = document.createElement('div');
+        return function(html){
+            div.innerHTML = html;
+            var el = div.firstChild;
+            return div.removeChild(el);
+        };
+    })();
+            
+    /**
+     * Function generates unique id
+     * @return unique id 
+     */
+    var getUID = (function(){
+        var id = 0;
+        return function(){
+            return 'ValumsAjaxUpload' + id++;
+        };
+    })();        
+ 
+    /**
+     * Get file name from path
+     * @param {String} file path to file
+     * @return filename
+     */  
+    function fileFromPath(file){
+        return file.replace(/.*(\/|\\)/, "");
+    }
+    
+    /**
+     * Get file extension lowercase
+     * @param {String} file name
+     * @return file extenstion
+     */    
+    function getExt(file){
+        return (-1 !== file.indexOf('.')) ? file.replace(/.*[.]/, '') : '';
+    }
+
+    function hasClass(el, name){        
+        var re = new RegExp('\\b' + name + '\\b');        
+        return re.test(el.className);
+    }    
+    function addClass(el, name){
+        if ( ! hasClass(el, name)){   
+            el.className += ' ' + name;
+        }
+    }    
+    function removeClass(el, name){
+        var re = new RegExp('\\b' + name + '\\b');                
+        el.className = el.className.replace(re, '');        
+    }
+    
+    function removeNode(el){
+        el.parentNode.removeChild(el);
+    }
+
+    /**
+     * Easy styling and uploading
+     * @constructor
+     * @param button An element you want convert to 
+     * upload button. Tested dimentions up to 500x500px
+     * @param {Object} options See defaults below.
+     */
+    window.AjaxUpload = function(button, options) {
+        this._settings = {
+            // Location of the server-side upload script
+            action: 'upload.php',
+            // File upload name
+            name: 'userfile',
+            // Additional data to send
+            data: {},
+            // Submit file as soon as it's selected
+            autoSubmit: true,
+            // The type of data that you're expecting back from the server.
+            // html and xml are detected automatically.
+            // Only useful when you are using json data as a response.
+            // Set to "json" in that case. 
+            responseType: false,
+            // Class applied to button when mouse is hovered
+            hoverClass: 'hover',
+            // Class applied to button when AU is disabled
+            disabledClass: 'disabled',            
+            // When user selects a file, useful with autoSubmit disabled
+            // You can return false to cancel upload			
+            onChange: function(file, extension){
+            },
+            // Callback to fire before file is uploaded
+            // You can return false to cancel upload
+            onSubmit: function(file, extension){
+            },
+            // Fired when file upload is completed
+            // WARNING! DO NOT USE "FALSE" STRING AS A RESPONSE!
+            onComplete: function(file, response){
+            },
+            size:1048576,//1MB
+            minSize:1024,//1KB
+        };
+                        
+        // Merge the users options with our defaults
+        for (var i in options) {
+            if (options.hasOwnProperty(i)){
+            	this._settings[i] = options[i];
+            }
+        }
+                
+        // button isn't necessary a dom element
+        if (button.jquery){
+            // jQuery object was passed
+            button = button[0];
+        } else if (typeof button == "string") {
+            if (/^#.*/.test(button)){
+                // If jQuery user passes #elementId don't break it					
+                button = button.slice(1);                
+            }
+            
+            button = document.getElementById(button);
+        }
+        
+        if ( ! button || button.nodeType !== 1){
+            throw new Error("Please make sure that you're passing a valid element"); 
+        }
+                
+        if ( button.nodeName.toUpperCase() == 'A'){
+            addEvent(button, 'click', function(e){
+                if (e && e.preventDefault){
+                    e.preventDefault();
+                } else if (window.event){
+                    window.event.returnValue = false;
+                }
+            });
+        }
+                    
+        // DOM element
+        this._button = button;        
+        // DOM element                 
+        this._input = null;
+        // If disabled clicking on button won't do anything
+        this._disabled = false;
+        
+        // if the button was disabled before refresh if will remain
+        // disabled in FireFox, let's fix it
+        this.enable();        
+        
+        this._rerouteClicks();
+    };
+    
+    // assigning methods to our class
+    AjaxUpload.prototype = {
+        setData: function(data){
+            this._settings.data = data;
+        },
+        disable: function(){            
+            addClass(this._button, this._settings.disabledClass);
+            this._disabled = true;
+            
+            var nodeName = this._button.nodeName.toUpperCase();            
+            if (nodeName == 'INPUT' || nodeName == 'BUTTON'){
+                this._button.setAttribute('disabled', 'disabled');
+            }            
+            
+            // hide input
+            if (this._input){
+                // We use visibility instead of display to fix problem with Safari 4
+                // The problem is that the value of input doesn't change if it 
+                // has display none when user selects a file           
+                this._input.parentNode.style.visibility = 'hidden';
+            }
+        },
+        enable: function(){
+            removeClass(this._button, this._settings.disabledClass);
+            this._button.removeAttribute('disabled');
+            this._disabled = false;
+            
+        },
+        /**
+         * Creates invisible file input 
+         * that will hover above the button
+         * <div><input type='file' /></div>
+         */
+        _createInput: function() {
+        	var settings = this._settings;
+            var self = this;
+                        
+            var input = document.createElement("input");
+            input.setAttribute('type', 'file');
+            input.setAttribute('name', this._settings.name);
+            if(this._settings.multiple) input.setAttribute('multiple', 'multiple');
+            
+            addStyles(input, {
+                'position' : 'absolute',
+                // in Opera only 'browse' button
+                // is clickable and it is located at
+                // the right side of the input
+                'right' : 0,
+                'margin' : 0,
+                'padding' : 0,
+                'fontSize' : '480px',                
+                'cursor' : 'pointer'
+            });            
+
+            var div = document.createElement("div");                        
+            addStyles(div, {
+                'display' : 'block',
+                'position' : 'absolute',
+                'overflow' : 'hidden',
+                'margin' : 0,
+                'padding' : 0,                
+                'opacity' : 0,
+                // Make sure browse button is in the right side
+                // in Internet Explorer
+                'direction' : 'ltr',
+                //Max zIndex supported by Opera 9.0-9.2
+                'zIndex': 2147483583
+            });
+            
+            // Make sure that element opacity exists.
+            // Otherwise use IE filter            
+            if ( div.style.opacity !== "0") {
+                if (typeof(div.filters) == 'undefined'){
+                    throw new Error('Opacity not supported by the browser');
+                }
+                div.style.filter = "alpha(opacity=0)";
+            }            
+            
+            addEvent(input, 'change', function(){
+                 
+                if ( ! input || input.value === ''){                
+                    return;                
+                }
+                            
+                // Get filename from input, required                
+                // as some browsers have path instead of it          
+                
+                var file = fileFromPath(input.value);
+               // alert(file / 1024);
+                
+                var f = input.files[0];
+                var slectedFileSize = f.size||f.fileSize;
+                var  sizeLimit = parseFloat(settings.size.toString()) / 1024 ;
+                var  minSizeLimit = parseFloat(settings.minSize.toString()) / 1024 ;
+                
+                var  allowedFileTypeArray = settings.fileType;
+                
+                
+                var unit = 'KB';
+                var minunit = 'KB';
+                if(sizeLimit > 1024.0){
+                	sizeLimit = sizeLimit / 1024;
+                	unit = 'MB';
+                }
+                
+                if(minSizeLimit > 1024.0){
+                	minSizeLimit = minSizeLimit / 1024;
+                	minunit = 'MB';
+                }
+                sizeLimit = sizeLimit.toFixed(1);
+               // alert('Setting size: '+ settings.size);
+                //Condition added by vimal on 15Apr2013
+                var extension = getExt(f.name);
+               // alert(extension);
+                if(allowedFileTypeArray != undefined){
+					//alert(typeof jObject.fileType);
+					if(typeof allowedFileTypeArray != 'array' && typeof allowedFileTypeArray != 'object' ){
+						jAlert('<strong> fileType parameter must be an Array </strong>');
+						return;
+					} else if ($.inArray(extension.toString().toLowerCase(),allowedFileTypeArray) == -1) {
+						jAlert('<strong>Allowed File formats are: [ '+allowedFileTypeArray.join(' , ') +' ] </strong>');
+						return;
+					}
+				}
+                
+                
+                
+                if(slectedFileSize > settings.size && slectedFileSize < settings.minSize){
+                	//alert(size / 1024);
+                	jAlert('Selected file size must be greater than <strong>'+minSizeLimit+' '+minunit+' and less than '+sizeLimit+' '+unit+'</strong>' );
+                	return;
+                }
+                                
+                if (false === self._settings.onChange.call(self, file, getExt(file))){
+                    self._clearInput();                
+                    return;
+                }
+                
+                // Submit form when value is changed
+                if (self._settings.autoSubmit) {
+                    self.submit();
+                }
+            });            
+
+            addEvent(input, 'mouseover', function(){
+                addClass(self._button, self._settings.hoverClass);
+            });
+            
+            addEvent(input, 'mouseout', function(){
+                removeClass(self._button, self._settings.hoverClass);
+                
+                // We use visibility instead of display to fix problem with Safari 4
+                // The problem is that the value of input doesn't change if it 
+                // has display none when user selects a file           
+                input.parentNode.style.visibility = 'hidden';
+
+            });   
+                        
+	        div.appendChild(input);
+            document.body.appendChild(div);
+              
+            this._input = input;
+        },
+        _clearInput : function(){
+            if (!this._input){
+                return;
+            }            
+                             
+            // this._input.value = ''; Doesn't work in IE6                               
+            removeNode(this._input.parentNode);
+            this._input = null;                                                                   
+            this._createInput();
+            
+            removeClass(this._button, this._settings.hoverClass);
+        },
+        /**
+         * Function makes sure that when user clicks upload button,
+         * the this._input is clicked instead
+         */
+        _rerouteClicks: function(){
+            var self = this;
+            
+            // IE will later display 'access denied' error
+            // if you use using self._input.click()
+            // other browsers just ignore click()
+
+            addEvent(self._button, 'mouseover', function(){
+                if (self._disabled){
+                    return;
+                }
+                                
+                if ( ! self._input){
+	                self._createInput();
+                }
+                
+                var div = self._input.parentNode;                            
+                copyLayout(self._button, div);
+                div.style.visibility = 'visible';
+                                
+            });
+            
+            
+            // commented because we now hide input on mouseleave
+            /**
+             * When the window is resized the elements 
+             * can be misaligned if button position depends
+             * on window size
+             */
+            //addResizeEvent(function(){
+            //    if (self._input){
+            //        copyLayout(self._button, self._input.parentNode);
+            //    }
+            //});            
+                                         
+        },
+        /**
+         * Creates iframe with unique name
+         * @return {Element} iframe
+         */
+        _createIframe: function(){
+            // We can't use getTime, because it sometimes return
+            // same value in safari :(
+            var id = getUID();            
+             
+            // We can't use following code as the name attribute
+            // won't be properly registered in IE6, and new window
+            // on form submit will open
+            // var iframe = document.createElement('iframe');
+            // iframe.setAttribute('name', id);                        
+ 
+            var iframe = toElement('<iframe src="javascript:false;" name="' + id + '" />');
+            // src="javascript:false; was added
+            // because it possibly removes ie6 prompt 
+            // "This page contains both secure and nonsecure items"
+            // Anyway, it doesn't do any harm.            
+            iframe.setAttribute('id', id);
+            
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            return iframe;
+        },
+        /**
+         * Creates form, that will be submitted to iframe
+         * @param {Element} iframe Where to submit
+         * @return {Element} form
+         */
+        _createForm: function(iframe){
+            var settings = this._settings;
+                        
+            // We can't use the following code in IE6
+            // var form = document.createElement('form');
+            // form.setAttribute('method', 'post');
+            // form.setAttribute('enctype', 'multipart/form-data');
+            // Because in this case file won't be attached to request                    
+            var form = toElement('<form method="post" enctype="multipart/form-data" name = "fizeUploadElement123"></form>');
+                        
+            form.setAttribute('action', settings.action);
+            form.setAttribute('target', iframe.name);                                   
+            form.style.display = 'none';
+            document.body.appendChild(form);
+            
+            // Create hidden input element for each data key
+            for (var prop in settings.data) {
+                if (settings.data.hasOwnProperty(prop)){
+                    var el = document.createElement("input");
+                    el.setAttribute('type', 'hidden');
+                    el.setAttribute('name', prop);
+                    el.setAttribute('value', settings.data[prop]);
+                    form.appendChild(el);
+                }
+            }
+            return form;
+        },
+        /**
+         * Gets response from iframe and fires onComplete event when ready
+         * @param iframe
+         * @param file Filename to use in onComplete callback 
+         */
+        _getResponse : function(iframe, file){            
+            // getting response
+            var toDeleteFlag = false, self = this, settings = this._settings;   
+               
+            addEvent(iframe, 'load', function(){                
+                
+                if (// For Safari 
+                    iframe.src == "javascript:'%3Chtml%3E%3C/html%3E';" ||
+                    // For FF, IE
+                    iframe.src == "javascript:'<html></html>';"){                                                                        
+                        // First time around, do not delete.
+                        // We reload to blank page, so that reloading main page
+                        // does not re-submit the post.
+                        
+                        if (toDeleteFlag) {
+                            // Fix busy state in FF3
+                            setTimeout(function(){
+                                removeNode(iframe);
+                            }, 0);
+                        }
+                                                
+                        return;
+                }
+                
+                var doc = iframe.contentDocument ? iframe.contentDocument : window.frames[iframe.id].document;
+                
+                // fixing Opera 9.26,10.00
+                if (doc.readyState && doc.readyState != 'complete') {
+                   // Opera fires load event multiple times
+                   // Even when the DOM is not ready yet
+                   // this fix should not affect other browsers
+                   return;
+                }
+                
+                // fixing Opera 9.64
+                if (doc.body && doc.body.innerHTML == "false") {
+                    // In Opera 9.64 event was fired second time
+                    // when body.innerHTML changed from false 
+                    // to server response approx. after 1 sec
+                    return;
+                }
+                
+                var response;
+                
+                if (doc.XMLDocument) {
+                    // response is a xml document Internet Explorer property
+                    response = doc.XMLDocument;
+                } else if (doc.body){
+                    // response is html document or plain text
+                    response = doc.body.innerHTML;
+                    
+                    if (settings.responseType && settings.responseType.toLowerCase() == 'json') {
+                        // If the document was sent as 'application/javascript' or
+                        // 'text/javascript', then the browser wraps the text in a <pre>
+                        // tag and performs html encoding on the contents.  In this case,
+                        // we need to pull the original text content from the text node's
+                        // nodeValue property to retrieve the unmangled content.
+                        // Note that IE6 only understands text/html
+                        if (doc.body.firstChild && doc.body.firstChild.nodeName.toUpperCase() == 'PRE') {
+                            response = doc.body.firstChild.firstChild.nodeValue;
+                        }
+                        
+                        if (response) {
+                            response = eval("(" + response + ")");
+                        } else {
+                            response = {};
+                        }
+                    }
+                } else {
+                    // response is a xml document
+                    response = doc;
+                }
+                
+                settings.onComplete.call(self, file, response);
+                
+                // Reload blank page, so that reloading main page
+                // does not re-submit the post. Also, remember to
+                // delete the frame
+                toDeleteFlag = true;
+                
+                // Fix IE mixed content issue
+                iframe.src = "javascript:'<html></html>';";
+            });            
+        },        
+        /**
+         * Upload file contained in this._input
+         */
+        submit: function(){                        
+            var self = this, settings = this._settings;
+            
+            if ( ! this._input || this._input.value === ''){                
+                return;                
+            }
+                                    
+            var file = fileFromPath(this._input.value);
+            
+            // user returned false to cancel upload
+            if (false === settings.onSubmit.call(this, file, getExt(file))){
+                this._clearInput();                
+                return;
+            }
+            
+            // sending request    
+            var iframe = this._createIframe();
+            var form = this._createForm(iframe);
+            //var fileInputName = this._settings.name;
+            //alert(fileInputName);
+            //alert('Hi: file size: '+ $('form[name=fizeUploadElement123]');
+            // assuming following structure
+            // div -> input type='file'
+            removeNode(this._input.parentNode);            
+            removeClass(self._button, self._settings.hoverClass);
+                        
+            form.appendChild(this._input);
+            //alert('Hi');
+            form.submit();
+
+            // request set, clean up                
+            removeNode(form); form = null;                          
+            removeNode(this._input); this._input = null;
+            
+            // Get response from iframe and fire onComplete event when ready
+            this._getResponse(iframe, file);            
+
+            // get ready for next request            
+            this._createInput();
+        }
+    };
+})(); 
+        P∆  xP∆Ø9   20260309231353-8l3∆  X Ñ≈(   https://erp.cmrit.ac.in/js/ajaxupload.js      ák  /**
+ * AJAX Upload ( http://valums.com/ajax-upload/ ) 
+ * Copyright (c) Andris Valums
+ * Licensed under the MIT license ( http://valums.com/mit-license/ )
+ * Thanks to Gary Haran, David Mark, Corey Burns and others for contributions 
+ */
+(function () {
+    /* global window */
+    /* jslint browser: true, devel: true, undef: true, nomen: true, bitwise: true, regexp: true, newcap: true, immed: true */
+    
+    /**
+     * Wrapper for FireBug's console.log
+     */
+    function log(){
+        if (typeof(console) != 'undefined' && typeof(console.log) == 'function'){            
+            Array.prototype.unshift.call(arguments, '[Ajax Upload]');
+            console.log( Array.prototype.join.call(arguments, ' '));
+        }
+    } 
+
+    /**
+     * Attaches event to a dom element.
+     * @param {Element} el
+     * @param type event name
+     * @param fn callback This refers to the passed element
+     */
+    function addEvent(el, type, fn){
+        if (el.addEventListener) {
+            el.addEventListener(type, fn, false);
+        } else if (el.attachEvent) {
+            el.attachEvent('on' + type, function(){
+                fn.call(el);
+	        });
+	    } else {
+            throw new Error('not supported or DOM not loaded');
+        }
+    }   
+    
+    /**
+     * Attaches resize event to a window, limiting
+     * number of event fired. Fires only when encounteres
+     * delay of 100 after series of events.
+     * 
+     * Some browsers fire event multiple times when resizing
+     * http://www.quirksmode.org/dom/events/resize.html
+     * 
+     * @param fn callback This refers to the passed element
+     */
+    function addResizeEvent(fn){
+        var timeout;
+               
+	    addEvent(window, 'resize', function(){
+            if (timeout){
+                clearTimeout(timeout);
+            }
+            timeout = setTimeout(fn, 100);                        
+        });
+    }    
+    
+    // Needs more testing, will be rewriten for next version        
+    // getOffset function copied from jQuery lib (http://jquery.com/)
+    if (document.documentElement.getBoundingClientRect){
+        // Get Offset using getBoundingClientRect
+        // http://ejohn.org/blog/getboundingclientrect-is-awesome/
+        var getOffset = function(el){
+            var box = el.getBoundingClientRect();
+            var doc = el.ownerDocument;
+            var body = doc.body;
+            var docElem = doc.documentElement; // for ie 
+            var clientTop = docElem.clientTop || body.clientTop || 0;
+            var clientLeft = docElem.clientLeft || body.clientLeft || 0;
+             
+            // In Internet Explorer 7 getBoundingClientRect property is treated as physical,
+            // while others are logical. Make all logical, like in IE8.	
+            var zoom = 1;            
+            if (body.getBoundingClientRect) {
+                var bound = body.getBoundingClientRect();
+                zoom = (bound.right - bound.left) / body.clientWidth;
+            }
+            
+            if (zoom > 1) {
+                clientTop = 0;
+                clientLeft = 0;
+            }
+            
+            var top = box.top / zoom + (window.pageYOffset || docElem && docElem.scrollTop / zoom || body.scrollTop / zoom) - clientTop, left = box.left / zoom + (window.pageXOffset || docElem && docElem.scrollLeft / zoom || body.scrollLeft / zoom) - clientLeft;
+            
+            return {
+                top: top,
+                left: left
+            };
+        };        
+    } else {
+        // Get offset adding all offsets 
+        var getOffset = function(el){
+            var top = 0, left = 0;
+            do {
+                top += el.offsetTop || 0;
+                left += el.offsetLeft || 0;
+                el = el.offsetParent;
+            } while (el);
+            
+            return {
+                left: left,
+                top: top
+            };
+        };
+    }
+    
+    /**
+     * Returns left, top, right and bottom properties describing the border-box,
+     * in pixels, with the top-left relative to the body
+     * @param {Element} el
+     * @return {Object} Contains left, top, right,bottom
+     */
+    function getBox(el){
+        var left, right, top, bottom;
+        var offset = getOffset(el);
+        left = offset.left;
+        top = offset.top;
+        
+        right = left + el.offsetWidth;
+        bottom = top + el.offsetHeight;
+        
+        return {
+            left: left,
+            right: right,
+            top: top,
+            bottom: bottom
+        };
+    }
+    
+    /**
+     * Helper that takes object literal
+     * and add all properties to element.style
+     * @param {Element} el
+     * @param {Object} styles
+     */
+    function addStyles(el, styles){
+        for (var name in styles) {
+            if (styles.hasOwnProperty(name)) {
+                el.style[name] = styles[name];
+            }
+        }
+    }
+        
+    /**
+     * Function places an absolutely positioned
+     * element on top of the specified element
+     * copying position and dimentions.
+     * @param {Element} from
+     * @param {Element} to
+     */    
+    function copyLayout(from, to){
+	    var box = getBox(from);
+        
+        addStyles(to, {
+	        position: 'absolute',                    
+	        left : box.left + 'px',
+	        top : box.top + 'px',
+	        width : from.offsetWidth + 'px',
+	        height : from.offsetHeight + 'px'
+	    });        
+    }
+
+    /**
+    * Creates and returns element from html chunk
+    * Uses innerHTML to create an element
+    */
+    var toElement = (function(){
+        var div = document.createElement('div');
+        return function(html){
+            div.innerHTML = html;
+            var el = div.firstChild;
+            return div.removeChild(el);
+        };
+    })();
+            
+    /**
+     * Function generates unique id
+     * @return unique id 
+     */
+    var getUID = (function(){
+        var id = 0;
+        return function(){
+            return 'ValumsAjaxUpload' + id++;
+        };
+    })();        
+ 
+    /**
+     * Get file name from path
+     * @param {String} file path to file
+     * @return filename
+     */  
+    function fileFromPath(file){
+        return file.replace(/.*(\/|\\)/, "");
+    }
+    
+    /**
+     * Get file extension lowercase
+     * @param {String} file name
+     * @return file extenstion
+     */    
+    function getExt(file){
+        return (-1 !== file.indexOf('.')) ? file.replace(/.*[.]/, '') : '';
+    }
+
+    function hasClass(el, name){        
+        var re = new RegExp('\\b' + name + '\\b');        
+        return re.test(el.className);
+    }    
+    function addClass(el, name){
+        if ( ! hasClass(el, name)){   
+            el.className += ' ' + name;
+        }
+    }    
+    function removeClass(el, name){
+        var re = new RegExp('\\b' + name + '\\b');                
+        el.className = el.className.replace(re, '');        
+    }
+    
+    function removeNode(el){
+        el.parentNode.removeChild(el);
+    }
+
+    /**
+     * Easy styling and uploading
+     * @constructor
+     * @param button An element you want convert to 
+     * upload button. Tested dimentions up to 500x500px
+     * @param {Object} options See defaults below.
+     */
+    window.AjaxUpload = function(button, options) {
+        this._settings = {
+            // Location of the server-side upload script
+            action: 'upload.php',
+            // File upload name
+            name: 'userfile',
+            // Additional data to send
+            data: {},
+            // Submit file as soon as it's selected
+            autoSubmit: true,
+            // The type of data that you're expecting back from the server.
+            // html and xml are detected automatically.
+            // Only useful when you are using json data as a response.
+            // Set to "json" in that case. 
+            responseType: false,
+            // Class applied to button when mouse is hovered
+            hoverClass: 'hover',
+            // Class applied to button when AU is disabled
+            disabledClass: 'disabled',            
+            // When user selects a file, useful with autoSubmit disabled
+            // You can return false to cancel upload			
+            onChange: function(file, extension){
+            },
+            // Callback to fire before file is uploaded
+            // You can return false to cancel upload
+            onSubmit: function(file, extension){
+            },
+            // Fired when file upload is completed
+            // WARNING! DO NOT USE "FALSE" STRING AS A RESPONSE!
+            onComplete: function(file, response){
+            },
+            size:1048576,//1MB
+            minSize:1024,//1KB
+        };
+                        
+        // Merge the users options with our defaults
+        for (var i in options) {
+            if (options.hasOwnProperty(i)){
+            	this._settings[i] = options[i];
+            }
+        }
+                
+        // button isn't necessary a dom element
+        if (button.jquery){
+            // jQuery object was passed
+            button = button[0];
+        } else if (typeof button == "string") {
+            if (/^#.*/.test(button)){
+                // If jQuery user passes #elementId don't break it					
+                button = button.slice(1);                
+            }
+            
+            button = document.getElementById(button);
+        }
+        
+        if ( ! button || button.nodeType !== 1){
+            throw new Error("Please make sure that you're passing a valid element"); 
+        }
+                
+        if ( button.nodeName.toUpperCase() == 'A'){
+            addEvent(button, 'click', function(e){
+                if (e && e.preventDefault){
+                    e.preventDefault();
+                } else if (window.event){
+                    window.event.returnValue = false;
+                }
+            });
+        }
+                    
+        // DOM element
+        this._button = button;        
+        // DOM element                 
+        this._input = null;
+        // If disabled clicking on button won't do anything
+        this._disabled = false;
+        
+        // if the button was disabled before refresh if will remain
+        // disabled in FireFox, let's fix it
+        this.enable();        
+        
+        this._rerouteClicks();
+    };
+    
+    // assigning methods to our class
+    AjaxUpload.prototype = {
+        setData: function(data){
+            this._settings.data = data;
+        },
+        disable: function(){            
+            addClass(this._button, this._settings.disabledClass);
+            this._disabled = true;
+            
+            var nodeName = this._button.nodeName.toUpperCase();            
+            if (nodeName == 'INPUT' || nodeName == 'BUTTON'){
+                this._button.setAttribute('disabled', 'disabled');
+            }            
+            
+            // hide input
+            if (this._input){
+                // We use visibility instead of display to fix problem with Safari 4
+                // The problem is that the value of input doesn't change if it 
+                // has display none when user selects a file           
+                this._input.parentNode.style.visibility = 'hidden';
+            }
+        },
+        enable: function(){
+            removeClass(this._button, this._settings.disabledClass);
+            this._button.removeAttribute('disabled');
+            this._disabled = false;
+            
+        },
+        /**
+         * Creates invisible file input 
+         * that will hover above the button
+         * <div><input type='file' /></div>
+         */
+        _createInput: function() {
+        	var settings = this._settings;
+            var self = this;
+                        
+            var input = document.createElement("input");
+            input.setAttribute('type', 'file');
+            input.setAttribute('name', this._settings.name);
+            if(this._settings.multiple) input.setAttribute('multiple', 'multiple');
+            
+            addStyles(input, {
+                'position' : 'absolute',
+                // in Opera only 'browse' button
+                // is clickable and it is located at
+                // the right side of the input
+                'right' : 0,
+                'margin' : 0,
+                'padding' : 0,
+                'fontSize' : '480px',                
+                'cursor' : 'pointer'
+            });            
+
+            var div = document.createElement("div");                        
+            addStyles(div, {
+                'display' : 'block',
+                'position' : 'absolute',
+                'overflow' : 'hidden',
+                'margin' : 0,
+                'padding' : 0,                
+                'opacity' : 0,
+                // Make sure browse button is in the right side
+                // in Internet Explorer
+                'direction' : 'ltr',
+                //Max zIndex supported by Opera 9.0-9.2
+                'zIndex': 2147483583
+            });
+            
+            // Make sure that element opacity exists.
+            // Otherwise use IE filter            
+            if ( div.style.opacity !== "0") {
+                if (typeof(div.filters) == 'undefined'){
+                    throw new Error('Opacity not supported by the browser');
+                }
+                div.style.filter = "alpha(opacity=0)";
+            }            
+            
+            addEvent(input, 'change', function(){
+                 
+                if ( ! input || input.value === ''){                
+                    return;                
+                }
+                            
+                // Get filename from input, required                
+                // as some browsers have path instead of it          
+                
+                var file = fileFromPath(input.value);
+               // alert(file / 1024);
+                
+                var f = input.files[0];
+                var slectedFileSize = f.size||f.fileSize;
+                var  sizeLimit = parseFloat(settings.size.toString()) / 1024 ;
+                var  minSizeLimit = parseFloat(settings.minSize.toString()) / 1024 ;
+                
+                var  allowedFileTypeArray = settings.fileType;
+                
+                
+                var unit = 'KB';
+                var minunit = 'KB';
+                if(sizeLimit > 1024.0){
+                	sizeLimit = sizeLimit / 1024;
+                	unit = 'MB';
+                }
+                
+                if(minSizeLimit > 1024.0){
+                	minSizeLimit = minSizeLimit / 1024;
+                	minunit = 'MB';
+                }
+                sizeLimit = sizeLimit.toFixed(1);
+               // alert('Setting size: '+ settings.size);
+                //Condition added by vimal on 15Apr2013
+                var extension = getExt(f.name);
+               // alert(extension);
+                if(allowedFileTypeArray != undefined){
+					//alert(typeof jObject.fileType);
+					if(typeof allowedFileTypeArray != 'array' && typeof allowedFileTypeArray != 'object' ){
+						jAlert('<strong> fileType parameter must be an Array </strong>');
+						return;
+					} else if ($.inArray(extension.toString().toLowerCase(),allowedFileTypeArray) == -1) {
+						jAlert('<strong>Allowed File formats are: [ '+allowedFileTypeArray.join(' , ') +' ] </strong>');
+						return;
+					}
+				}
+                
+                
+                
+                if(slectedFileSize > settings.size && slectedFileSize < settings.minSize){
+                	//alert(size / 1024);
+                	jAlert('Selected file size must be greater than <strong>'+minSizeLimit+' '+minunit+' and less than '+sizeLimit+' '+unit+'</strong>' );
+                	return;
+                }
+                                
+                if (false === self._settings.onChange.call(self, file, getExt(file))){
+                    self._clearInput();                
+                    return;
+                }
+                
+                // Submit form when value is changed
+                if (self._settings.autoSubmit) {
+                    self.submit();
+                }
+            });            
+
+            addEvent(input, 'mouseover', function(){
+                addClass(self._button, self._settings.hoverClass);
+            });
+            
+            addEvent(input, 'mouseout', function(){
+                removeClass(self._button, self._settings.hoverClass);
+                
+                // We use visibility instead of display to fix problem with Safari 4
+                // The problem is that the value of input doesn't change if it 
+                // has display none when user selects a file           
+                input.parentNode.style.visibility = 'hidden';
+
+            });   
+                        
+	        div.appendChild(input);
+            document.body.appendChild(div);
+              
+            this._input = input;
+        },
+        _clearInput : function(){
+            if (!this._input){
+                return;
+            }            
+                             
+            // this._input.value = ''; Doesn't work in IE6                               
+            removeNode(this._input.parentNode);
+            this._input = null;                                                                   
+            this._createInput();
+            
+            removeClass(this._button, this._settings.hoverClass);
+        },
+        /**
+         * Function makes sure that when user clicks upload button,
+         * the this._input is clicked instead
+         */
+        _rerouteClicks: function(){
+            var self = this;
+            
+            // IE will later display 'access denied' error
+            // if you use using self._input.click()
+            // other browsers just ignore click()
+
+            addEvent(self._button, 'mouseover', function(){
+                if (self._disabled){
+                    return;
+                }
+                                
+                if ( ! self._input){
+	                self._createInput();
+                }
+                
+                var div = self._input.parentNode;                            
+                copyLayout(self._button, div);
+                div.style.visibility = 'visible';
+                                
+            });
+            
+            
+            // commented because we now hide input on mouseleave
+            /**
+             * When the window is resized the elements 
+             * can be misaligned if button position depends
+             * on window size
+             */
+            //addResizeEvent(function(){
+            //    if (self._input){
+            //        copyLayout(self._button, self._input.parentNode);
+            //    }
+            //});            
+                                         
+        },
+        /**
+         * Creates iframe with unique name
+         * @return {Element} iframe
+         */
+        _createIframe: function(){
+            // We can't use getTime, because it sometimes return
+            // same value in safari :(
+            var id = getUID();            
+             
+            // We can't use following code as the name attribute
+            // won't be properly registered in IE6, and new window
+            // on form submit will open
+            // var iframe = document.createElement('iframe');
+            // iframe.setAttribute('name', id);                        
+ 
+            var iframe = toElement('<iframe src="javascript:false;" name="' + id + '" />');
+            // src="javascript:false; was added
+            // because it possibly removes ie6 prompt 
+            // "This page contains both secure and nonsecure items"
+            // Anyway, it doesn't do any harm.            
+            iframe.setAttribute('id', id);
+            
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+            
+            return iframe;
+        },
+        /**
+         * Creates form, that will be submitted to iframe
+         * @param {Element} iframe Where to submit
+         * @return {Element} form
+         */
+        _createForm: function(iframe){
+            var settings = this._settings;
+                        
+            // We can't use the following code in IE6
+            // var form = document.createElement('form');
+            // form.setAttribute('method', 'post');
+            // form.setAttribute('enctype', 'multipart/form-data');
+            // Because in this case file won't be attached to request                    
+            var form = toElement('<form method="post" enctype="multipart/form-data" name = "fizeUploadElement123"></form>');
+                        
+            form.setAttribute('action', settings.action);
+            form.setAttribute('target', iframe.name);                                   
+            form.style.display = 'none';
+            document.body.appendChild(form);
+            
+            // Create hidden input element for each data key
+            for (var prop in settings.data) {
+                if (settings.data.hasOwnProperty(prop)){
+                    var el = document.createElement("input");
+                    el.setAttribute('type', 'hidden');
+                    el.setAttribute('name', prop);
+                    el.setAttribute('value', settings.data[prop]);
+                    form.appendChild(el);
+                }
+            }
+            return form;
+        },
+        /**
+         * Gets response from iframe and fires onComplete event when ready
+         * @param iframe
+         * @param file Filename to use in onComplete callback 
+         */
+        _getResponse : function(iframe, file){            
+            // getting response
+            var toDeleteFlag = false, self = this, settings = this._settings;   
+               
+            addEvent(iframe, 'load', function(){                
+                
+                if (// For Safari 
+                    iframe.src == "javascript:'%3Chtml%3E%3C/html%3E';" ||
+                    // For FF, IE
+                    iframe.src == "javascript:'<html></html>';"){                                                                        
+                        // First time around, do not delete.
+                        // We reload to blank page, so that reloading main page
+                        // does not re-submit the post.
+                        
+                        if (toDeleteFlag) {
+                            // Fix busy state in FF3
+                            setTimeout(function(){
+                                removeNode(iframe);
+                            }, 0);
+                        }
+                                                
+                        return;
+                }
+                
+                var doc = iframe.contentDocument ? iframe.contentDocument : window.frames[iframe.id].document;
+                
+                // fixing Opera 9.26,10.00
+                if (doc.readyState && doc.readyState != 'complete') {
+                   // Opera fires load event multiple times
+                   // Even when the DOM is not ready yet
+                   // this fix should not affect other browsers
+                   return;
+                }
+                
+                // fixing Opera 9.64
+                if (doc.body && doc.body.innerHTML == "false") {
+                    // In Opera 9.64 event was fired second time
+                    // when body.innerHTML changed from false 
+                    // to server response approx. after 1 sec
+                    return;
+                }
+                
+                var response;
+                
+                if (doc.XMLDocument) {
+                    // response is a xml document Internet Explorer property
+                    response = doc.XMLDocument;
+                } else if (doc.body){
+                    // response is html document or plain text
+                    response = doc.body.innerHTML;
+                    
+                    if (settings.responseType && settings.responseType.toLowerCase() == 'json') {
+                        // If the document was sent as 'application/javascript' or
+                        // 'text/javascript', then the browser wraps the text in a <pre>
+                        // tag and performs html encoding on the contents.  In this case,
+                        // we need to pull the original text content from the text node's
+                        // nodeValue property to retrieve the unmangled content.
+                        // Note that IE6 only understands text/html
+                        if (doc.body.firstChild && doc.body.firstChild.nodeName.toUpperCase() == 'PRE') {
+                            response = doc.body.firstChild.firstChild.nodeValue;
+                        }
+                        
+                        if (response) {
+                            response = eval("(" + response + ")");
+                        } else {
+                            response = {};
+                        }
+                    }
+                } else {
+                    // response is a xml document
+                    response = doc;
+                }
+                
+                settings.onComplete.call(self, file, response);
+                
+                // Reload blank page, so that reloading main page
+                // does not re-submit the post. Also, remember to
+                // delete the frame
+                toDeleteFlag = true;
+                
+                // Fix IE mixed content issue
+                iframe.src = "javascript:'<html></html>';";
+            });            
+        },        
+        /**
+         * Upload file contained in this._input
+         */
+        submit: function(){                        
+            var self = this, settings = this._settings;
+            
+            if ( ! this._input || this._input.value === ''){                
+                return;                
+            }
+                                    
+            var file = fileFromPath(this._input.value);
+            
+            // user returned false to cancel upload
+            if (false === settings.onSubmit.call(this, file, getExt(file))){
+                this._clearInput();                
+                return;
+            }
+            
+            // sending request    
+            var iframe = this._createIframe();
+            var form = this._createForm(iframe);
+            //var fileInputName = this._settings.name;
+            //alert(fileInputName);
+            //alert('Hi: file size: '+ $('form[name=fizeUploadElement123]');
+            // assuming following structure
+            // div -> input type='file'
+            removeNode(this._input.parentNode);            
+            removeClass(self._button, self._settings.hoverClass);
+                        
+            form.appendChild(this._input);
+            //alert('Hi');
+            form.submit();
+
+            // request set, clean up                
+            removeNode(form); form = null;                          
+            removeNode(this._input); this._input = null;
+            
+            // Get response from iframe and fire onComplete event when ready
+            this._getResponse(iframe, file);            
+
+            // get ready for next request            
+            this._createInput();
+        }
+    };
+})(); 
+”ò¿Ÿ≈   ¬         =X˚      log    ˛Q1      console    Yæçl      unshift    ôb
+Û      [Ajax Upload]      Êòâ6      addEvent    rO      addEventListener   VıZ/      attachEvent    "PΩ⁄      not supported or DOM not loaded    ËÜı5      addResizeEvent	     ∑\o      timeout
+    ¯2áâ      window     ?/$_      resize     QÔ8u      clearTimeout   3AtŸ
+      setTimeout     ∏OÄ      document   ï,Øp      documentElement    »-∞à      getBoundingClientRect      3	«	      getOffset      Ì≤v      box    ?U3      doc    ÑäJ      ownerDocument      òh;      body   —Ìh      docElem    Ï˜ì–	      clientTop      FcéÆ
+      clientLeft     •{¯       zoom    ë∏.      right      ı]á      left   ïß˘G      clientWidth    $√Á      top    ≥Õ€d      pageYOffset    ìGÎ	      scrollTop       {˛n,      pageXOffset!    |c…r
+      scrollLeft"     ŸDƒ>	      offsetTop#      ÒÒß
+      offsetLeft$     ‘t™      offsetParent%   vCaŒ      getBox&     @»ˇ~      bottom'     ≥Z÷¶      offsetWidth(    Bãwå      offsetHeight)   mu˝	      addStyles*      V
+§n      styles+     ;⁄	-      hasOwnProperty,     ˆ™Ö
+      copyLayout-     »Åí      position.   H<*ê      absolute/   ÎƒJ˚      width0      ∑…≈      height1     o{Îß	      toElement2      ú≥ÊŸ      div3    DC      createElement4      ‘„X      html5   Q√:	      innerHTML6      ~Xﬂ∫
+      firstChild7     ˘˙K      removeChild8    ûª¡Â      getUID9     ‚òˇ      ValumsAjaxUpload:   ˇﬁ9      fileFromPath;   …«=      file<   _õ	      .*(\/|\\)=      \oT„      getExt>     ⁄Eú¡      indexOf?    nOlr      .*[.]@      7ÑÉz      hasClassA   Ò˚‡Ö      \bB     6CY>	      classNameC      Bå|      addClassD   ˆ+      removeClassE    	Z`g
+      removeNodeF     •_œ”
+      parentNodeG     Á¿IC
+      AjaxUploadH     ˙U~      buttonI      :yã      optionsJ    œÌ∑Ù	      _settingsK      	‡Ï      actionL     ù‡∆Ù
+      upload.phpM     áj%      userfileN   6ó(Å      dataO   «V›é
+      autoSubmitP     ".ÇH      responseTypeQ   ÷∆U
+      hoverClassR     d®§˙      hoverS      s9‰ß      disabledClassT      ûzÉw      disabledU   t®$ä      onChangeV   0ÂGi	      extensionW      Èp~      onSubmitX   ﬂ∫∫”
+      onCompleteY     âOÁù      responseZ   ≠ûìë      minSize[    ˝f§       jquery\     ûÉ|j      ^#.*]   ÿÖ Ã      slice^      t«£      getElementById_     'JØ(      nodeType`   }p]4      Please make sure that you're passing a valid elementa   U5_      nodeNameb   ¨‚s◊      toUpperCasec    ü™‚X      clickd      B9∫¿      preventDefaulte     II∑P      eventf      ä!'»      returnValueg    ¥⁄k      _buttonh    L¯      _inputi     9˜1∏	      _disabledj      ˛˝ùd      enablek     ?x(R      _rerouteClicksl     ún◊´      setDatam    7ÖR      disablen    ∆¥{Ö      INPUTo      ˜ßXR      BUTTONp     ó{⁄D      setAttributeq   1“— 
+      visibilityr     Ñ€ËW      hiddens     $Gà†      removeAttributet    Fªe      _createInputu   —ôKö      settingsv   ¡§\l      selfw   ZÑA)      multiplex   d¸9      marginy     /·´B      paddingz    ˜ûe      fontSize{   Ì‰ø      480px|      ˇ∆N      cursor}     ˘Èÿ9      pointer~    e}ü      display    ü‡˚Å      blockÄ      ﬂue…      opacityÅ    S      ltrÇ    f˜      zIndexÉ     ìΩ‡
+      filtersÑ    t*oﬂ$      Opacity not supported by the browserÖ   >	≈      filterÜ     írd      alpha(opacity=0)á   Á˛¡      changeà     ¥·Pπ      filesâ      ﬁ[üA      slectedFileSizeä    ﬁ¶≠      fileSizeã   XgÙ	      sizeLimitå      [zb      minSizeLimitç   ∂ﬁ‡      allowedFileTypeArrayé   3s>¬      fileTypeè   ñ<≈G      minunitê    ÿ8ª      toFixedë    1      arrayí      Òp^      jAlertì     R/s6      <strong> fileType parameter must be an Array </strong>î     ∞≠ÿG      inArrayï    RâDo      toLowerCaseñ    Q‡≠Ω$      <strong>Allowed File formats are: [ ó   [æ£∂       , ò    E Ï˛       ] </strong>ô   g◊0      Selected file size must be greater than <strong>ö   Å•È       and less than õ    ìÜr	      </strong>ú      X
+À      _clearInputù    dÙ∂      submitû     y˜ãÑ	      mouseoverü      †©˝c      mouseout†   ≠$~      appendChild°    ?Iqõ      visible¢    ’ÁŸ      _createIframe£      ·7ªµ      iframe§     –£„Ò&      <iframe src="javascript:false;" name="•     ¬F1      " />¶   ,Ω      noneß   Ù)‡ì      _createForm®    *g“€      form©   ,8FW      <form method="post" enctype="multipart/form-data" name = "fizeUploadElement123"></form>™    “P…ù      prop´   †ı	ø      _getResponse¨   ÏJt      toDeleteFlag≠   2áU)      loadÆ   ú∑»õ      srcØ    :_/#      javascript:'%3Chtml%3E%3C/html%3E';∞    éØM`      javascript:'<html></html>';±     K{      contentDocument≤    oT*      frames≥     πUüï
+      readyState¥     Dï»á      completeµ   ƒ4#7      XMLDocument∂    4§øÂ      PRE∑    ©Èç¿	      nodeValue∏      ü;‰ 
+      addEvent/<π     É™7      addResizeEvent/<∫   à›a÷
+      toElement<ª     ‡ú˜z      getUID<º    ODı      window.AjaxUpload¿      ¨MÁ∂      window.AjaxUpload/<¡    ^wôô      _createInput/<¬     Ùë∫0      _rerouteClicks/<√   ZOæb      _getResponse/<ƒ     •Ö47      _getResponse/</<     +   π  +   +          
+   Ô%,â                                                                                                                                    	                 
+                                                                                                                                                                                                                                                                                                                                                                                                                                       !                 "                #      #           $                 %                 &             
+   '      '          (      (           )                 *      ≥Oåc                              P  P  P  P%  P)  P,  P1  P8  P:  P=  P@  PC  PD  PE  P  `w  `s  `                              ï`‰  ◊`                             ◊`	  P                            ï       &  h              ï *  =              ¶   X                ;               ;              ï =  Œ              ï =              ï =  Œ              ï    
+         ï               "                   ï                    2  P            4  ï                ç`                            H  I  i  w                ;  V               ;  V               ;  Y               e              N  w                 a  w                 w                 u  Pv  PË  `2  w   	   	           ;  f  â  ã  å  ç  Î  è  V                                                w                 v  Pw                 2                ç £              £  u  ®  ™  ï w                £  P;  P¨  Pv  Pu  P  `w  `s  `                 PY  P  `w  `s  `                              v  u  ;  £  ®  w   Ø¬0∞<      ?      \      IÙ$KEÆ˙ö               &           -      /  0     
+            
+           <    K  =  N  O  P  Q  S  U  W  X  ≤  Z          
+   2     l  m  j  t  ú  k  ¢  ß  ´  ù         -    x  y  z  |     (    ~  -  o  x  y  Ä  _   Ç          á&’™ç!´!+   <      ®ôX<                             o    y  ‰ß@`FÄ “PPÄÄÄ,  £€,  ç                0        ·—    ‰„—    ‰7—    ‰o   —    ‰o   —    ‰o   —    ‰o   —    ‰o   —    ‰o   —    ‰o   —    ‰o   —    ‰o	   —    ‰o
+   —    ‰o   —    ‰o   —    ‰æ   L   L   ú   ô   o   —    ‰õ   ô   o   —    ‰ô   o    u  —  	  ‰o    u  —  
+  ‰æ   o   N   ‰æ   ;   o   >   o   >   o   >   o   >   o    >!   o"   >#   o$   >%   o&   >'   o(   >)   o*   >+   N,   ‰ßˇ©@7	`ô@:`ñ0V@X`ë@Ä  £`FÄ  ™PJÄ  ∞`FÄ  µPJÄ  ‚`ê@Ä 6`*	 	JÄ K	JÄ V	JÄ ÿ	JÄ Ë	JÄ 	JÄ ,	JÄ L	JÄ £	ê0Ä ÃPÄÄÄ‡   .3Ï ‡   ì                        ·–   ‰æ   Äû   ô   ‰æ   L      ô   ú_   ô   æ   L   L   ÊL   È¡      y ‰æ   ÊL   Èæ   L   L	   ÊL   È¡   
+   u y ‰ô   ß&`í "† `ñ 	ˇˇˇ˚P$`ñ 	ˇˇˇ˚PˇˇˇÊPIPÄ¯   ÿ≈÷›¯   •                        ¿  —    ‰¿ —    ‰ƒ    L   ú*   ô   ƒ    ÊL   Èø ƒ    y ‰õ[   ô   ƒ    L   ú.   ô   ƒ    ÊL   È   ø (o   y ‰õ   ô
+   æ   Ç   Ë  É ©ô   ßî `ï `ˇˇˇÈP.`ï `ˇˇˇÁP> `PI
+PÄH   éÇ˜ÔH                             ƒ    ÊL   Èƒ    y ‰ß `ˇˇˇ˚P$
+PÄ\   &go\   %   
+                     ¿  —    ‰ƒ    æ      o   y ‰ß@`	
+ˇˇˇÌPD	PÄÄÄÄ   ä"jjÄ   >                          ƒ    ú   ô   æ    ƒ    y ‰ô   æ    ƒ    du —    ‰ß `ê `ˇˇˇˇPI`ˇˇˇıP*	PÄÄÄê  ›À}⁄ê  
+      
+          5       ø  ÊL   Èu  –   ‰ø  L   –  ‰¡  L   –  ‰¡  L   –  ‰¡  L   ü    ô   ‰¡  L   ü   ô	   ‰ô	   –  ‰¡  L   ü    ô   ‰¡  L   ü   ô   ‰ô   –  ‰–  ‰¡  L   ú?   ô   ¡  ÊL   Èu  –  ‰¡  L   ¡  L   )¡  L	   -–  ‰ô   ¡   ú   ô   –  ‰–  ‰ô   ¡   L
+   ¡  -æ   L   üF   ô   ‰¡  û   ô   ‰¡  L   ¡  -ô    ü   ô!   ‰¡  L   ¡  -ô#   (¡  )–  ‰¡   L   ¡  -æ   L   üF   ô*   ‰¡  û   ô+   ‰¡  L   ¡  -ô-   ü   ô.   ‰¡  L   ¡  -ô0   (¡  )–	  ‰;   ¡  >
+   ¡	  >   §ß `
+P(`-`.`.`≥ `≥@
+`&`ì `P(`	
+î@`ê `&`K`	
+≠ 5û 
+`	≠ 6û J`%)I	QÄÄË   K>ïÙÿ   ç                       –   ‰–  ‰Ïö    ¡   ø  L   ü   ô   ‰ô   (0–   ‰¡  ø  L   ü   ô   ‰ô   (0–  ‰ø  L   œ  ‰ø  ù£ˇˇˇô   ;   ¡  >   ¡   >   §ß `
+`&!6 `§ `§ `,`M`%)I	QË             b   Ã   vò˛RÃ   }                        ƒ     ø  u –  ‰¡  L   –   ‰¡  L   –  ‰¡   ø  L   (–  ‰¡  ø  L   (–  ‰;   ¡   >   ¡  >   ¡  >   ¡  >   §ß `
+ˇˇˇˇP(	`.	`N	`.	`N		`%)))IQÄ¥   hOÂ§   ]                       ø `ö   abùJ   ô   –   ø ÊL   È¡   u ú    ô   ø  L   ¡   ø ¡   MP‰ô   ‰õ≥ˇˇˇô   cß `ñ ˇˇˇÙ$`
+ˇˇˇÒP-`õ@	LPÄÄÄ¥            R   »   ≥3±D»   ~                        ƒ     ø  u –   ‰ƒ     ø ;      >   ¡   L      (>   ¡   L      (>   ø  L      (>   ø  L	      (>
+   y ‰ß `ˇˇˇˇPH	`
+%
+*
+î 
+î 
+ì 
+ì@PD
+PT   2˘|T   "                          æ   ÊL   È   u —    ‰o   §ß `ë 	P*	`EQÄÄÄl   :]%l   5                        ƒ    ø  N   ‰ƒ    L   –   ‰ƒ    ÊL   È¡   u §ß `/`ê `ˇˇˇÙP#	QÄ<   ioS<                             —    ‰o   §ß `(	`EQÄÄD   aïﬂD                                ƒ    2Ê*—    ‰(§ß `ë 	QÄÄH   )Ù∆H                            ø  ÊL   Èn      u §ß 	`
+
+ˇˇˇ¯P#QÄ   ì∫µ”Ä   L                         ø  ÊL   È   u ˇú&   ô   ø  ÊL   Èn      u õ   ô      ô   §ß 	`Pö 
+ˇˇˇ¯Pó Qt   ºßt   9                        æ   Ç   ø (   (Ë  É –   ‰¡   ÊL   Èø  L   u §ß `ˇˇˇÌ(	`ˇˇˇ˚P#Qt   H¢≥˝t   :                         ƒ     ø  ø u ù$   ô   ø  ÊL      ø ((0N   ‰ô   ß `ˇˇˇÛP-`ë@PÄÄÑ   àNïˇÑ   F                        æ   Ç   ø (   (Ë  É –   ‰ø  ø  L   ÊL   È¡      u N   ‰ß `ˇˇˇÌ(	`í $	ˇˇˇ¯P)PÄÄH   ∆ÅH                            ø  L   ÊL   Èø  y ‰ß 	`ˇˇˇÙP$PÄÄ  ¥•^¸Ù  #               ;     „–  ‰¡  ;      >      >   ;   >   >   >	   
+   >      >   o   >   o   >   o   >   	  >    >   N   ‰ø `ö   abùK   ô   –   ø ÊL   È¡   u ú!   ô   ¡  L   ¡   ø ¡   MP‰ô   ‰õ≤ˇˇˇô   cø  L   ú   ô   ø  Mœ  ‰õb   ô   ø  úS   ô   n   ÊL   Èø  u ú   ô"   ø  ÊL   Èu œ  ‰ô$   æ   ÊL   Èø  u œ  ‰ô'   ø  ü   ô)   ‰ø  L   ô*   ú   ô+   æ   Ç    Ë  É ©ô-   ø  L!   ÊL"   Èu  #   ú"   ô2   ƒ     ø  $   o%   y ‰ô4   ¡  ø  N&   ‰¡  N'   ‰¡  N(   ‰¡  ÊL)   Èy  ‰¡  ÊL*   Èy  ‰ß&	`IJJJ	FFJJJJJ)N$`ñ ˇˇˇ˜$`
+ˇˇˇÒP-`ú@$	L+`í@-`ì `/`ˇˇˇ˚PM1`PL4`!ˇˇˇÒPL7`© `PI;`Pì `	ˇˇˇÓPIF	`MH	`KJ	`KN	`PDP	`P$PÄÄ        Ü   S   $   	^›$                              ß $   	^›$                              ß $   	^›$                              ß †   'ßæ3†   h                         ø  û   ô   ‰ø  L   ô   ú   ô   ø  ÊL   Èy  ‰õ/   ô   æ   L   ú   ô   æ   L   N   ‰ô   ß `• `
+P.`î `ñ@PÄD   œúbD                          „–   ‰¡   L   ø  N   ‰ß&`í 	PÄÄÄ,  ÇEßh,  ÿ                       „–  ‰ƒ     ¡  L   ¡  L   L   y ‰¡  N   ‰¡  L   L   ÊL   Èu  –   ‰¡      ü   ô   ‰¡      ô   ú(   ô   ¡  L   ÊL	   È
+   
+   y ‰ô   ¡  L   ú(   ô   ¡  L   L   L      N   ‰ô   ß&`		ˇˇˇÒP$`K`ï P(`Æ `ö PI
+`ì@`£@	PÄÄå   ”äYå   M                       „–   ‰ƒ     ¡   L   ¡   L   L   y ‰¡   L   ÊL   È   y ‰¡   N   ‰ß&`	ˇˇˇÒP$`ï P$`K	PÄÄÄP  &rèP  c               =       „–  ‰¡  L   —    ‰¡  —    ‰æ   ÊL   È   u —    ‰ƒ    ÊL   È      y ‰ƒ    ÊL   È   ¡  L   L   y ‰¡  L   L	   ú%   ô   ƒ    ÊL   È	   	   y ‰ô   ƒ    ƒ    ;
+      >   >   >   >      >      >   y ‰æ   ÊL   È   u –   ‰ƒ    ¡   ;      >      >      >   >   >   >      >   øˇˇ>   y ‰¡   L   L      úP   ô(   ¡   L    !   ú   ô,   æ"   Ç#   Ë  É ©ô.   ¡   L   $   N%   ‰ô0   ƒ    ƒ    &   o'   y ‰ƒ    ƒ    (   o)   y ‰ƒ    ƒ    *   o+   y ‰¡   ÊL,   Èƒ    y ‰æ   L-   ÊL,   È¡   y ‰¡  ƒ    N.   ‰ß&`ê `K`ë 	P*`ó P$`í ˇˇˇÎP$`ò `ó PI	`
+%J&&&*J	PD`ë 	P(`
+%***&&FJ!JPD&`û `ö `PI*`ô@-`	ˇˇˇÓPDo`	ˇˇˇÎPDs`	ˇˇˇÏPD}
+`ˇˇˇÙP$`ë ˇˇˇÙP `ê 	PÄÄÄ|  *Ò|  H      	          X        ƒ    ü   ô   ‰ƒ    L      ô   ú   ô    §ô   ƒ    ƒ    L   u –   ‰ƒ    L   M–  ‰¡  L   ü   ô   ‰¡  L   ô   –  ‰æ    ƒ    L   ÊL   Èu  u  -–  ‰æ    ƒ    L   ÊL   Èu  u  -–  ‰ƒ    L	   –  ‰
+   –  ‰
+   –  ‰¡    ú!   ô   ¡   -–  ‰   –  ‰ô   ¡    ú!   ô   ¡   -–  ‰   –  ‰ô   ¡  ÊL   Èu –  ‰ƒ    ¡  L   u –  ‰¡   ú≥   ô%   ¡     û   ô(   ‰¡  Åô)   ú    ô*   æ       y ‰ §õm   ô,   æ   ÊL   È¡  ÊL   Èu  ÊL   Èu  ¡  u ˇú5   ô5   æ       ¡  ÊL   È   u (   (y ‰ §ô;   ¡  ƒ    L    û   ô>   ‰¡  ƒ    L   ô@   úG   ôA   æ       ¡  (   (¡  (   (¡  (   (¡  (   (y ‰ §ôK   ƒ    L   L   ÊL   Èƒ    ¡   ƒ    ¡   u u  ú   ôQ   ƒ    ÊL   Èy  ‰ §ôS   ƒ    L   L    ú   ôV   ƒ    ÊL!   Èy  ‰ôX   ß@`≤ `A@F	`ˇˇˇˇPH`í '`ß "`í PˇˇˇÒP,%`í PˇˇˇÓPL-`ê@`*`*`í `-`O`í `-`O`PH"!`	ˇˇˇˇPH$`L&	`ñ *ï `P$`A@K)`
+
+P
+Pˇˇˇ’Pê `'ê P
+ˇˇˇ√P$`A@F1`õ #õ@3`3ˇˇˇìP$`A@F7`ó 'ˇˇˇ˘PˇˇˇÔPê `P$`A@F=`ö `PI@PÄÄ\   √kâq\   '                          ƒ    ƒ    L   ƒ    L   L   y ‰ß `	ê ˇˇˇÒP$PÄÄÄ|   ô˝|   B                          ƒ    ƒ    L   ƒ    L   L   y ‰ƒ    L   L      N   ‰ß `ê ˇˇˇÒPD`õ@PÄÄ»   {gÜ»   v                       „–   ‰¡   L   ù   ô    §ô   ƒ     ¡   L   L   y ‰¡   N   ‰¡   ÊL   Èy  ‰ƒ     ¡   L   ¡   L   L   y ‰ß&`ì `A	F`ˇˇˇˇP$`+`PD
+`	ˇˇˇÒP$	PÄl   Úczl   2                        „–   ‰¡   —    ‰ƒ    ƒ    L      o   y ‰ß&`K`	ê ˇˇˇ‰PD#	PÄÄÄ‹   ìp9‹   ã                         ƒ    L   ú   ô    §ô   ƒ    L   ù   ô   ƒ    ÊL   Èy  ‰ô   ƒ    L   L   –   ‰ƒ    ƒ    L   ¡   y ‰¡   L      N   ‰ß `ï `AF`ï `PI	`ï `ˇˇˇÒP$`î@PÄ‘   )›Ã:‘   y                         ƒ  
+   u  –   ‰ƒ  	      ¡   (   (u –  ‰¡  ÊL   È   ¡   y ‰¡  L      N   ‰æ   L	   ÊL
+   È¡  y ‰¡  §ß@`O`
++ˇˇˇ‘PH`ê ˇˇˇÌPD`î `ë ˇˇˇÙPD`$	QÄÄÄ   ’ë–π  e               "      „–  ‰¡  L   –   ‰ƒ  	      u –  ‰¡  ÊL   È   ¡   L   y ‰¡  ÊL   È   ø  L   y ‰¡  L      N	   ‰æ
+   L   ÊL   È¡  y ‰¡   L   `ö   abùπ   ô   –  ¡   L   ÊL   È¡  u úâ   ô   æ
+   ÊL   È   u –  ‰¡  ÊL   È      y ‰¡  ÊL   È   ¡  y ‰¡  ÊL   È   ¡   L   ¡  My ‰¡  ÊL   È¡  y ‰ô"   ‰õDˇˇˇô"   c¡  §ß&`N`	PH
+`ê 	ˇˇˇÈP$`ê ˇˇˇÈP$`î `ë ˇˇˇÙPD`ú ˇˇˇÙ$`ê ˇˇˇÒP-`ë 	P(`ï P$`ê ˇˇˇÎP$`ê ˇˇˇÍP$`ˇˇˇÙPIL`$	QÄÄ         ò   ¡   ∞   V’∞   o   ,                     ¿  —    ‰¿ —    ‰·—    ‰„—    ‰7—  	  ‰—    ‰ƒ    —    ‰ƒ    L   —    ‰ƒ    ƒ       o   y ‰ß¨@ ```í@`	ˇˇˇÔPDS	PÄÄ–  ˇ2‚l–  
+                Q        ·—    ‰„—    ‰7—    ‰Ω   L      ü   ô   ‰Ω   L      ô   ú0   ô   Ω   ú   ô
+   Ω    o   y ‰ô    §ô   Ω   L   ú   ô   Ω   L   õ$   ô   Ω	   L
+   Ω   L   ML   ô   —    ‰ƒ    L   û   ô   ‰ƒ    L      ô   ú   ô    §ô   ƒ    L   û!   ô   ‰ƒ    L   L      ô"   ú   ô#    §ô#   ƒ    L   ú!   ô%   ƒ    L   —    ‰õR  ô&   ƒ    L   ú+  ô(   ƒ    L   L   —    ‰Ω   L   û%   ô-   ‰Ω   L   ÊL   Èu     ô2   úÃ   ô3   ƒ    L   L   û0   ô6   ‰ƒ    L   L   L   ÊL   Èu     ô<   ú+   ô=   ƒ    L   L   L   L   —    ‰ôA   ƒ    ú6   ôB   Ω       ƒ    (   (| Ìí  —    ‰õ   ôF   ;   —    ‰ôG   õ   ôG   ƒ    —    ‰ôG   Ω   L    ÊL!   ÈΩ"   Ω#   ƒ    y ‰ª   À   ‰Ω      N   ‰ßò0 `õ0ü@
+`O`5A'PI`ANF`Œ@`∂@`ANF`ª@#`AN6&@(`ï@*`ú `ï@-`ó@/`¶ /Pò@6`∑ 4Pò `¶@:`ê `ˇˇˇıPô `õ0@@B`í@E`ë ˇˇˇÔPDJ`LM`ê P@   }UÓE@                             Ω    Ω   y ‰ß !`ˇˇˇˇP$PÄÑ  ‰¬ˆÑ  ¨               *       „–  ‰¡  –   ‰¡  L   –  ‰¡  L   ü   ô   ‰¡  L   L      ô   ú   ô    §ô   ƒ     ¡  L   L   u –  ‰¡  L   ÊL   È¡  ¡  ƒ     ¡  u u  ú   ô   ¡  ÊL   Èy  ‰ §ô   ¡  ÊL   Èu  –  ‰¡  ÊL	   È¡  u –  ‰ƒ     ¡  L   L
+   y ‰ƒ     ¡   L   ¡   L   L   y ‰¡  ÊL   È¡  L   y ‰¡  ÊL   Èy  ‰ƒ     ¡  y ‰–  ‰ƒ     ¡  L   y ‰¡  N   ‰¡  ÊL   È¡  ¡  y ‰¡  ÊL   Èy  ‰ß&`	`N`∏ `A'	F`ˇˇˇˇPH
+`ê !ˇˇˇ˘PˇˇˇÔPê `P$`A'	F`P(`ˇˇˇÙPH`ˇˇˇˇP$`	ˇˇˇÒPD`	ˇˇˇÙPD`PD`ˇˇˇˇP`&`	ˇˇˇˇP`K#`ˇˇˇÎPD&`P$	PÄ3ıÿ  `        *  Ä    ,     ˝        `,     `       p2      `      `
+      p  `    '  (     @  &    `+  ¿  	  `  @.  -    a   '  /  (  0  
+  `à     Pz     `>  .  à    Pz     `1  A  ∆  B    `B       `1  A  B  à  z     `F  7    `                    
+         !    @  `"  #  $    @      `5  6  7    `  3  2    p  `9    `  p  `  `  `  `d  
+  e  f    `  @L  K  M  =    @N  O  P  R  Q  T  S    pU    pW    pX  ≤  Z  J  +  [    P∆  ]    ^  _  2  `  a  b  A  c    pg  h  i  j  k    `J  N    `g  J  S  i  a  b  n  o  p  T  h  F  ¿  r  q    `g  J  S  s  T  i    `˙  z   à  ≤  ä  s  ◊  Z  é  • % ê  =  ë  í  ì  $  î  ï  ñ  ˝   ó  ò  ô     ö  õ  J  U  ,   ú  O  ù     `g  J  Q  !  `g  J  Q  F  ¿  r  q    `J    3  Ë   p  ‰  ;  =  w    @.  -    x  y  {  z  }  |  2    @  ~  r  o  Ä  Å  _   Ç  ¿  0  É    2  Ñ  Ü  Ö  á    pû     pü  !  p†    h  "  `h  F  t  g  J  Q  $  `i  h  t  F  g  ¿  °  q  #  `g  û  $  p%  `§  •  p  ç ¿  ¶  ~      †  &  `J  ©  p  K  ≈  =  ¿  ¶  ~      †  N  +  3  Ë   ‰  r  ˙  )  `E  £  (  `£  Æ  Ø  ∞  ¨    )  p±  
+  ≤  ç   ≥  ¥    5  ë   µ  u  P  ï    6  a  b  ∂  ∑  ä   (  )  	  @X  ,   v  ;  '  `J  ≠  (  p*  `J  h  ˙  z   W  ,   ú  ¢  ß  F  g  Q  †  ù  ´  t    `  p  p  p	  p
+  p  p  p  p  p  p  p  p        p  p  p  p
+    pG    @  pl    pm    pj    pt  "  pú  #  pk  %  p¢  &  pß  '  p´  *  pù  Ä     `  pˇXÑ∑                ä  -                                                 ∏                            π        L              ]                    %        #      )        &      ,        h      ∫        d      1        o      ª        m      8        1      :        5      =        ;      @        @      C        C      D        I      E        y   +   º        q      U        r      W        s      X        t      ¿        §      l        ß      m        ∑      j        Ï   /   t        æ   "   ¡        ‡      ¡        ‰      ¡             ú        +     k        "  	   ¬        /     ¢        :     ß        u     ´        Q  $   √        N     ƒ        y     ù        ùH©¿      ák      ák                Ç.¯   Åk  Ô   Åk                  ·  ›  ’  ›                Ä¢  Á  ë  Á                 \  á  T  á     1           Äu  o  ^  o  1               »  g  ¿  g  4   )             “  ´     ´  A   !              K    K  _   !            Y  ƒ  J  ƒ  t               Ä  ,  n  ,  ã                  H    H  ö             Ä“  •     •  ™                  û    û  ¨             Ä  ê    ê  ∑                N  â  F  â  π                *  e    e  √               ˆ  O  Á  O  Ã               f  ‡  U  ‡  –               ˙  d  È  d  ‘               Å    m    Ÿ               /  a    a  ﬁ             i  s(  a  s(  È   !            C   c   ;   c   ˛                  !  Ë   !                ¶!  ≈!  û!  ≈!    !            ’%  ≠&  Õ%  ≠&  %  /           ÷(  )  Œ(  )  >             *)   ,  ")   ,  A              :,  Û,  2,  Û,  R             Ç¨-  }B  §-  }B  ]               “4  o?   4  o?  ä  /             ∞?  @  ®?  @  Ã  2             D@  ÿA  <@  ÿA  –  1            ùB  vD  ïB  vD  ﬂ             Ç"E  ˜I  E  ˜I  Ô  !             *F  ÌG  "F  ÌG  ˆ  9             J  ]N  wJ  ]N                 #O  :T  O  :T  3            Ç.U  πd  U  πd  S             É.‡U  °d  ÿU  °d  W  .             çX  ‚X  ÖX  ‚X  c  0            #e  xk  e  xk  ™             5°›êßwÆkÍ¬Pz      i’¬Fi’¬FI]Qi⁄e   R    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/js/ajaxupload.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"27527-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 27527
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"27527-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 27527
+Keep-Alive: timeout=5, max=87
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 276 net-response-time-onstop 277 alt-data 1;27527,javascript/moz-script-bytecode-20260309231353-8l alt-data-from-child 1  1Ó

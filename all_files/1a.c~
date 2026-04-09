@@ -1,0 +1,35 @@
+#include <stdio.h>
+struct Day 
+{
+char name[10];
+int date;
+char activity[50];
+};
+void main()
+{
+create();
+{
+struct Day week[7]
+}
+read();
+{
+for (int i = 0; i < 7; i++) 
+{
+printf("Day:");
+scanf("%s",&week[i].name);
+printf("Date:");
+scanf("%d",&week[i].date);
+printf("Activity:");
+scanf("%s",&week[i].activity);
+}
+display();
+{
+for (int i = 0; i < 7; i++)
+{
+printf("%s %d: %s\n", week[i].day, week[i].date, week[i].activity);
+}
+return 0;
+}
+}
+
+

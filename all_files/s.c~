@@ -1,0 +1,41 @@
+#include <stdio.h> 
+struct student
+{
+char name[50];
+char usn[10];
+float cgpa;
+int phone[10]
+char address[100];
+char branch[5];
+};
+int main()
+{
+struct student s[10];
+for (int i = 0; i < 10; i++) 
+{
+printf("Number of student details to be entered %d:\n",  i+1);
+printf("Name:");
+scanf("%s",s.name);
+printf("USN:");
+scanf("%s",s.usn);
+printf("CGPA:");
+scanf("%f",s.cgpa);
+printf("Phone number:");
+scanf("%d",s.phone);
+printf("Address:");
+scanf("%s",s.address);
+printf("Branch:");
+scanf("%s",s.branch);
+}
+printf("-------STUDENT INFORMATION--------");
+for (int i = 0; i < 10; i++) 
+{
+printf("Name     : %s\n", s.name);
+printf("Roll No  : %d\n", s.rollNo);
+printf("CGPA     : %.2f\n", s.cgpa);
+printf("Phone    : %s\n", s.phone);
+printf("Address  : %s\n", s.address);
+printf("Branch   : %s\n", s.branch);
+}
+return 0;
+}

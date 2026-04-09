@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xbel version="1.0"
+      xmlns:bookmark="http://www.freedesktop.org/standards/desktop-bookmarks"
+      xmlns:mime="http://www.freedesktop.org/standards/shared-mime-info"
+>
+  <bookmark href="file:///home/student/1CR23AD005/DevOps%206A.html" added="2026-02-10T05:35:18.776073Z" modified="2026-02-10T05:35:18.776076Z" visited="2026-02-10T05:35:18.776074Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="text/html"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-02-10T05:35:18.776074Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/jenkins.io-2023.key" added="2026-02-27T05:14:44.977681Z" modified="2026-02-27T05:14:44.977683Z" visited="2026-02-27T05:14:44.977681Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/vnd.apple.keynote"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-02-27T05:14:44.977682Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/jenkins.war" added="2026-03-06T03:58:43.135010Z" modified="2026-03-06T03:58:43.135013Z" visited="2026-03-06T03:58:43.135011Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-06T03:58:43.135012Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/jenkins(1).war" added="2026-03-06T03:58:48.307328Z" modified="2026-03-06T03:58:48.307332Z" visited="2026-03-06T03:58:48.307329Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="application/octet-stream"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-06T03:58:48.307330Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image.png" added="2026-03-10T08:46:26.852915Z" modified="2026-03-10T08:46:26.852922Z" visited="2026-03-10T08:46:26.852915Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T08:46:26.852916Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(1).png" added="2026-03-10T08:46:30.930073Z" modified="2026-03-10T08:46:30.930078Z" visited="2026-03-10T08:46:30.930073Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T08:46:30.930075Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(2).png" added="2026-03-10T09:55:29.559602Z" modified="2026-03-10T09:55:29.559605Z" visited="2026-03-10T09:55:29.559602Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T09:55:29.559603Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(3).png" added="2026-03-10T10:05:05.518426Z" modified="2026-03-10T10:05:05.518430Z" visited="2026-03-10T10:05:05.518427Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T10:05:05.518428Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(4).png" added="2026-03-10T10:05:10.725912Z" modified="2026-03-10T10:05:10.725916Z" visited="2026-03-10T10:05:10.725913Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T10:05:10.725914Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(5).png" added="2026-03-10T10:05:14.517651Z" modified="2026-03-10T10:05:14.517655Z" visited="2026-03-10T10:05:14.517652Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T10:05:14.517653Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(6).png" added="2026-03-10T10:05:26.599826Z" modified="2026-03-10T10:05:26.599830Z" visited="2026-03-10T10:05:26.599826Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T10:05:26.599828Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/image(7).png" added="2026-03-10T10:05:34.017905Z" modified="2026-03-10T10:05:34.017909Z" visited="2026-03-10T10:05:34.017906Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T10:05:34.017907Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+  <bookmark href="file:///home/student/unnamed.png" added="2026-03-10T10:05:50.461134Z" modified="2026-03-10T10:05:50.461141Z" visited="2026-03-10T10:05:50.461135Z">
+    <info>
+      <metadata owner="http://freedesktop.org">
+        <mime:mime-type type="image/png"/>
+        <bookmark:applications>
+          <bookmark:application name="Firefox" exec="&apos;firefox_firefox %u&apos;" modified="2026-03-10T10:05:50.461137Z" count="1"/>
+        </bookmark:applications>
+      </metadata>
+    </info>
+  </bookmark>
+</xbel>

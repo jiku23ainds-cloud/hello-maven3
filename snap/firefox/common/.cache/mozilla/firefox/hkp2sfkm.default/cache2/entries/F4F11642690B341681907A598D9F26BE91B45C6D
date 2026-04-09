@@ -1,0 +1,408 @@
+$(document).ready(function(){
+	var person = $('#hdnUserRole').val();
+	if(person!=undefined){
+		flushSession();
+		if(person.toLowerCase() != 'student' && person != 'alumnistudent'){
+			person = 'Employee';
+		} else if(person == 'alumnistudent'){
+			person = 'Student';
+		}
+		initUserPostDocument(person);
+	}
+});
+
+function initUserPostDocument(person){
+	var aluminiRingPostId = '';
+	$('document').ready(function() {
+		try{
+			new AjaxUpload('aluminiUploadButton',{
+				action : 'attachFileWithAluminiPost.json',
+				data : {},
+				name : 'fileData',
+				size:AllowedFileSize.DOCUMENT_UPLOAD,
+				onSubmit : function(file, extension) {
+					startLoading();
+					this.setData({
+						'aluminiRingPostId':aluminiRingPostId,
+						'fileSize':AllowedFileSize.DOCUMENT_UPLOAD
+					});
+				},
+				onComplete:function(file, response) {
+					stopLoading();
+					var jArray = eval('(' + response + ')');
+					showAluminiPostAttachment(jArray,'showAluminiPostUploadDiv',true,person);
+				//	refreshTemporaryAttachmentList(aluminiRingPostId,AllowedFileSize.DOCUMENT_UPLOAD);
+					
+				}
+			});
+			}catch(e){
+				
+			}
+	});
+}
+
+function getAluminiPostAttachement(aluminiRingPostId,callback){
+	getDocumentCategoryByAluminiPostId(aluminiRingPostId,function(categoryId){
+		var uploadDocument = new UploadDocument();
+		uploadDocument.getDocument(categoryId, function(jArray){
+			showQuotationAttachment(jArray,undefined,true);
+			callback(jArray);
+		});
+	});
+}
+
+function getDocumentCategoryByAluminiPostId(aluminiRingPostId,callback){
+	$.ajax({
+		url:'getDocumentCategoryByAluminiPostId.json',
+		dataType:'text',
+		data:'aluminiRingPostId='+aluminiRingPostId,
+		async:false,
+		success:function(categoryId){
+			callback(categoryId);
+		}
+	});
+}
+
+
+function showAluminiPostAttachment(jArray,tableId,isCreator,person, thumbnailFlag = ''){
+	var attachementBoiler = '';
+	if(thumbnailFlag=='thumbnail-ForTesting'){
+		attachementBoiler=`<div style="overflow-y: auto;overflow-x: hidden;padding-bottom:70px;"><hr style="width:90%;"/><span style="">${jArray.length} Attachments</span><br/>`;
+		jArray.forEach(function(jObj, i){
+			var attachmentFileName = jArray[i]["name"].toString(); 
+			var documentId = jArray[i]["documentId"];
+			var encDocumentId = jArray[i]["eDocId"]!=undefined?jArray[i]["eDocId"]:jArray[i]["documentId"];
+			var isTemporary = jArray[i]["isTemporary"];
+			var documentType = jArray[i]["documentType"];
+			var trId = 'trAttachmentFile-'+encDocumentId+i;
+
+			var fileType = jArray[i]["type"];
+			iconPath = gFileTypeIcon[fileType];
+			
+			var thumbnailUrl = juno.label['url.download.json'].setIndexedArgs(encDocumentId, "THUMBNAIL", encodeURIComponent(attachmentFileName));
+			var doc_url = juno.label['url.download.json'].setIndexedArgs(encDocumentId, "UPLOADED", encodeURIComponent(attachmentFileName));
+			var li_boiler = '';
+			var click_event = '';
+			if(!isTemporary){
+				
+				if(documentType == 'uploaded'){
+					click_event = `junoDocumentOrImageViewer('${encDocumentId}','${fileType.toLowerCase()}');`;
+					li_boiler+=`<li><a href="javascript:void(0)" onclick="junoDocumentOrImageViewer('${encDocumentId}','${fileType.toLowerCase()}');"><i class="fa fa-eye fa-lg"></i> View</a></li>`;
+					li_boiler+=`<li><a href="${doc_url}" target="_blank"><i class="fa fa-download fa-lg"></i> Download</a></li>`;
+				} else {
+					li_boiler+=`<li><a href="javascript:void(0)" onclick="showTextDocumentForAlumini('${encDocumentId}','${person}');"><i class="fa fa-download fa-lg"></i> Download</a></li>`;
+				}
+
+				if(isCreator){
+					li_boiler+=`<li><a href="javascript:void(0)" onclick="removeAttachmentAjax('${trId}','${encDocumentId}','saved');"><i class="fa fa-trash fa-lg"></i> Remove</a></li>`;
+				}
+
+				if(!isCreator){
+					li_boiler+=`<li><a id = "stdbtn-${encDocumentId}" documenttype="${documentType}" person="${person}" class="btn-stdbtn" title="Save to drive" href="javascript:void(0)"><i class="fa fa-hdd-o fa-lg"></i> Save to drive</a></li>`;
+				}
+				
+			}else{
+
+			}
+			attachementBoiler += `<div id="${trId}" class="custom-section-box2"
+				style="margin:5px;display:initial;padding:10px;float:left;width:190px;border: 1px solid #BFBFBF;box-shadow: 2px 2px 5px #aaaaaa;overflow: initial;">
+				<div style="height:100px;overflow:hidden;border: 1px solid #BFBFBF;box-shadow: 0px 0px 5px 1px #aaaaaa;cursor:pointer;">
+					<img src="${thumbnailUrl}" style="width:100%;" onclick="${click_event}"/>
+				</div>
+				
+				<div class="btn-group pull-right" style="margin-left:10px;text-transform: none;font-weight:normal;margin-top: 5px;">
+                      <span data-toggle="dropdown" style="cursor: pointer;padding:0px 10px;" title="Settings"><i class="fa fa-ellipsis-v fa-lg" aria-hidden="true"></i></span>
+                      <ul class="dropdown-menu">${li_boiler}</ul>
+                </div>
+                <div class="text-overflow-ellipsis"><img src="${iconPath}" style="height:10px;"/> ${attachmentFileName}</div>
+			</div>`;
+		});
+		attachementBoiler+=`<br/><hr style="width:90%;"/></div>`;
+	}else{
+		attachementBoiler = "<table class = 'table'>";
+
+		for(var i = 0 ; i < jArray.length; i++){
+			var attachmentFileName = jArray[i]["name"].toString(); 
+			var documentId = jArray[i]["documentId"];
+			var encDocumentId = jArray[i]["eDocId"]!=undefined?jArray[i]["eDocId"]:jArray[i]["documentId"];
+
+
+			var isTemporary = jArray[i]["isTemporary"];
+			var documentType = jArray[i]["documentType"];
+			//attachmentFileName = attachmentFileName.substring(attachmentFileName.lastIndexOf('/')+1);
+			//var fileName = attachmentFileName.replace(/ /g,'~').trim();
+			var trId = 'trAttachmentFile-'+encDocumentId+i;
+
+			var fileType = jArray[i]["type"];
+			iconPath = gFileTypeIcon[fileType];
+
+			attachementBoiler += 
+				'<tr id = "'+trId+'"><td><img src="'+iconPath+'" style="height:30px;"/>&nbsp;&nbsp;&nbsp;&nbsp;'+attachmentFileName+'</td>';
+
+			if(!isTemporary){
+				if(documentType == 'uploaded'){
+					attachementBoiler += 
+						'<td>'+(juno.label['a.download.json'].setIndexedArgs(encDocumentId, "UPLOADED", encodeURIComponent(attachmentFileName), '<i class="fa fa-download fa-lg"></i>'))+'&nbsp;';
+				} else {
+					attachementBoiler += 
+						'<td><a class="btn btn-mini" title="Download" href = "javascript:void(0)" onclick="showTextDocumentForAlumini(\''+encDocumentId+'\',\''+person+'\')"><i class="fa fa-download fa-lg"></i></a>&nbsp;';
+				}	
+
+				if(isCreator){
+					attachementBoiler += '<a class="btn btn-mini" href = "javascript:void(0)" title = "Remove" onclick="removeAttachmentAjax(\''+trId+'\',\''+encDocumentId+'\',\'saved\')"><i class="fa fa-trash fa-lg"></i></a>&nbsp;'; 
+				}
+
+				if(!isCreator){
+					attachementBoiler += '<span id = "stdbtn-'+encDocumentId+'" documenttype="'+documentType+'" person="'+person+'" class="btn btn-mini btn-stdbtn" title="Save to drive"><i class="fa fa-hdd-o fa-lg"></i></span>&nbsp';
+				}
+				var availableFilesArr = ['doc','docx','ppt','pptx','xls','xlsx','jpg','png', 'gif', 'jpeg'];
+				if(fileType != undefined && (availableFilesArr.indexOf(fileType.toLowerCase())!=-1)){
+					attachementBoiler += '<a class="btn btn-mini docListOpt btnDocOpts" href="javascript:void(0);" title="Preview" onclick="junoDocumentOrImageViewer(\''+encDocumentId+'\',\''+fileType.toLowerCase()+'\');"><i class="fa fa-eye fa-lg"></i></a>';
+				}
+				//if(fileType.toLowerCase()=='doc' || fileType.toLowerCase()=='docx' || fileType.toLowerCase()=='ppt' || fileType.toLowerCase()=='pptx' || fileType.toLowerCase()=='xls' || fileType.toLowerCase()=='xlsx')
+
+
+
+			} else {
+				attachementBoiler += 
+					'<td><a class="btn btn-mini" href = "javascript:void(0)" title = "Remove" src = "img/remove-icon.png" onclick = "removeAttachmentAjax(\''+trId+'\',\''+encDocumentId+'\',\'temporary\',\''+documentType+'\')"><i class="fa fa-trash fa-lg"></i></a>&nbsp;&nbsp;<i class="fa fa-exclamation-triangle fa-lg juno-text-warining" title = "Unsaved"></i>';
+			}
+			attachementBoiler += '</td>';
+			attachementBoiler +=  '</tr>';
+
+			//alert(attachementBoiler);
+		}
+		attachementBoiler += "</table>";
+	}
+	if(tableId == undefined)
+		$('#showQuotationAttachment').html(attachementBoiler);
+	else
+		$('#'+tableId).html(attachementBoiler);
+	//alert(person);
+	$('.btn-stdbtn').unbind();
+	$('.btn-stdbtn').bind('click',function(){
+		var elementId = $(this).attr('id');
+		var documentType = $(this).attr('documenttype');
+		var documentId = elementId.split('-')[1];
+		new DriveTransfer({
+			elementId:elementId,
+			documentId:documentId,
+			documentType:documentType,
+			person:person,
+			success:function(responseObject){
+				var documentId = responseObject.documentId;
+				jAlert("");
+				getCustomAlertMessage('alert_create');
+				//alert(newDocumentId);
+			},
+		});
+	});
+	//alert(jArray[i]);
+	//alert("tableId: "+tableId);
+}
+
+/**
+*
+* @param trId
+* @param documentId
+* @param docuementType Temporary/Saved
+*/
+function removeAttachmentAjax(trId,documentId,saveOrTemp,documentType){
+	if(saveOrTemp == 'saved'){
+		removeUploadedDocumentById(documentId,function(jObject){
+			$('#'+trId).remove();
+		});
+	} else {
+		removeTemporaryAttachmentAjax(documentId,documentType,function(){
+			$('#'+trId).remove();
+			//refreshTemporaryAttachmentList();
+		});
+	}
+}
+
+function refreshTemporaryAttachmentList(aluminiRingPostId,fileSize)
+{
+	try {
+		$.ajax({
+			url : 'attachFileWithAluminiPost.json',
+			dataType : 'json',
+			data:{aluminiRingPostId:aluminiRingPostId,fileSize:fileSize},
+			type:'POST',
+			success : function(jArray) {
+				//populateTemporaryAttachmentList(jArray);
+			},
+		});
+	} catch (e) {
+
+	}
+}
+
+/**
+documentId is index of the session array where documents have been kept 
+ */
+function removeTemporaryAttachmentAjax(documentId,documentType,callback){
+	try{
+		$.ajax({
+			url:'removeTemporaryAluminiPostAttachment.json',
+			dataType:'json',
+			type:'POST',
+			data:{d__documentId:documentId,documentType:documentType},
+			success:function(){
+				try{
+					callback();
+				}catch(e){}
+				
+			}	
+		});
+	}catch(e){
+		alert(e);
+	}
+}
+
+
+function flushSession(){
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'flushSessionForAluminiPost.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_flushSessionForAluminiPost.json';
+	}
+	$.ajax({
+		url:url,
+		type:'POST',
+		success:function(){
+			
+		}
+	});
+}
+
+function initShowAddDocumentToAluminiPostFromDMSDialog(){
+	new AttachFromDMS({
+		onSubmit:function(documentJSONStringified){
+			//alert(documentJSONStringified.length);
+			insertAndShowSelectedFileToAluminiPost(documentJSONStringified,'Employee');
+		},
+	});
+}
+
+function initStudentShowAddDocumentToAluminiPostFromDMSDialog(){
+	$("script[src='js/jquery.dataTables.js']").remove();
+	$("script[src='js/DT_bootstrap.js").remove();
+	$("script[src='js/paging.js").remove();
+	$("link[href='css/DT_bootstrap.css']").remove();
+	$.getScript( "js/jquery.dataTables.js" );
+    $.getScript( "js/DT_bootstrap.js" );
+    $.getScript( "js/paging.js" );
+    $.getScript( "css/DT_bootstrap.css" );
+	new AttachFromDMSForStudent({
+		onSubmit:function(documentJSONStringified){
+			//alert(documentJSONStringified.length);
+			insertAndShowSelectedFileToAluminiPost(documentJSONStringified,'Student');
+		},
+	});
+}
+
+
+function insertAndShowSelectedFileToAluminiPost(documentJSONStringified,person){
+	insertSelectedFilesToAluminiPost(documentJSONStringified,function(jArray){
+		showAluminiPostAttachment(jArray,'showAluminiPostUploadDiv',true,person);
+	});		
+}
+function insertSelectedFilesToAluminiPost(documentJSONStringified,callback){
+	$.ajax({
+		url:'insertSelectedFilesToAluminiPost.json',
+		dataType:'json',
+		type:'POST',
+		data:{documentIdsWithTypeAndName:documentJSONStringified,targetCategoryId:''},
+		success:function(jArray){
+			callback(jArray);				
+		},error:function(){
+			
+		}
+	});
+}
+
+function showTextDocumentForAlumini(documentId,person){
+	var object = null;
+	
+	if(person.toLowerCase() == 'employee'){
+		object = new UploadDocument();
+	} else {
+		object = new UploadStudentDocument();
+	}
+	object.getTextDocumentWithAttachment(documentId,function(jObject){
+		var boiler = '<table class="table table-bordered table-condensed">'+
+		'<tr>'+
+			'<td>';
+			if($('#customerHelper').val()!=undefined && $('#customerHelper').val()=="INDIRA_PUNE" || $('#customerHelper').val()!=undefined && $('#customerHelper').val()=="DES")
+			{
+				boiler+='<div style="height:300px; width:100%; overflow: auto;" id="editing_field1">'+decodeURIComponent(jObject["documentBody"])+'</div>';
+			}else{
+				boiler+='<div style="height:300px; width:100%; overflow: auto;" id="editing_field1">'+jObject["documentBody"]+'</div>';
+			}
+			boiler+='</td>'+
+		'</tr>'+
+		'<tr><td><div class = "label label-info" style = "font-size:14px;height:15px">Description:</div></td></tr>'+
+		'<tr>'+
+			'<td>';
+			if($('#customerHelper').val()!=undefined && $('#customerHelper').val()=="INDIRA_PUNE" || $('#customerHelper').val()!=undefined && $('#customerHelper').val()=="DES")
+			{
+				boiler+='<div style="height:200px; width:100%; overflow: auto;" id="editing_field2">'+decodeURIComponent(jObject["description"])+'</div>';
+			}else{
+				boiler+='<div style="height:200px; width:100%; overflow: auto;" id="editing_field2">'+jObject["description"]+'</div>';
+			}
+			boiler+='</td>'+
+		'</tr>'+
+		'<tr><td><div class = "label label-info" style = "font-size:14px;height:15px">Attachments:</div></td></tr>'+
+		'<tr>'+
+		'<td>'+
+		'<table width = "100%" class = "table"  id = "tblAttachementList"></table>'+
+		'</td>'+
+		'</tr>'+
+		'</table>';
+		$('#showTextDocumentDialog').find('.documentBody').html(boiler);
+		//createEditorForAlumini('editing_field1');
+		//CKEDITOR.instances.editing_field1.setData(jObject["documentBody"]);
+		$('#showTextDocumentDialog').find('.documentName').html(jObject["name"]);
+		object.getAttachmentListAjax(documentId,function(jArray){
+			object.showDocumentAttachmentList(jArray,'tblAttachementList',documentId,false);
+			$('#showTextDocumentDialog').modal('show');
+		});
+	});
+}
+
+
+function createEditorForAlumini(id)
+{
+	var instance = CKEDITOR.instances[id];
+	if(instance)
+	{
+		/*if($('#'+id).val()=='')
+			return;
+		CKEDITOR.remove(instance);*/
+		instance.destroy(true);
+	}
+	CKEDITOR.replace(id,
+			{uiColor: '#ffffff',
+		width: "95%",
+		height: "50%",
+		toolbarCanCollapse:false,
+		removePlugins: 'toolbar'
+	});
+}{ŽÀ;&þ      iÕÂ0iÕÂ0I\†ŽiÚe   ^    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/alumni/aluminiDMS.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"14253-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 14253
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"14253-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 14253
+Keep-Alive: timeout=5, max=93
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 232 net-response-time-onstop 232   7­

@@ -1,0 +1,2138 @@
+function jobTabs(i) {
+	$("#display" + i).tabs();
+}
+var gNoOfAllowedPreference=0;
+function getProjectPlacementsforStudent(type)
+{
+	$.ajax({
+		url:'GetProjectPlacementListforStudent.json',
+		data:'',
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+		success:function(jArray)
+		{
+			if(jArray.length == 0)
+			{
+				var viewJobsBoiler = '<div id="noJobs" class="alert alert-error">No Project Placements Available</div>';
+				$("#placementListDivCommon").html(viewJobsBoiler);
+			}
+		else
+			{
+					var placementBoiler = '';
+					placementBoiler += '<br/><div id="accordion";width:80%;margin-left:10%;margin-right:10%;>';
+					for(var i=0;i<jArray.length;i++)
+					{
+						placementBoiler += '<h6><a href="#" onclick="jobTabs(\''+i+'\')"><table><tr><td>'+jArray[i]["post"]+' at </td>'+
+									  	  '<td>'+jArray[i]["companyName"]+ '</td><td> on '+jArray[i]["expiryDate"]+'</td></tr></table></a></h6>'+
+											  
+											  '<div id="display'+i+'">'+
+											  '<ul>'+
+													'<li><a href="#tabs-1" onclick="">Job Description</a></li>'+
+													'<li><a href="#tabs-2" onclick="fetchSelectionProcess(\''+jArray[i]["projectPlacementId"]+'\',\''+jArray[i]["jobMasterId"]+'\')">Selection Process</a></li>'+
+													'<li><a href="#tabs-3" onclick="fetchSelectionCriteria(\''+ jArray[i]["projectPlacementId"]+'\',\''+type+'\')">Selection Criteria</a></li>'+
+													/*'<li><a href="#tabs-8" onclick="getData(\''+jArray[i]["placementId"]+'\')">Data</a></li>'+*/
+												'</ul>'+
+												'<div id="tabs-1">' +
+												'<table id="tbl" style="text-align:left;" class="table table-bordered">'+
+														'<tr><th>Company Name :</th><td>'+jArray[i]["companyName"]+'</td>'+
+															'<th>Post Opened :</th><td>'+jArray[i]["post"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Year of Passing :</th><td>'+jArray[i]["passingYear"]+'</td>'+
+															'<th>Posting Place :</th><td>'+jArray[i]["postingPlace"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Salary :</th><td>'+jArray[i]["offeredSalary"]+'</td>'+
+															'<th>Bond (In Months):</th><td>'+jArray[i]["bond"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Total Vacancies :</th><td>'+jArray[i]["vacancies"]+'</td>'+
+															'<th>Documents Needed :</th><td>'+jArray[i]["documentNeeded"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Experience (In Months):</th><td>'+jArray[i]["experience"]+'</td>'+
+															'<th>Experience Details:</th><td>'+jArray[i]["experienceDetails"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Job Type :</th><td>'+jArray[i]["jobOrIntern"]+'</td>'+
+															'<th>Expiry Date :</th><td>'+jArray[i]["expiryDate"]+'</td>'+
+														'</tr>'+
+														'<tr>'+
+															/*'<th>Website :</th><td>'+jArray[i]["jobMasterObj"]["website"]+'</td>'+*/
+															'<th>Age Criteria :</th><td>'+(jArray[i]["ageCriteria"]==undefined?"-":jArray[i]["ageCriteria"])+'</td>'+
+															'<th>Gender :</th><td>'+jArray[i]["gender"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Language Criteria :</th><td>'+jArray[i]["languageCriteria"]+'</td>'+
+															'<th>Job Profile :</th><td>'+jArray[i]["jobProfile"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Company Website :</th><td>'+jArray[i]["companyWebsite"]+'</td>'+
+														'<th>Remark :</th><td>'+jArray[i]["remark"]+'</td>'+
+													'</tr>'+
+														'<tr>'+
+															'<th>Applicant :</th><td>'+jArray[i]["applicant"]+'</td>'+
+															'<th>location :</th><td>'+jArray[i]["location"]+'</td>'+
+														'</tr>';
+								
+													placementBoiler += '<tr><th>securityDeposite :</th><td>'+jArray[i]["securityDeposite"]+'</td>'+
+														'<th>method :</th><td>'+jArray[i]["method"]+'</td>'+
+														   '</tr>'+
+															'<tr><th>Registration Date :</th><td colspan="3">'+jArray[i]["registrationStartDate"]+' - '+jArray[i]["registrationEndDate"]+'</td>'+
+														   	'</tr>'+
+														   	'<tr><th>Registration Time :</th><td colspan="3">'+jArray[i]["registrationStartTime"]+' - '+jArray[i]["registrationEndTime"]+'</td>'+
+														   	'</tr>'+
+														   	'<tr><th>joiningDate :</th><td>'+jArray[i]["joiningDate"]+'</td>'+
+														   	'</tr>'+
+													'</table>'+
+													'</div>'+ 
+													'<div id="tabs-2">'+
+															'<div id="SelectionProcessDiv'+jArray[i]["projectPlacementId"] + '"></div>'+
+													'</div>'+ 
+													'<div id="tabs-3">'+
+															'<div id="CriteriaDiv'+jArray[i]["projectPlacementId"]+'"></div>'+
+													'</div>';
+											placementBoiler += '</div>';
+						}
+					placementBoiler += '</div>';
+					$("#placementListDivCommon").html(placementBoiler);
+					$("#accordion").accordion({
+						active : -1,
+						autoHeight : true,
+						collapsible : true
+					});
+					$("#display0").tabs();
+			}
+		},
+		error:function()
+		{
+			alert("Error in GetTPOPlacementList");
+		}
+	});
+}
+
+
+function getTrainingforStudent(type)
+{
+	$.ajax({
+		url:'GetTrainingListforStudent.json',
+		data:'',
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+		success:function(jArray)
+		{
+			if(jArray.length == 0)
+			{
+				var viewJobsBoiler = '<div id="noJobs" class="alert alert-error" >No Training Available</div>';
+				$("#placementListDivCommon").html(viewJobsBoiler);
+			}
+		else
+			{
+					var placementBoiler = '';
+					placementBoiler += '<br/><div id="accordion";width:80%;margin-left:10%;margin-right:10%;>';
+					for(var i=0;i<jArray.length;i++)
+					{
+						placementBoiler += '<h6><a href="#" onclick="jobTabs(\''+i+'\')"><table><tr><td>'+jArray[i]["post"]+' at </td>'+
+									  	  '<td>'+jArray[i]["companyName"]+ '</td><td> on '+jArray[i]["expiryDate"]+'</td></tr></table></a></h6>'+
+											  
+											  '<div id="display'+i+'">'+
+											  '<ul>'+
+													'<li><a href="#tabs-1" onclick="">Job Description</a></li>'+
+													'<li><a href="#tabs-2" onclick="fetchSelectionProcess(\''+jArray[i]["trainingId"]+'\',\''+type+'\')">Selection Process</a></li>'+
+													'<li><a href="#tabs-3" onclick="fetchSelectionCriteria(\''+ jArray[i]["trainingId"]+'\',\''+type+'\')">Selection Criteria</a></li>'+
+													/*'<li><a href="#tabs-8" onclick="getData(\''+jArray[i]["placementId"]+'\')">Data</a></li>'+*/
+												'</ul>'+
+												'<div id="tabs-1">' +
+												'<table id="tbl" style="text-align:left;" class="table table-bordered">'+
+														'<tr><th>Company Name :</th><td>'+jArray[i]["companyName"]+'</td>'+
+															'<th>Post Opened :</th><td>'+jArray[i]["post"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Year of Passing :</th><td>'+jArray[i]["passingYear"]+'</td>'+
+															'<th>Posting Place :</th><td>'+jArray[i]["postingPlace"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Salary :</th><td>'+jArray[i]["offeredSalary"]+'</td>'+
+															'<th>Bond (In Months):</th><td>'+jArray[i]["bond"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Total Vacancies :</th><td>'+jArray[i]["vacancies"]+'</td>'+
+															'<th>Documents Needed :</th><td>'+jArray[i]["documentNeeded"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Experience (In Months):</th><td>'+jArray[i]["experience"]+'</td>'+
+															'<th>Experience Details:</th><td>'+jArray[i]["experienceDetails"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Job Type :</th><td>'+jArray[i]["jobOrIntern"]+'</td>'+
+															'<th>Expiry Date :</th><td>'+jArray[i]["expiryDate"]+'</td>'+
+														'</tr>'+
+														'<tr>'+
+															/*'<th>Website :</th><td>'+jArray[i]["jobMasterObj"]["website"]+'</td>'+*/
+															'<th>Age Criteria :</th><td>'+(jArray[i]["ageCriteria"]==undefined?"-":jArray[i]["ageCriteria"])+'</td>'+
+															'<th>Gender :</th><td>'+jArray[i]["gender"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Language Criteria :</th><td>'+jArray[i]["languageCriteria"]+'</td>'+
+															'<th>Job Profile :</th><td>'+jArray[i]["jobProfile"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Company Website :</th><td>'+jArray[i]["companyWebsite"]+'</td>'+
+														'<th>Remark :</th><td>'+jArray[i]["remark"]+'</td>'+
+													'</tr>'+
+														'<tr>'+
+															'<th>Applicant :</th><td>'+jArray[i]["applicant"]+'</td>'+
+															'<th>location :</th><td>'+jArray[i]["location"]+'</td>'+
+														'</tr>';
+								
+													placementBoiler += '<tr><th>securityDeposite :</th><td>'+jArray[i]["securityDeposite"]+'</td>'+
+														'<th>method :</th><td>'+jArray[i]["method"]+'</td>'+
+														   '</tr>'+
+														   '<tr><th>Registration Date :</th><td colspan="3">'+jArray[i]["registrationStartDate"]+' - '+jArray[i]["registrationEndDate"]+'</td>'+
+														   	'</tr>'+
+														   	'<tr><th>Registration Time :</th><td colspan="3">'+jArray[i]["registrationStartTime"]+' - '+jArray[i]["registrationEndTime"]+'</td>'+
+														   	'</tr>'+
+														   	'<tr><th>joiningDate :</th><td>'+jArray[i]["joiningDate"]+'</td>'+
+														   	'</tr>'+
+													'</table>'+
+													'</div>'+ 
+													'<div id="tabs-2">'+
+															'<div id="SelectionProcessDiv'+jArray[i]["trainingId"] + '"></div>'+
+													'</div>'+ 
+													'<div id="tabs-3">'+
+															'<div id="CriteriaDiv'+jArray[i]["trainingId"]+'"></div>'+
+													'</div>';
+											placementBoiler += '</div>';
+						}
+					placementBoiler += '</div>';
+					$("#placementListDivCommon").html(placementBoiler);
+					$("#accordion").accordion({
+						active : -1,
+						autoHeight : true,
+						collapsible : true
+					});
+					$("#display0").tabs();
+			}
+		},
+		error:function()
+		{
+			alert("Error in GetTPOPlacementList");
+		}
+	});
+}
+
+
+function getWalkInforStudent(type)
+{
+	$.ajax({
+		url:'GetWalkInListforStudent.json',
+		data:'',
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+		success:function(jArray)
+		{
+			if(jArray.length == 0)
+			{
+				var viewJobsBoiler = '<div id="noJobs" class="alert alert-error" >No Training Available</div>';
+				$("#placementListDivCommon").html(viewJobsBoiler);
+			}
+		else
+			{
+					var placementBoiler = '';
+					placementBoiler += '<br/><div id="accordion";width:80%;margin-left:10%;margin-right:10%;>';
+					for(var i=0;i<jArray.length;i++)
+					{
+						placementBoiler += '<h6><a href="#" onclick="jobTabs(\''+i+'\')"><table><tr><td>'+jArray[i]["post"]+' at </td>'+
+									  	  '<td>'+jArray[i]["companyName"]+ '</td><td> on '+jArray[i]["expiryDate"]+'</td></tr></table></a></h6>'+
+											  
+											  '<div id="display'+i+'">'+
+											  '<ul>'+
+													'<li><a href="#tabs-1" onclick="">Job Description</a></li>'+
+													'<li><a href="#tabs-2" onclick="fetchSelectionProcess(\''+jArray[i]["walkInsId"]+'\',\''+type+'\')">Selection Process</a></li>'+
+													'<li><a href="#tabs-3" onclick="fetchSelectionCriteria(\''+ jArray[i]["walkInsId"]+'\',\''+type+'\')">Selection Criteria</a></li>'+
+													/*'<li><a href="#tabs-8" onclick="getData(\''+jArray[i]["placementId"]+'\')">Data</a></li>'+*/
+												'</ul>'+
+												'<div id="tabs-1">' +
+												'<table id="tbl" style="text-align:left;" class="table table-bordered">'+
+														'<tr><th>Company Name :</th><td>'+jArray[i]["companyName"]+'</td>'+
+															'<th>Post Opened :</th><td>'+jArray[i]["post"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Year of Passing :</th><td>'+jArray[i]["passingYear"]+'</td>'+
+															'<th>Posting Place :</th><td>'+jArray[i]["postingPlace"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Salary :</th><td>'+jArray[i]["offeredSalary"]+'</td>'+
+															'<th>Bond (In Months):</th><td>'+jArray[i]["bond"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Total Vacancies :</th><td>'+jArray[i]["vacancies"]+'</td>'+
+															'<th>Documents Needed :</th><td>'+jArray[i]["documentNeeded"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Experience (In Months):</th><td>'+jArray[i]["experience"]+'</td>'+
+															'<th>Experience Details:</th><td>'+jArray[i]["experienceDetails"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Job Type :</th><td>'+jArray[i]["jobOrIntern"]+'</td>'+
+															'<th>Expiry Date :</th><td>'+jArray[i]["expiryDate"]+'</td>'+
+														'</tr>'+
+														'<tr>'+
+															/*'<th>Website :</th><td>'+jArray[i]["jobMasterObj"]["website"]+'</td>'+*/
+															'<th>Age Criteria :</th><td>'+(jArray[i]["ageCriteria"]==undefined?"-":jArray[i]["ageCriteria"])+'</td>'+
+															'<th>Gender :</th><td>'+jArray[i]["gender"]+'</td>'+
+														'</tr>'+
+														'<tr><th>Language Criteria :</th><td>'+jArray[i]["languageCriteria"]+'</td>'+
+															'<th>Job Profile :</th><td>'+jArray[i]["jobProfile"]+'</td>'+
+														'</tr>'+
+														'</tr>'+
+														'<tr><th>Company Website :</th><td>'+jArray[i]["companyWebsite"]+'</td>'+
+														'<th>Remark :</th><td>'+jArray[i]["remark"]+'</td>'+
+													'</tr>'+
+														'<tr>'+
+															'<th>Applicant :</th><td>'+jArray[i]["applicant"]+'</td>'+
+															'<th>location :</th><td>'+jArray[i]["location"]+'</td>'+
+														'</tr>';
+								
+													placementBoiler += '<tr><th>securityDeposite :</th><td>'+jArray[i]["securityDeposite"]+'</td>'+
+														'<th>method :</th><td>'+jArray[i]["method"]+'</td>'+
+														   '</tr>'+
+														   	'<tr><th>joiningDate :</th><td>'+jArray[i]["joiningDate"]+'</td>'+
+														   	'</tr>'+
+													'</table>'+
+													'</div>'+ 
+													'<div id="tabs-2">'+
+															'<div id="SelectionProcessDiv'+jArray[i]["walkInsId"] + '"></div>'+
+													'</div>'+ 
+													'<div id="tabs-3">'+
+															'<div id="CriteriaDiv'+jArray[i]["walkInsId"]+'"></div>'+
+													'</div>';
+											placementBoiler += '</div>';
+						}
+					placementBoiler += '</div>';
+					$("#placementListDivCommon").html(placementBoiler);
+					$("#accordion").accordion({
+						active : -1,
+						autoHeight : true,
+						collapsible : true
+					});
+					$("#display0").tabs();
+			}
+		},
+		error:function()
+		{
+			alert("Error in GetTPOPlacementList");
+		}
+	});
+}
+
+
+function fetchSelectionProcess(internshipId,type)
+{
+     var boilerSelection ='';
+	
+	boilerSelection+='<div class="ui-widget-header ui-corner-all" style="height: 30px; width: 90%; margin-left: 5%; margin-right: 5%;">'+
+	'<h5 align="center" style="margin-top: 5px;">Selection process rounds</h5>'+
+	'</div>';
+
+	boilerSelection+='<br/><div align="center"><table class="table table-bordered"><tr>'+
+	'<th>Sr.No</th><th>Stage</th><th>Type</th><th>Start Date</th><th>Start Time</th><th>End Date</th><th>End Time</th><th>Infrastructure</th>'+
+	'</tr>';
+	
+	//$("div#SelectionProcessDiv"+PlaceId).html(boilerSelection);
+	//$("input[name=SelectionProcess"+PlaceId+"]").attr('disabled',true);
+	
+	$.ajax({
+		url : 'GETJobSelectionProcessById.json',
+		data : "jobId=" + type,
+		dataType : 'json',
+		async : false,
+		beforeSend : function() {
+			startCommonAjaxSpinner();
+		},
+		complete : function() {
+			stopCommonAjaxSpinner();
+		},
+		success : function(selectionProcessArray) {
+
+			if (selectionProcessArray.length) {
+				
+				for ( var i = 0; i < selectionProcessArray.length; i++) {	
+				    
+						boilerSelection+='<tr><td style="text-align:right">'+(i+1)+'</td><td>'+selectionProcessArray[i]["selectionProcessRounds"]+'</td><td>'+selectionProcessArray[i]["type"]+'</td><td>'+selectionProcessArray[i]["eDate"]+'</td><td>'+selectionProcessArray[i]["startTime"]+'</td><td>'+selectionProcessArray[i]["edDate"]+'</td><td>'+selectionProcessArray[i]["endTime"]+'</td><td>'+selectionProcessArray[i]["infraId"]+'</td></tr>';	
+				}
+			  
+				boilerSelection+='</table></div>';
+				$("div#SelectionProcessDiv"+internshipId).html(boilerSelection);
+			}
+		},
+		error : function() {
+			jAlert("Error","Error");
+			//jAlert("Error While Featching Selection Process By Job Id","Error");
+		}
+	});
+			
+}
+
+
+function fetchSelectionCriteria(interWalkTrainId,type)
+{
+	var boiler = '<table class="table table-bordered">'+
+	'<tr>'+
+		'<th>HSC & SSC Criteria</th>' +
+		'<td>'+
+				'<table>'+
+					'<tr>'+
+						'<th>10th Percentage :</th>'+
+						'<td><lable id="ssclbl'+interWalkTrainId+'"></lable></td>'+
+					'</tr>'+
+					'<tr>'+
+						'<th>12th Percentage :</th>'+
+						'<td><lable id="hsclbl'+interWalkTrainId+'"></lable></td>'+
+					'</tr>'+
+				'</table>'+
+		'</td>'+
+	'</tr>'+
+	'<tr>'+
+			'<th>Degree Criteria :</th>'+
+			'<td>'+
+				'<table id="tlbDegreeCriteria'+interWalkTrainId+'" class="table-bordered">'+
+				'</table>'+
+			'</td>'+
+	'</tr>'+
+	'<tr>'+
+		'<td colspan="2" ><input  type="button" class="btn btn-inverse btn-mini  " value="Check Your Eligibility" onclick="checkStudentEligibility('+interWalkTrainId+','+type+')" style="position:relative;left:320px" /></td>'+
+	'</tr>'+
+	'<tr><tr>'+
+	'<tr>'+
+		'<td colspan="2">'+
+			'<table id="eligibilityTlb'+interWalkTrainId+'" class="table-bordered" style="margin:auto">'+
+			'</table>'+
+		'</td>'+
+	'</tr>'+
+	'<tr style="display:none;" class="trMultiplePost" id="trMultiplePost" ><td colspan="2"><div id="showMultiplePostListDiv"></div></td></tr>'+
+	'<tr style="display:none;" class="trPreference"><td colspan="2"><div id="showPreferenceList"></div></td></tr>'+
+	'<tr style="display:none;" class="trCampusPool" id="trCampusPool"><td colspan="2"><div id="showCampusPoolDiv"></div></td></tr>'+
+	'<tr>'+
+			'<td colspan="2" id="tddisplayMsg'+interWalkTrainId+'">'+
+				'<input type="button" id="btnSpecialRequest'+interWalkTrainId+'" class="btn btn-inverse btn-mini  " value="Special Request" onclick="displaySpecialRequestTR('+interWalkTrainId+','+type+')" style="display:none;position:relative;left:320px"/>'+
+				'<input type="button" id="btnRegister'+interWalkTrainId+'" class="btn btn-inverse btn-mini  " value="Register" onclick="registerforPlacement('+interWalkTrainId+','+type+')" style="display:none;position:relative;left:320px"/>'+
+			'</td>'+
+	'</tr>'+
+	'<tr id="trSpecialRequest'+interWalkTrainId+'" style="display:none;">'+
+			'<td colspan="2">'+
+				'<table class="table-bordered" style="margin:auto">'+
+						'<tr>'+
+							'<th>Special Consideration For Placement Drive :</th>'+
+						'</tr>'+
+						'<tr>'+
+							'<td>'+
+								'<textarea id="txtSpecialRequest" style="width:400px" rows="5"></textarea>'+
+							'</td>'+
+						'</tr>'+
+						'<tr>'+
+							'<td><input type="button" id="btnSaveSpecialReq" class="btn btn-inverse btn-mini  " value="Save" onclick="makeSpecialRequest('+interWalkTrainId+','+type+')" style="position:relative;left:200px" /></td>'+
+						'</tr>'+
+				'</table>'+
+			'</td>'+
+	'</tr>'+
+	
+	'<tr style="display:none;" id="trDownloadAttachmentArea'+interWalkTrainId+'">'+
+	'<td colspan="2" >'+
+		'<div class="alert alert-info" style="padding:1px;text-align:center;font-weight:bold">Download Templates</div>'+
+		'<div class="well" style="padding:1px;margin-top:-18px;" id="divDownloadAttachmentArea'+interWalkTrainId+'"></div>'+
+	'</td>'+
+	'</tr>'+
+	
+	'<tr style="display:none;" id="trUploadStudentAttachmentArea'+interWalkTrainId+'">'+
+	'<td colspan="2" >'+
+		'<div class="alert alert-info" style="padding:1px;text-align:center;font-weight:bold">Upload / View Your CV (only .doc OR .docx files)</div>'+
+		'<div class="well" style="padding:1px;margin-top:-18px;" id="divUploadAttachmentArea'+interWalkTrainId+'">'+
+		'</div>'+
+	'</td>'+
+	'</tr>'+
+'</table>';
+$('div#CriteriaDiv' + interWalkTrainId).html(boiler);
+
+
+$.ajax({
+	url : 'fetchSscHscCriteriaCommon.json?interWalkTrainId='+interWalkTrainId+'&type='+type,
+	//data : "interWalkTrainId=" + interWalkTrainId+'&type='+type,
+	dataType : 'json',
+	async:false,
+	beforeSend : function() {
+		startCommonAjaxSpinner();
+	},
+	complete : function() {
+		stopCommonAjaxSpinner();
+	},
+	success : function(jArray) {
+		if(jArray.length > 0)
+		{
+			if(jArray[0]["sscPercent"] != undefined)
+				{
+					$("#ssclbl"+interWalkTrainId).html(jArray[0]["sscPercent"] + " %");
+				}
+			else
+			{
+				$("#ssclbl"+interWalkTrainId).html("-");
+			}
+			if(jArray[0]["hscPercent"] != undefined)
+				{
+					$("#hsclbl"+interWalkTrainId).html(jArray[0]["hscPercent"] + " %");
+				}
+			else
+				{
+					$("#hsclbl"+interWalkTrainId).html("-");
+				}
+		}
+		else
+		{
+			$("#ssclbl"+interWalkTrainId).html("-");
+			$("#hsclbl"+interWalkTrainId).html("-");
+		}
+		
+	},
+	error : function() {
+		jAlert("Error in job SSCHSC CRITERIA", "Error");
+	}
+});
+
+showDegreeCriteria(interWalkTrainId,type);
+
+}
+
+function showDegreeCriteria(internshipId,type)
+{
+	var url = "";
+	if(type==1){
+		url = 'viewDegreeCriteriaForStudentProjectPlacement.json?internshipId='+internshipId;
+	}else if(type==2){
+		url = 'viewDegreeCriteriaForStudentPlacement.json?placementId='+internshipId;
+	}else if(type == 3){
+		url = 'viewDegreeCriteriaForStudentTraining.json?trainingId='+internshipId;
+	}
+	
+	var criteriaBoiler ='';
+	$.ajax({
+		url : url,
+		dataType : 'json',
+		type:'GET',
+		async : false,
+		beforeSend : function() {
+			startCommonAjaxSpinner();
+		},
+		complete : function() {
+			stopCommonAjaxSpinner();
+		},
+		success : function(jArray) {
+			if(jArray.length > 0)
+			{
+					 criteriaBoiler +=
+						'	<tr class="header">'+
+								'<th>Sr.No.</th><th>Degree Name</th><th>Percent %</th><th>Grade</th><th>Live ATKT</th><th>Dead ATKT</th>'+
+						'	</tr>';
+					 var temp=0;
+					// var temp2=0;
+							 for(var i=0;i<jArray.length;i++)
+							 {
+								 if(jArray[i]["idCheck"]=='parent'){
+									 if(i==0)
+										 {
+										 criteriaBoiler +=
+												'<tr class="parentDegree">'+
+														'<th style="text-align:right">'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th style="text-align:right">'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th style="text-align:right">'+jArray[i]["ParentCurrentATKT"]+'</th><th style="text-align:right">'+jArray[i]["ParentDeadATKT"]+'</th>'+
+														'</th>'+
+												'</tr>';
+										 }
+									 else
+										 {
+										 criteriaBoiler +=
+												'<tr><th colspan="6">OR</th></tr><tr class="parentDegree">'+
+														'<th style="text-align:right">'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th style="text-align:right">'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th style="text-align:right">'+jArray[i]["ParentCurrentATKT"]+'</th><th style="text-align:right">'+jArray[i]["ParentDeadATKT"]+'</th>'+
+													'</th>'+
+												'	</tr>';
+										 }
+								 }
+								 else{
+										 criteriaBoiler +=
+												'	<tr class="childDegree">'+
+														'<td></td><td><center>'+jArray[i]["childDegreeName"]+'<center></td>'+
+																 '<td><center>'+jArray[i]["childPercent"]+'<center></td>'+
+																 '<td><center>'+jArray[i]["childGrade"]+'<center></td>'+
+																 '<td><center>'+jArray[i]["childcurrentATKT"]+'<center></td>'+
+																 '<td><center>'+jArray[i]["childDeadATKT"]+'<center></td>'+
+												'	</tr>';
+								 }
+						 }
+							// alert(criteriaBoiler);
+			$("#tlbDegreeCriteria"+internshipId).html(criteriaBoiler);
+			}
+		},
+		error:function(){
+			jAlert("Error In Saving Degree Criteria","Error");
+		}
+	});	
+	
+	/*if(type==1){
+				var criteriaBoiler ='';
+				$.ajax({
+					url : 'viewDegreeCriteriaForStudentProjectPlacement.json?internshipId='+internshipId,
+					dataType : 'json',
+					type:'GET',
+					async : false,
+					beforeSend : function() {
+						startCommonAjaxSpinner();
+					},
+					complete : function() {
+						stopCommonAjaxSpinner();
+					},
+					success : function(jArray) {
+						if(jArray.length > 0)
+						{
+								 criteriaBoiler +=
+									'	<tr class="header">'+
+											'<th>Sr.No.</th><th>Degree Name</th><th>Percent %</th><th>Grade</th><th>Live ATKT</th><th>Dead ATKT</th>'+
+									'	</tr>';
+								 var temp=0;
+								// var temp2=0;
+										 for(var i=0;i<jArray.length;i++)
+										 {
+											 if(jArray[i]["idCheck"]=='parent'){
+												 if(i==0)
+													 {
+													 criteriaBoiler +=
+															'<tr class="parentDegree">'+
+																	'<th>'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th>'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th>'+jArray[i]["ParentCurrentATKT"]+'</th><th>'+jArray[i]["ParentDeadATKT"]+'</th>'+
+																	'</th>'+
+															'</tr>';
+													 }
+												 else
+													 {
+													 criteriaBoiler +=
+															'<tr><th colspan="5">OR</th></tr><tr class="parentDegree">'+
+																	'<th>'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th>'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th>'+jArray[i]["ParentCurrentATKT"]+'</th><th>'+jArray[i]["ParentDeadATKT"]+'</th>'+
+																'</th>'+
+															'	</tr>';
+													 }
+											 }
+											 else{
+													 criteriaBoiler +=
+															'	<tr class="childDegree">'+
+																	'<td></td><td><center>'+jArray[i]["childDegreeName"]+'<center></td>'+
+																			 '<td><center>'+jArray[i]["childPercent"]+'<center></td>'+
+																			 '<td><center>'+jArray[i]["childGrade"]+'<center></td>'+
+																			 '<td><center>'+jArray[i]["childcurrentATKT"]+'<center></td>'+
+																			 '<td><center>'+jArray[i]["childDeadATKT"]+'<center></td>'+
+															'	</tr>';
+											 }
+									 }
+										// alert(criteriaBoiler);
+						$("#tlbDegreeCriteria"+internshipId).html(criteriaBoiler);
+						}
+					},
+					error:function(){
+						jAlert("Error In Saving Degree Criteria","Error");
+					}
+				});	
+	}
+	else if(type==3){
+		var criteriaBoiler ='';
+		$.ajax({
+			url : 'viewDegreeCriteriaForStudentTraining.json?trainingId='+internshipId,
+			dataType : 'json',
+			type:'GET',
+			async : false,
+			beforeSend : function() {
+				startCommonAjaxSpinner();
+			},
+			complete : function() {
+				stopCommonAjaxSpinner();
+			},
+			success : function(jArray) {
+				if(jArray.length > 0)
+				{
+						 criteriaBoiler +=
+							'	<tr class="header">'+
+									'<th>Sr.No.</th><th>Degree Name</th><th>Percent %</th><th>Grade</th><th>Live ATKT</th><th>Dead ATKT</th>'+
+							'	</tr>';
+						 var temp=0;
+						// var temp2=0;
+								 for(var i=0;i<jArray.length;i++)
+								 {
+									 if(jArray[i]["idCheck"]=='parent'){
+										 if(i==0)
+											 {
+											 criteriaBoiler +=
+													'<tr class="parentDegree">'+
+															'<th>'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th>'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th>'+jArray[i]["ParentCurrentATKT"]+'</th><th>'+jArray[i]["ParentDeadATKT"]+'</th>'+
+															'</th>'+
+													'</tr>';
+											 }
+										 else
+											 {
+											 criteriaBoiler +=
+													'<tr><th colspan="5">OR</th></tr><tr class="parentDegree">'+
+															'<th>'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th>'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th>'+jArray[i]["ParentCurrentATKT"]+'</th><th>'+jArray[i]["ParentDeadATKT"]+'</th>'+
+														'</th>'+
+													'	</tr>';
+											 }
+									 }
+									 else{
+											 criteriaBoiler +=
+													'	<tr class="childDegree">'+
+															'<td></td><td><center>'+jArray[i]["childDegreeName"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childPercent"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childGrade"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childcurrentATKT"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childDeadATKT"]+'<center></td>'+
+													'	</tr>';
+									 }
+							 }
+								// alert(criteriaBoiler);
+				$("#tlbDegreeCriteria"+internshipId).html(criteriaBoiler);
+				}
+			},
+			error:function(){
+				jAlert("Error In Saving Degree Criteria","Error");
+			}
+		});	
+	}
+	else if(type==4){
+		var criteriaBoiler ='';
+		$.ajax({
+			url : 'viewDegreeCriteriaForWalkIn.json?walkInId='+internshipId,
+			dataType : 'json',
+			type:'GET',
+			async : false,
+			beforeSend : function() {
+				startCommonAjaxSpinner();
+			},
+			complete : function() {
+				stopCommonAjaxSpinner();
+			},
+			success : function(jArray) {
+				if(jArray.length > 0)
+				{
+						 criteriaBoiler +=
+							'	<tr class="header">'+
+									'<th>Sr.No.</th><th>Degree Name</th><th>Percent %</th><th>Grade</th><th>Live ATKT</th><th>Dead ATKT</th>'+
+							'	</tr>';
+						 var temp=0;
+						// var temp2=0;
+								 for(var i=0;i<jArray.length;i++)
+								 {
+									 if(jArray[i]["idCheck"]=='parent'){
+										 if(i==0)
+											 {
+											 criteriaBoiler +=
+													'<tr class="parentDegree">'+
+															'<th>'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th>'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th>'+jArray[i]["ParentCurrentATKT"]+'</th><th>'+jArray[i]["ParentDeadATKT"]+'</th>'+
+															'</th>'+
+													'</tr>';
+											 }
+										 else
+											 {
+											 criteriaBoiler +=
+													'<tr><th colspan="5">OR</th></tr><tr class="parentDegree">'+
+															'<th>'+(++temp)+'</th><th>'+jArray[i]["ParentDegreeName"]+'</th><th>'+jArray[i]["ParentPercent"]+'</th><th>'+jArray[i]["ParentGrade"]+'</th><th>'+jArray[i]["ParentCurrentATKT"]+'</th><th>'+jArray[i]["ParentDeadATKT"]+'</th>'+
+														'</th>'+
+													'	</tr>';
+											 }
+									 }
+									 else{
+											 criteriaBoiler +=
+													'	<tr class="childDegree">'+
+															'<td></td><td><center>'+jArray[i]["childDegreeName"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childPercent"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childGrade"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childcurrentATKT"]+'<center></td>'+
+																	 '<td><center>'+jArray[i]["childDeadATKT"]+'<center></td>'+
+													'	</tr>';
+									 }
+							 }
+								// alert(criteriaBoiler);
+				$("#tlbDegreeCriteria"+internshipId).html(criteriaBoiler);
+				}
+			},
+			error:function(){
+				jAlert("Error In Saving Degree Criteria","Error");
+			}
+		});	
+	}	*/		
+				
+}
+
+var specFlag = 1;
+function checkStudentEligibility(placemenProjTrainWalktId,type)
+{
+	$.ajax({
+		url : 'checkEligibilityforRegistration.json?placementId='+placemenProjTrainWalktId+'&type='+type,
+		//data :'placementId='+placemenProjTrainWalktId+'&type='+type,
+		dataType : 'json',
+		async : false,
+		success : function(jArray) {
+			//alert(jArray[0]["CRITERIA_OTHER_DEGREE_NAME"]); 
+			//alert((jArray[0]["CRITERIA_OTHER_DEGREE_NAME"] == "Any Graduation"));
+			specFlag = 1;
+			var flag = 1;
+			var degreeCriteriaCounter = 0;
+			var boiler=''+
+							'<tr>'+
+							'<th></th>'+
+							'<th></th>'+
+							'<th>Student Marks</th>'+
+							'<th>Company Criteria</th>'+
+							'<th>Eligibility</th>'+
+						'</tr>'+
+						'<tr>'+
+							'<th rowspan="3">SSC&HSC Criteria</th>'+
+							'<th>10th</th>';
+								if(jArray[0][0]["CRITERIA_SSC_PERCENT"] == 0)
+									{
+										boiler += '<td style="text-align:right">'+ jArray[0][0]["STUDENT_SSC_PERCENT"]  +'</td>'+
+										'<td style="text-align:right">'+jArray[0][0]["CRITERIA_SSC_PERCENT"]+'-'+jArray[0][0]["CRITERIA_SSC_MAX_PERCENT"]+'</td>'+
+										'<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										//'<td><a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a></td>';
+									}
+								else
+									{
+										boiler += '<td style="text-align:right">'+ jArray[0][0]["STUDENT_SSC_PERCENT"]  +'</td>'+
+										'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_SSC_PERCENT"]  +'-'+jArray[0][0]["CRITERIA_SSC_MAX_PERCENT"]+'</td>';
+										if(( eval(jArray[0][0]["STUDENT_SSC_PERCENT"] ) >= eval(jArray[0][0]["CRITERIA_SSC_PERCENT"]) && eval(jArray[0][0]["STUDENT_SSC_PERCENT"] ) <= eval(jArray[0][0]["CRITERIA_SSC_MAX_PERCENT"]) ))
+											{
+												boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+											}
+										else
+											{flag = 0;
+											specFlag = 0;
+												boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+											}
+									}
+							boiler +='</tr>'+
+							 '<tr>'+
+							 '<th>12th / Diploma </th>';
+							 		if(jArray[0][0]["CRITERIA_HSC_PERCENT"] == 0)
+							 		{
+							 			boiler +=	'<td style="text-align:right">'+ jArray[0][0]["STUDENT_HSC_PERCENT"]  +'</td>'+
+							 						'<td style="text-align:right">'+jArray[0][0]["CRITERIA_HSC_PERCENT"]+'-'+jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]+'</td>'+
+							 						'<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+							 		}
+							 		else
+							 		{
+							 			if(jArray[0][0]["STUDENT_HSC_PERCENT"] == 0 && jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] == 0)
+							 			{
+							 				boiler +=	'<td>Not Specified</td>'+
+		 									'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_HSC_PERCENT"]  +'-'+jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]+'</td>';
+											flag = 0;
+											specFlag = 0;
+												boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+											
+							 			}
+							 			else if(jArray[0][0]["STUDENT_HSC_PERCENT"] == 0 && jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] != 0)
+							 			{
+							 				boiler +=	'<td style="text-align:right">'+ jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"]  +'</td>'+
+		 									'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_HSC_PERCENT"]  +'-'+jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]+'</td>';
+		 									//'<td>'+ ( eval(jArray[0]["STUDENT_HSC_PERCENT"] ) > eval(jArray[0]["CRITERIA_HSC_PERCENT"]) ) +'</td>';
+								 			if(( eval(jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] ) >= eval(jArray[0][0]["CRITERIA_HSC_PERCENT"]) && eval(jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] ) <= eval(jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"])))
+											{
+												boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+											}
+								 			else
+											{flag = 0;
+											specFlag = 0;
+												boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+											}
+							 			}
+							 			else if(jArray[0][0]["STUDENT_HSC_PERCENT"] != 0 && jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] == 0)
+							 			{
+							 				boiler +=	'<td style="text-align:right">'+ jArray[0][0]["STUDENT_HSC_PERCENT"]  +'</td>'+
+		 									'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_HSC_PERCENT"]  +'-'+ jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]  +'</td>';
+		 									//'<td>'+ ( eval(jArray[0]["STUDENT_HSC_PERCENT"] ) > eval(jArray[0]["CRITERIA_HSC_PERCENT"]) ) +'</td>';
+								 			if(( eval(jArray[0][0]["STUDENT_HSC_PERCENT"] ) >= eval(jArray[0][0]["CRITERIA_HSC_PERCENT"]) & eval(jArray[0][0]["STUDENT_HSC_PERCENT"] ) <= eval(jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"])))
+											{
+												boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+											}
+								 			else
+											{flag = 0;
+											specFlag = 0;
+												boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+											}
+							 			}
+							 			else if(jArray[0][0]["STUDENT_HSC_PERCENT"] != 0 && jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] != 0)
+							 			{
+							 				if(jArray[0][0]["STUDENT_HSC_PERCENT"] > jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"])
+							 				{
+							 					boiler +=	'<td style="text-align:right">'+ jArray[0][0]["STUDENT_HSC_PERCENT"]  +'</td>'+
+			 									'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_HSC_PERCENT"]  +'-'+ jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]  +'</td>';
+			 									//'<td>'+ ( eval(jArray[0]["STUDENT_HSC_PERCENT"] ) > eval(jArray[0]["CRITERIA_HSC_PERCENT"]) ) +'</td>';
+									 			if(( eval(jArray[0][0]["STUDENT_HSC_PERCENT"] ) >= eval(jArray[0][0]["CRITERIA_HSC_PERCENT"]) && eval(jArray[0][0]["STUDENT_HSC_PERCENT"] ) <= eval(jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"])))
+												{
+													boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+												} 
+									 			else
+												{flag = 0;
+												specFlag = 0;
+													boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+												}
+							 				}
+							 				else
+							 				{
+							 					boiler +=	'<td style="text-align:right">'+ jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"]  +'</td>'+
+			 									'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_HSC_PERCENT"]  +'-'+ jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]  +'</td>';
+			 									//'<td>'+ ( eval(jArray[0]["STUDENT_HSC_PERCENT"] ) > eval(jArray[0]["CRITERIA_HSC_PERCENT"]) ) +'</td>';
+									 			if(( eval(jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] ) >= eval(jArray[0][0]["CRITERIA_HSC_PERCENT"]) && eval(jArray[0][0]["STUDENT_DIPLOMA_PERCENTAGE"] ) <= eval(jArray[0][0]["CRITERIA_HSC__MAX_PERCENT"]) ))
+												{
+													boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+												}
+									 			else
+												{flag = 0;
+												specFlag = 0;
+													boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+												}
+							 				}
+							 			}
+							 		}
+							boiler +=	'</tr>'+
+										'<tr>';
+											'<th>Diploma</th>'+
+											'<td></td>'+
+											'<td></td>'+
+											'<td></td>';
+							
+											
+							degreeCriteriaCounter++;
+							boiler +='</tr>'+
+									'<tr>'+
+									'<th id="degreeCriteria">Degree Criteria</th>'+
+							
+									'<th>'+jArray[0][0]["STUDENT_CURRENT_DEGTREE"]+'</th>'+
+									'<td style="text-align:right">'+ jArray[0][0]["STUDENT_CURRENT_PERCENTAGE"]  +'</td>'+
+									'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_CURRENT_MIN_PERCENT"]  +'-'+ jArray[0][0]["CRITERIA_CURRENT_MAX_PERCENT"]  +'</td>';
+									//'<td>'+ ( eval(jArray[0]["STUDENT_CURRENT_PERCENTAGE"] ) >= eval(jArray[0]["CRITERIA_CURRENT_MIN_PERCENT"]) ) +'</td>';
+									if(jArray[0][0]["CRITERIA_CURRENT_MIN_PERCENT"] != "-"){
+							       if(( eval(jArray[0][0]["STUDENT_CURRENT_PERCENTAGE"] ) >= eval(jArray[0][0]["CRITERIA_CURRENT_MIN_PERCENT"]) && eval(jArray[0][0]["STUDENT_CURRENT_PERCENTAGE"] ) <= eval(jArray[0][0]["CRITERIA_CURRENT_MAX_PERCENT"])))
+									{
+										boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+									}
+						 			else
+									{flag = 0;
+									specFlag = 0;
+										boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+									}
+								 }else{
+									 boiler += '<td style="text-align:center;" > </td>';
+								 }
+							
+							boiler += '</tr>';
+							
+							
+						if(jArray[0][0]["CRITERIA_OTHER_PLACEMENT_QUALIFICATION_ID"] != "0")
+							{
+								degreeCriteriaCounter++;
+								if((eval(jArray[0][0]["STUDENT_OTHER_QUALIFICATION_ID"] ) == eval(jArray[0][0]["CRITERIA_OTHER_PLACEMENT_QUALIFICATION_ID"])  || (jArray[0][0]["CRITERIA_OTHER_DEGREE_NAME"] == "Any Graduation")))
+								{
+									boiler+='<tr>';
+									if(jArray[0][0]["STUDENT_OTHER_DEGREE_NAME"]!=0)
+										boiler+='<th>'+ jArray[0][0]["STUDENT_OTHER_DEGREE_NAME"]  +'</th>';
+									else
+										boiler+='<th>Not specified</th>';
+									
+									boiler+='<td style="text-align:right">'+ jArray[0][0]["STUDENT_OTHER_DEGREE_PERCENTAGE"]  +'</td>'+
+											'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_OTHER_MIN_PERCENT"]  +'-'+ jArray[0][0]["CRITERIA_OTHER_MAX_PERCENT"]  +'</td>';
+											//'<td>'+ ( eval(jArray[0]["STUDENT_OTHER_DEGREE_PERCENTAGE"] ) >= eval(jArray[0]["CRITERIA_OTHER_MIN_PERCENT"]) ) +'</td>';CRITERIA_OTHER_MAX_PERCENT
+											if(( eval(jArray[0][0]["STUDENT_OTHER_DEGREE_PERCENTAGE"] ) >= eval(jArray[0][0]["CRITERIA_OTHER_MIN_PERCENT"]) && eval(jArray[0][0]["STUDENT_OTHER_DEGREE_PERCENTAGE"] ) <= eval(jArray[0][0]["CRITERIA_OTHER_MIN_PERCENT"]) ))
+											{
+												boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+											}
+								 			else
+											{flag = 0;
+											specFlag = 0;
+												boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+											}
+										
+									boiler +=	'</tr>';
+								}
+								else
+								{
+									if(jArray[0][0]["STUDENT_OTHER_QUALIFICATION_ID"] != 0)
+									{
+										boiler+='<tr>'+	
+										'<th>'+jArray[0][0]["STUDENT_OTHER_DEGREE_NAME"]+'</th>'+
+										'<td style="text-align:right">'+ jArray[0][0]["STUDENT_OTHER_DEGREE_PERCENTAGE"]  +'</td>'+
+										'<td><b>'+ jArray[0][0]["CRITERIA_OTHER_DEGREE_NAME"]  +'</b></td>';
+										flag = 0;
+										specFlag = 0;
+										boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										boiler +=	'</tr>';
+									}
+									else
+									{
+										boiler+='<tr>'+	
+										/*'<th>'+ jArray[0][0]["STUDENT_OTHER_DEGREE_NAME"]  +'</th>'+*/
+										'<th>Not specified</th>'+
+										'<td style="text-align:right">'+ jArray[0][0]["STUDENT_OTHER_DEGREE_PERCENTAGE"]  +'</td>'+
+										'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_OTHER_MIN_PERCENT"]  +'-'+ jArray[0][0]["CRITERIA_OTHER_MAX_PERCENT"]  +'</td>';
+										flag = 0;
+										specFlag = 0;
+										boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										boiler +=	'</tr>';
+									}
+								}
+							}
+						degreeCriteriaCounter++;
+						boiler +=	'<tr>'+	
+								'<th>Live ATKT</th>'+
+								'<td style="text-align:right">'+ jArray[0][0]["STUDENT_LIVE_ATKT"]  +'</td>'+
+								'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_LIVE_ATKT"]  +'</td>';
+								//'<td>'+ ( eval(jArray[0]["STUDENT_LIVE_ATKT"] ) <= eval(jArray[0]["CRITERIA_LIVE_ATKT"]) ) +'</td>'+
+						if(jArray[0][0]["CRITERIA_LIVE_ATKT"] != "-"){
+								if(( eval(jArray[0][0]["STUDENT_LIVE_ATKT"] ) <= eval(jArray[0][0]["CRITERIA_LIVE_ATKT"]) ))
+								{
+									boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+								}
+					 			else
+								{flag = 0;
+								specFlag = 0;
+									boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+								}
+						}else{
+							boiler += '<td style="text-align:center;"></td>';
+						}
+								
+							degreeCriteriaCounter++;
+							boiler += '</tr>'+	
+							'<tr>'+	
+								'<th>Dead ATKT</th>'+
+								'<td style="text-align:right">'+ jArray[0][0]["STUDENT_DEAD_ATKT"]  +'</td>'+
+								'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_DEAD_ATKT"]  +'</td>';
+								//'<td>'+ ( eval(jArray[0]["STUDENT_DEAD_ATKT"] ) <= eval(jArray[0]["CRITERIA_DEAD_ATKT"]) ) +'</td>'+
+								if(jArray[0][0]["CRITERIA_DEAD_ATKT"] != "-"){
+							  if(( eval(jArray[0][0]["STUDENT_DEAD_ATKT"] ) <= eval(jArray[0][0]["CRITERIA_DEAD_ATKT"]) ))
+								{
+									boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+								}
+					 			else
+								{flag = 0;
+								specFlag = 0;
+									boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+								}
+							}else{
+								boiler += '<td style="text-align:center;" ></td>';
+							}
+							
+							boiler += '</tr>';
+							
+							if(jArray[0][0]["CRITERIA_GAP"] != "99")
+							{
+								degreeCriteriaCounter++;
+								boiler +=	'<tr>'+	
+										'<th>Gap</th>'+
+										'<td style="text-align:right">'+ jArray[0][0]["STUDENT_GAP_COUNT"]  +'</td>'+
+										'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_GAP"]  +'</td>';
+										//'<td>'+ ( eval(jArray[0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0]["CRITERIA_GAP"]) ) +'</td>'+
+										if(( eval(jArray[0][0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0][0]["CRITERIA_GAP"]) ))
+										{
+											boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										}
+							 			else
+										{flag = 0;
+										specFlag = 0;
+											boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										} 
+									boiler += '</tr>';
+								}
+							
+							var otherCriteriaCounter = 0;
+							otherCriteriaCounter++;
+							boiler += '</tr><th id="otherCriteria">Other Criteria</th>'+	
+										'<th>Year of Passing</th>'+
+										'<td style="text-align:right">'+ jArray[0][0]["STUDENT_PASSING_YEAR"]  +'</td>'+
+										'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_PASSING_YEAR"]  +'</td>';
+										//'<td>'+ ( eval(jArray[0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0]["CRITERIA_GAP"]) ) +'</td>'+
+										if((eval(jArray[0][0]["STUDENT_PASSING_YEAR"] ) == eval(jArray[0][0]["CRITERIA_PASSING_YEAR"])) || jArray[0][0]["CRITERIA_PASSING_YEAR"]=='open' || jArray[0][0]["CRITERIA_PASSING_YEAR"]=='Open')
+										{
+											boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										}
+							 			else
+										{flag = 0;
+										specFlag = 0;
+											boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										}
+									boiler += '</tr>';			
+									
+							otherCriteriaCounter++;
+							boiler += '<tr><th>Approved By TPO</th>'+
+										'<td>-</td>'+
+										'<td>-</td>';
+										if(jArray[0][0]["STUDENT_APPROVED_BY_TPO"]=="true")
+										{
+											boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										}
+							 			else
+										{	
+							 				flag = 0;
+							 				specFlag =0;
+											boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										}
+							boiler += '</tr>';			
+											
+							if(jArray[0][0]["CRITERIA_GENDER"] != "Male & Female")
+							{
+								otherCriteriaCounter++;	
+								boiler +=	'<tr id="GenderCriteriaTR" >'+	
+										'<th>Gender</th>'+
+										'<td id="studentGenderTD" >'+ jArray[0][0]["STUDENT_GENDER"]  +'</td>'+
+										'<td id="CompanyGenderTD" >'+ jArray[0][0]["CRITERIA_GENDER"]  +'</td>';
+										if( jArray[0][0]["STUDENT_GENDER"] == jArray[0][0]["CRITERIA_GENDER"])
+										{
+											boiler += '<td id="GenderEligibilityTD" style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										}
+							 			else
+										{flag = 0;
+										//specFlag = 0;
+											boiler += '<td id="GenderEligibilityTD" style="text-align:center;" ><img src="css/images/not.png"></td>';
+										}
+									boiler += '</tr>';
+							}
+							else
+							{
+								otherCriteriaCounter++;
+								boiler += '<tr id="GenderCriteriaTR" style="display:none;" >'+
+												'<th>Gender</th>'+
+												'<td id="studentGenderTD" >'+ jArray[0][0]["STUDENT_GENDER"]  +'</td>'+
+												'<td id="CompanyGenderTD" ></td>'+
+												'<td id="GenderEligibilityTD" ></td>';
+										  '</tr>';
+							}
+							
+							if(jArray[0][0]["CRITERIA_AGE_CRITERIA"] != "" && jArray[0][0]["CRITERIA_AGE_CRITERIA"] != 0)
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr>'+	
+										'<th>Age</th>'+
+										'<td style="text-align:right">'+ jArray[0][0]["STUDENT_AGE_CRITERIA"]  +'</td>'+
+										'<td style="text-align:right">'+ jArray[0][0]["CRITERIA_AGE_CRITERIA"]  +'</td>';
+										//'<td>'+ ( eval(jArray[0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0]["CRITERIA_GAP"]) ) +'</td>'+
+								
+								      if(jArray[0][0]["CRITERIA_AGE_CRITERIA"] != "-"){
+										if(( eval(jArray[0][0]["STUDENT_AGE_CRITERIA"] ) <= eval(jArray[0][0]["CRITERIA_AGE_CRITERIA"]) ))
+										{
+											boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										}
+							 			else
+										{flag = 0;
+										specFlag = 0;
+											boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										}
+								      }else{
+								    	  	boiler += '<td style="text-align:center;" > </td>';
+											  
+								      }
+										
+									boiler += '</tr>';
+							}
+							if(jArray[0][0]["CRITERIA_EXPERIENCE"] != "")
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr id="experienceTR" >'+	
+									'<th>Experience</th>'+
+									'<td id="studentExperianceTD" style="text-align:right" >'+ jArray[0][0]["STUDENT_EXPERIENCE"]  +'</td>'+
+									'<td id="companyExperienceTD"  style="text-align:right">'+ jArray[0][0]["CRITERIA_EXPERIENCE"]  +'</td>';
+									//'<td>'+ ( eval(jArray[0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0]["CRITERIA_GAP"]) ) +'</td>'+
+									if(( eval(jArray[0][0]["STUDENT_EXPERIENCE"] ) >= eval(jArray[0][0]["CRITERIA_EXPERIENCE"]) ))
+									{
+										boiler += '<td  id="experienceEligibilityTD" style="text-align:center;" ><img src="css/images/yes.png"></td>';
+									}
+						 			else
+									{flag = 0;
+									//specFlag = 0;
+										boiler += '<td  id="experienceEligibilityTD" style="text-align:center;" ><img src="css/images/not.png"></td>';
+									}
+								boiler += '</tr>';
+							}
+							else
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr id="experienceTR" style="display:none;" >'+	
+												'<th>Experience</th>'+
+												'<td id="studentExperianceTD" >'+ jArray[0][0]["STUDENT_EXPERIENCE"]  +'</td>'+
+												'<td id="companyExperienceTD" ></td>'+
+												'<td id="experienceEligibilityTD" ></td>';
+											'</tr>';
+							}
+							
+							if(jArray[0][0]["CRITERIA_HSC_BOARD"] != "")
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr>'+	
+										'<th>HSC Board</th>'+
+										'<td>'+ jArray[0][0]["STUDENT_HSC_BOARD"]  +'</td>'+
+										'<td>'+ jArray[0][0]["CRITERIA_HSC_BOARD"]  +'</td>';
+										/*if(( jArray[0][0]["STUDENT_HSC_BOARD"] == jArray[0][0]["CRITERIA_HSC_BOARD"]))
+										{
+											boiler += '<td><a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a></td>';
+										}
+							 			else
+										{flag = 0;
+										specFlag = 0;
+											boiler += '<td><a href="javascript:void(0)" class="btn btn-mini btn-danger "><i class="icon icon-remove"></i></a></td>';
+										}*/
+								var hscBoard = jArray[0][0]["CRITERIA_HSC_BOARD"].split(",");
+								var hscFlag = 0;
+								for(var i=0;i<hscBoard.length;i++)
+								{
+									if(( jArray[0][0]["STUDENT_HSC_BOARD"] == hscBoard[i]))
+									{
+										boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+										hscFlag = 1;
+										break;
+									}
+								}
+								if(hscFlag == 0)
+								{
+									flag = 0;
+									specFlag = 0;
+										boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+								}
+								
+									boiler += '</tr>';
+							}
+							
+							if(jArray[0][0]["CRITERIA_SSC_BOARD"] != "")
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr>'+	
+										'<th>SSC Board</th>'+
+										'<td>'+ jArray[0][0]["STUDENT_SSC_BOARD"]  +'</td>'+
+										'<td>'+ jArray[0][0]["CRITERIA_SSC_BOARD"]  +'</td>';
+										var sscBoard = jArray[0][0]["CRITERIA_SSC_BOARD"].split(",");
+										var sscFlag = 0;
+										for(var i=0;i<sscBoard.length;i++)
+										{
+											if(( jArray[0][0]["STUDENT_SSC_BOARD"] == sscBoard[i]))
+											{
+												boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+												sscFlag = 1;
+												break;
+											}
+										}
+										if(sscFlag == 0)
+										{
+											flag = 0;
+											specFlag = 0;
+												boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										}		
+										/*if(( jArray[0][0]["STUDENT_SSC_BOARD"] <=  jArray[0][0]["CRITERIA_SSC_BOARD"]))
+										{
+											boiler += '<td><a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a></td>';
+										}
+							 			else
+										{flag = 0;
+										specFlag = 0;
+											boiler += '<td><a href="javascript:void(0)" class="btn btn-mini btn-danger "><i class="icon icon-remove"></i></a></td>';
+										}*/
+									boiler += '</tr>';
+							}
+							if(jArray[0][0]["CRITERIA_SPECIALIZATION"] != "")
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr>'+	
+										'<th> Specialization </th>'+
+										'<td>'+ jArray[0][0]["STUDENT_SPECIALIZATION"]  +'</td>'+
+										'<td>'+ jArray[0][0]["CRITERIA_SPECIALIZATION"]  +'</td>';
+										//'<td>'+ ( eval(jArray[0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0]["CRITERIA_GAP"]) ) +'</td>'+
+										if(( jArray[0][0]["STUDENT_SPECIALIZATION"] == jArray[0][0]["CRITERIA_SPECIALIZATION"]))
+										{
+											boiler += '<td style="text-align:center;" ><img src="css/images/yes.png"></td>';
+											
+											var SpecPostArray = jArray[4];
+											if(SpecPostArray.length > 0)
+											{
+											var speBoiler = '<table class="table table-bordered ">'+
+															 '</tr>'+
+															 	'<th colspan="5" >Post List</th>'+
+															 '</tr>'+
+															 '<tr>'+
+															 	'<th>Post Name</th>'+
+															 	'<th>Gender</th>'+
+															 	'<th>Experience</th>'+
+															 	'<th>Location</th>'+
+															 	'<th></th>'+
+															 '</tr>';
+											var speccnt=0;
+											for(var s=0;s<SpecPostArray.length;s++)
+												{
+													speccnt++;
+													speBoiler += '<tr>'+
+																  '<td>'+
+																	'<label><input type="radio" value="'+SpecPostArray[s]["specTitleId"]+'" id="'+SpecPostArray[s]["specTitleId"]+'" name="chkSpecRadio" onclick="fetchCriteriaSpecializationWise('+SpecPostArray[s]["specTitleId"]+')" >'+SpecPostArray[s]["post"]+'</label>'+
+																 '</td>'+
+																 '<td>'+SpecPostArray[s]["gender"]+'</td>'+
+																 '<td>'+SpecPostArray[s]["experiance"]+'</td>'+
+																 '<td>'+SpecPostArray[s]["location"]+'</td>';
+													if(SpecPostArray[s]["registerStatus"] == 1)
+													{
+														speBoiler +=  '<td id="registerSpecWiseBtnTD'+SpecPostArray[s]["specTitleId"]+'" >'+
+														 '<div align="center" class="alert alert-success"><strong>You have already registered for this company</strong></div>'+
+														 '</td>';
+													}
+													else
+													{
+														speBoiler +=  '<td id="registerSpecWiseBtnTD'+SpecPostArray[s]["specTitleId"]+'" >'+
+													 	'<input type="button" class="btn btn-mini btn-inverse registerSpecWise" value="Register" style="display:none;" id="btnRegisterSpecWise'+SpecPostArray[s]["specTitleId"]+'" onclick="registerforPlacementSpecwise('+SpecPostArray[s]["specTitleId"]+','+placemenProjTrainWalktId+')"  >'+
+														 '</td></tr>';
+													}
+												}
+											speBoiler += '</table>';
+											$('#showMultiplePostListDiv').html(speBoiler);
+											$('#trMultiplePost').show();
+											}
+										}
+							 			else
+										{
+							 				flag = 0;
+											boiler += '<td style="text-align:center;" ><img src="css/images/not.png"></td>';
+										}
+									boiler += '</tr>';
+							}
+							
+							
+							/*if(jArray[0][0]["CRITERIA_SSC_BOARD"] != "")
+							{
+								otherCriteriaCounter++;
+								boiler +=	'<tr>'+	
+										'<th>SSC Board</th>'+
+										'<td>'+ jArray[0][0]["STUDENT_SSC_BOARD"]  +'</td>'+
+										'<td>'+ jArray[0][0]["CRITERIA_SSC_BOARD"]  +'</td>';
+										//'<td>'+ ( eval(jArray[0]["STUDENT_GAP_COUNT"] ) <= eval(jArray[0]["CRITERIA_GAP"]) ) +'</td>'+
+										if(( jArray[0][0]["STUDENT_SSC_BOARD"] <=  jArray[0][0]["CRITERIA_SSC_BOARD"]))
+										{
+											boiler += '<td><a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a></td>';
+										}
+							 			else
+										{flag = 0;
+											boiler += '<td><a href="javascript:void(0)" class="btn btn-mini btn-danger "><i class="icon icon-remove"></i></a></td>';
+										}
+									boiler += '</tr>';
+							}*/
+							
+							//'<table>';
+							//$('#btnBack').before(boiler);
+							$('#eligibilityTlb'+placemenProjTrainWalktId).html(boiler);
+							
+							$('th#degreeCriteria').attr("rowspan",degreeCriteriaCounter);
+							$('th#otherCriteria').attr("rowspan",otherCriteriaCounter);
+							if(jArray[1].length > 0)
+							{
+								if(jArray[1][0]["specializationStatus"] == "no") // titleSpecialization status
+								{
+									if(jArray[1][0]["status"] == 1)
+									{
+										$('#btnSpecialRequest'+placemenProjTrainWalktId).hide();
+							        	$('#btnRegister'+placemenProjTrainWalktId).hide();
+							        	$('.trPreference').hide();
+							        	
+							        	var boiler='';
+							        	if(jArray[1][0]["specialRequest"] == "no"){
+							        		boiler+= '<br><div align="center" class="alert alert-success"><strong>You have already registered for this company</strong></div>';
+							        	}else{
+							        		boiler+= '<br><div align="center" class="alert alert-success"><strong>Your Special request has been successfully send</strong></div>';
+							        	}
+							        	$('#tddisplayMsg'+placemenProjTrainWalktId).append(boiler);
+									}
+									else
+									{
+										if(jArray[1][0]["PlaceStatus"] == "placed")
+										{
+											if(jArray[1][0]["dreamCompanyStatus"]){
+												if(flag == 1){// Eligible For Placement
+													$('#btnRegister'+placemenProjTrainWalktId).show();
+													$('.trPreference').show();
+												}else{// Not Eligible For Placement
+													if(jArray[1][0]["specialReqStatusForNotRegistered"])
+														$('#btnSpecialRequest'+placemenProjTrainWalktId).show();
+												}
+											}else{
+												$('#btnSpecialRequest'+placemenProjTrainWalktId).hide();
+									        	$('#btnRegister'+placemenProjTrainWalktId).hide();
+									        	$('.trPreference').hide();
+									        	
+									        	var boiler='';
+									        		boiler+= '<br><div align="center" class="alert alert-success"><strong>You are already Placed</strong></div>';
+									        	$('#tddisplayMsg'+placemenProjTrainWalktId).append(boiler);
+											}
+										}
+										else
+										{
+												if(jArray[1][0]["statusForAddResult"] != undefined && jArray[1][0]["statusForAddResult"] == "NotAdd")
+												{
+													$('#addSelectionProcessDialog').modal('show');
+													
+													postesBoiler =
+														
+													'<table cellpadding="0" cellspacing="0" border="1" class="table table-striped table-bordered table-condensed" id="DataTablePostResult">'+
+														'<thead>'+
+															'<tr>'+
+																'<th>Company Name :</th>';
+													
+													var noOfCol=jArray[2][0]["cnt"];
+													for(var i=1; i<=jArray[2][0]["cnt"]; i++){
+														postesBoiler +=
+															'<th>'+jArray[2][0]["name"+i+""]+'</th>';
+														}
+													postesBoiler +=
+														'</tr></thead><tbody>';
+														postesBoiler +='<tr><td>'+jArray[1][0]["lastCompanyName"]+'</td>';
+														for(var m=1;m<=noOfCol;m++){
+															postesBoiler +=
+																'<td><input type="checkbox" id="'+jArray[2][0]["id"+m+""]+'" value="'+jArray[2][0]["id"+m+""]+'" name="chkSelection" /></td>';
+														}
+														postesBoiler +='</tr>';
+														postesBoiler +=
+															'</tbody></table>';
+														postesBoiler += '<div>'+
+																		'<input class="btn btn-inverse btn-mini  " type="button" value="Save" id="btnSave" onclick="saveStudentSelectionProcess('+jArray[1][0]["lastPlacementRegistrationId"]+','+flag+','+jArray[1][0]["studentPlacementId"]+','+placemenProjTrainWalktId+')">&nbsp;&nbsp;'+
+																		'<input class="btn btn-inverse btn-mini  " type="button" value="Close" onclick="closeStudentSelectionProcessPopup()">'+
+															
+																		'</div>';
+													$("#divSelectionProcess").html(postesBoiler);
+													
+													if(flag == 1)
+													{
+														// Eligible For Placement
+														$('#btnRegister'+placemenProjTrainWalktId).show();
+														$('.trPreference').show();
+													}
+													else
+													{
+														// Not Eligible For Placement
+														if(jArray[1][0]["specialReqStatusForNotRegistered"])
+															$('#btnSpecialRequest'+placemenProjTrainWalktId).show();
+													}
+													
+												}
+											else
+												{
+														if(flag == 1)
+														{
+															// Eligible For Placement
+															$('#btnRegister'+placemenProjTrainWalktId).show();
+															$('.trPreference').show();
+														}
+														else
+														{
+															// Not Eligible For Placement
+															if(jArray[1][0]["specialReqStatusForNotRegistered"])
+																$('#btnSpecialRequest'+placemenProjTrainWalktId).show();
+														}
+												}
+										}
+									}
+								  }
+								  else if(jArray[1][0]["specializationStatus"] == "yes")
+								  { // with Specialization
+									
+								  }
+								}
+							
+							// campus Pool
+							if(jArray[5][0].CampusPoolStatus != undefined)
+							{
+								if(jArray[5][0].CampusPoolStatus == true)
+								{
+									$('#trCampusPool').show();
+									if(jArray[5][0].noOfRegistrationAllowed <= jArray[5][0].studentRegisteredCount)
+									{
+										var poolBoiler = '<b>This is a Campus Pool Drive Placement. '+
+										'</br> No of Registration Allowed is '+jArray[5][0].noOfRegistrationAllowed+'</br>'+
+										'Registration count '+jArray[5][0].studentRegisteredCount+
+										'</br></br><span style="color:red;" >Registration Count reached Maximum ! Cannot Register</span></b>';
+										$('#showCampusPoolDiv').html(poolBoiler);
+										$('#btnRegister'+placemenProjTrainWalktId).hide();
+									}
+									else
+									{
+										var poolBoiler = '<b>This is a Campus Pool Drive Placement. </br> No of Registration Allowed is '+jArray[5][0].noOfRegistrationAllowed+'</br>Registration count '+jArray[5][0].studentRegisteredCount+'</b>';
+										$('#showCampusPoolDiv').html(poolBoiler);
+										$('#btnRegister'+placemenProjTrainWalktId).show();
+									}
+								}
+							}
+							
+							// dms
+							if(jArray[3].jobMasterId != undefined){
+								if(jArray[3].documentUploaded){
+									var uploadDocument = new  UploadStudentDocument();
+									uploadDocument.getDocument(jArray[3].documentCategoryId,function(jArray){
+										showJobAttachment(jArray,'divDownloadAttachmentArea'+placemenProjTrainWalktId,false);
+										$('#trDownloadAttachmentArea'+placemenProjTrainWalktId).show();
+									});
+									/**
+									 * Student Upload if placement registration is done and if CV Template 
+									 */
+									if(jArray[1].length > 0)
+									{
+										if(jArray[1][0]["status"] == 1){
+											initUploadCVForPlacement(placemenProjTrainWalktId,jArray[1][0].placementRegistrationId);
+											$('#trUploadStudentAttachmentArea'+placemenProjTrainWalktId).show();
+										}
+									}
+								} else {
+									$('#trDownloadAttachmentArea'+placemenProjTrainWalktId).hide();
+								}
+							}
+		},
+		error : function(){
+			alert(" error ");
+			}
+		});
+	
+	getPreferenceLocationNameList(placemenProjTrainWalktId,type);
+	return;
+}
+
+function fetchCriteriaSpecializationWise(specTitleId)
+{
+	$(".registerSpecWise").hide();
+	var specTitleId = $('input:radio[name=chkSpecRadio]:checked').val();
+	
+	$.ajax({
+        url:'fetchCriteriaSpecializationWise.json',
+        data:"specTitleId="+specTitleId,
+        dataType:'json',
+        async:false,
+        beforeSend: function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+        success:function(jArray){
+        	var flagspec = 1;
+        	if(jArray.length > 0)
+        	{
+        		if(jArray[0] != "")
+        		{
+        			// Gender
+        			if(jArray[0]["gender"] != "Male & Female")
+        			{
+        				var studGenderCriteria = $('#studentGenderTD').html();
+        				$('#CompanyGenderTD').html(jArray[0]["gender"]);
+            			if( studGenderCriteria == jArray[0]["gender"])
+    					{
+            				$('#GenderEligibilityTD').html('<a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a>');
+    					}
+    		 			else
+    					{	flagspec = 0;
+    		 				$('#GenderEligibilityTD').html('<a href="javascript:void(0)" class="btn btn-mini btn-danger "><i class="icon icon-remove"></i></a>');
+    					}
+            			$('#GenderCriteriaTR').show();
+        			}
+        			else
+        			{
+        				$('#CompanyGenderTD').html(jArray[0]["gender"]);
+        				$('#GenderEligibilityTD').html('<a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a>');
+        			}
+        		}
+        		if(jArray[0] != 0)
+        		{
+        			// Experiance
+        			if(jArray[0]["Experience"] != "")
+					{
+        				var studentExperiance = $('#studentExperianceTD').html();
+        				$('#companyExperienceTD').html(jArray[0]["Experience"]);
+            			if( studentExperiance == jArray[0]["Experience"])
+    					{
+            				$('#experienceEligibilityTD').html('<a href="javascript:void(0)" class="btn btn-mini btn-success "><i class="icon icon-ok"></i></a>');
+    					}
+    		 			else
+    					{	flagspec = 0;
+    		 				$('#experienceEligibilityTD').html('<a href="javascript:void(0)" class="btn btn-mini btn-danger "><i class="icon icon-remove"></i></a>');
+    					}
+						$('#experienceTR').show();
+					}
+        		}
+        	}
+        	if(flagspec == 1 && specFlag == 1)
+        		$('#btnRegisterSpecWise'+specTitleId).show();
+        	else
+        		$('#btnRegisterSpecWise'+specTitleId).hide();
+        	
+        },
+        error:function(){
+        	alert("error in Save Registration For Placement");
+       }
+	});
+}
+
+function registerforPlacementSpecwise(specTitleId,placemenProjTrainWalktId,type)
+{
+	
+	$.ajax({
+        url:'registerforPlacementSpecwise.json',
+        data:"placementId="+placemenProjTrainWalktId+'&specTitleId='+specTitleId+'&type='+type,
+        dataType:'json',
+        async:false,
+        beforeSend : function() {
+			startCommonAjaxSpinner();
+		},
+		complete : function() {
+			stopCommonAjaxSpinner();
+		},
+        success:function(jObject){
+        	$('#btnRegisterSpecWise'+specTitleId).hide();
+        	$('#registerSpecWiseBtnTD'+specTitleId).html('<div align="center" class="alert alert-success"><strong>'+jObject.responseText+'</strong></div>');
+        	
+        	if(jObject.jobMasterId != undefined){
+        		var jobMasterId = jObject.jobMasterId;
+        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+        			if(responseObject.documentUploaded){
+        				var uploadDocument = new  UploadStudentDocument();
+						uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+							showJobAttachment(jArray,'divDownloadAttachmentArea'+placementId,false);
+							$('#trDownloadAttachmentArea'+placementId).show();
+							
+							
+							initUploadCVForPlacement(placementId,jObject.id);
+							$('#trUploadStudentAttachmentArea'+placementId).show();
+						});
+        			} else {
+        				$('#trDownloadAttachmentArea'+placementId).hide();
+        				$('#trUploadStudentAttachmentArea'+placementId).hide();
+        			}
+        		});
+        	}
+        	
+        	/*
+        	$('#btnRegisterSpecWise'+specTitleId).hide();
+        	$('.trPreference').hide();
+        	$('#btnSpecialRequest'+placementId).hide();
+        	
+        	var boiler = '<br><br><div align="center" class="alert alert-success"><strong>'+jObject.responseText+'</strong></div>';
+        	
+        	$('#tddisplayMsg'+placementId).append(boiler);
+        	jAlert(jObject.responseText,"Message");
+        	if(jObject.responseText=='You have successfully registered for this company'){
+        		askStudPreferences(2,placementId);
+        		getPreferenceLocationNameList(placementId,2);
+        	}
+        	if(jObject.jobMasterId != undefined){
+        		var jobMasterId = jObject.jobMasterId;
+        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+        			if(responseObject.documentUploaded){
+        				var uploadDocument = new  UploadStudentDocument();
+						uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+							showJobAttachment(jArray,'divDownloadAttachmentArea'+placementId,false);
+							$('#trDownloadAttachmentArea'+placementId).show();
+							
+							
+							initUploadCVForPlacement(placementId,jObject.id);
+							$('#trUploadStudentAttachmentArea'+placementId).show();
+						});
+        			} else {
+        				$('#trDownloadAttachmentArea'+placementId).hide();
+        				$('#trUploadStudentAttachmentArea'+placementId).hide();
+        			}
+        		});
+        	}
+        */},
+        error:function(){
+        	alert("error in Save Registration For Placement");
+       }
+	});
+}
+
+
+function registerforPlacement(internshipId,type)
+{
+	//alert("Projectplacement.js");
+	var locationPreferenceId = new Array();
+	
+	if(gNoOfAllowedPreference!=0)
+	{
+		$('.locationNameClass').each(function(){
+			if($(this).is(':checked'))
+			{
+				locationPreferenceId.push($(this).attr("value"));
+			}
+		
+		});
+		
+		if(locationPreferenceId.length > gNoOfAllowedPreference || locationPreferenceId.length < gNoOfAllowedPreference)
+		{
+			jAlert("please Select only '"+gNoOfAllowedPreference+"' Preferences","warning");
+			return true;
+		}
+	}
+	
+	var boiler='';
+	if(type==1){
+		$.ajax({
+	        url:'registerforProjectPlacement.json',
+	        data:"internshipId="+internshipId+'&locationPreferenceId='+locationPreferenceId,
+	        dataType:'json',
+	        async:false,
+	        beforeSend: function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+	        success:function(jObject){
+	        	$('#btnRegister'+internshipId).hide();
+	        	$('#btnSpecialRequest'+internshipId).hide();
+	        	$('.trPreference').hide();
+	        	
+	        	var boiler = '<br><br><div align="center" class="alert alert-success"><strong>'+jObject.responseText+'</strong></div>';
+	        	
+	        	$('#tddisplayMsg'+internshipId).append(boiler);
+	        	jAlert(jObject.responseText,"Message");
+	        	if(jObject.responseText=='You have successfully registered for this company'){
+	        		askStudPreferences(1,internshipId);
+		        	getPreferenceLocationNameList(internshipId,1);
+	        	}
+	        	
+	        	
+	        	
+	        	if(jObject.jobMasterId != undefined){
+	        		var jobMasterId = jObject.jobMasterId;
+	        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+	        			if(responseObject.documentUploaded){
+	        				var uploadDocument = new  UploadStudentDocument();
+							uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+								showJobAttachment(jArray,'divDownloadAttachmentArea'+internshipId,false);
+								$('#trDownloadAttachmentArea'+internshipId).show();
+								
+								
+								initUploadCVForPlacement(internshipId,jObject.id);
+								$('#trUploadStudentAttachmentArea'+internshipId).show();
+							});
+	        			} else {
+	        				$('#trDownloadAttachmentArea'+internshipId).hide();
+	        				$('#trUploadStudentAttachmentArea'+internshipId).hide();
+	        			}
+	        		});
+	        	}
+	        	
+	        },
+	        error:function(){
+	        	alert("error in Save Registration For Placement");
+	       }
+		});
+	}
+	else if(type==3){
+		$.ajax({
+	        url:'registerforTraining.json',
+	        data:"trainingId="+internshipId+'&locationPreferenceId='+locationPreferenceId,
+	        dataType:'json',
+	        async:false,
+	        beforeSend: function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+	        success:function(jArray){
+	        	$('#btnRegister'+internshipId).hide();
+	        	$('#btnSpecialRequest'+internshipId).hide();
+	        	$('.trPreference').hide();
+	        	
+	        	boiler+= '<br><br><div align="center" class="alert alert-success"><strong>'+jArray+'</strong></div>';
+	        	
+	        	$('#tddisplayMsg'+internshipId).append(boiler);
+	        
+	        	askStudPreferences(3,internshipId);
+	        	getPreferenceLocationNameList(internshipId,3);
+	        	
+	        	if(jObject.jobMasterId != undefined){
+	        		var jobMasterId = jObject.jobMasterId;
+	        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+	        			if(responseObject.documentUploaded){
+	        				var uploadDocument = new  UploadStudentDocument();
+							uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+								showJobAttachment(jArray,'divDownloadAttachmentArea'+internshipId,false);
+								$('#trDownloadAttachmentArea'+internshipId).show();
+								
+								
+								initUploadCVForPlacement(internshipId,jObject.id);
+								$('#trUploadStudentAttachmentArea'+internshipId).show();
+							});
+	        			} else {
+	        				$('#trDownloadAttachmentArea'+internshipId).hide();
+	        				$('#trUploadStudentAttachmentArea'+internshipId).hide();
+	        			}
+	        		});
+	        	}
+	        	
+	        },
+	        error:function(){
+	        	alert("error in Save Registration For Placement");
+	       }
+		});
+	}
+	else if(type==4){
+		$.ajax({
+	        url:'registerforWalkIn.json',
+	        data:"walkInId="+internshipId+'&locationPreferenceId='+locationPreferenceId,
+	        dataType:'json',
+	        async:false,
+	        beforeSend: function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+	        success:function(jArray){
+	        	$('#btnRegister'+internshipId).hide();
+	        	$('#btnSpecialRequest'+internshipId).hide();
+	        	$('.trPreference').hide();
+	        	
+	        	boiler+= '<br><br><div align="center" class="alert alert-success"><strong>'+jArray+'</strong></div>';
+	        	
+	        	$('#tddisplayMsg'+internshipId).append(boiler);
+	        
+	        	askStudPreferences(4,internshipId);
+	        	getPreferenceLocationNameList(internshipId,4);
+	        	
+	        	if(jObject.jobMasterId != undefined){
+	        		var jobMasterId = jObject.jobMasterId;
+	        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+	        			if(responseObject.documentUploaded){
+	        				var uploadDocument = new  UploadStudentDocument();
+							uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+								showJobAttachment(jArray,'divDownloadAttachmentArea'+internshipId,false);
+								$('#trDownloadAttachmentArea'+internshipId).show();
+								
+								
+								initUploadCVForPlacement(internshipId,jObject.id);
+								$('#trUploadStudentAttachmentArea'+internshipId).show();
+							});
+	        			} else {
+	        				$('#trDownloadAttachmentArea'+internshipId).hide();
+	        				$('#trUploadStudentAttachmentArea'+internshipId).hide();
+	        			}
+	        		});
+	        	}
+	        },
+	        error:function(){
+	        	alert("error in Save Registration For Placement");
+	       }
+		});
+	}
+}
+
+function displaySpecialRequestTR(internshipId,type)
+{
+	$('#trSpecialRequest'+internshipId).show();
+}
+
+function makeSpecialRequest(internshipId,type)
+{
+	var specialRequestResoan = $('#txtSpecialRequest').val();
+	
+	if(type==1){
+			$.ajax({
+		        url:'makeSpecialRequestforProjectPlacement.json?internshipId='+internshipId+'&specialRequestResoan='+specialRequestResoan,
+		        //data:"internshipId="+internshipId+"&specialRequestResoan="+specialRequestResoan,
+		        dataType:'json',
+		        async:false,
+		        beforeSend: function() {
+					$('#loading').modal('show');
+				},
+				complete: function() {
+					$('#loading').modal('hide');
+				},
+		        success:function(jObject){
+		        	
+		        	$('#trSpecialRequest'+internshipId).hide();
+		        	$('#btnSpecialRequest'+internshipId).hide();
+		        	$('#btnRegister'+internshipId).hide();
+		        	$('.trPreference').hide();
+		        	
+		        	var boiler='';
+		        	//if(flag==1)
+		        	//{
+		        		boiler+= '<br><br><div align="center" class="alert alert-success"><strong>Your request has been successfully send</strong></div>';
+		        	//}
+		        	//else
+		        	//{
+		        	//	boiler+= '<br><br><div align="center" class="alert alert-error"><strong>You have already registered for this company</strong></div>';
+		        	$('#tddisplayMsg'+internshipId).append(boiler);
+		        	
+		        	askStudPreferences(1,internshipId);
+		        	
+		        	
+		        	if(jObject.jobMasterId != undefined){
+		        		var jobMasterId = jObject.jobMasterId;
+		        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+		        			if(responseObject.documentUploaded){
+		        				var uploadDocument = new  UploadStudentDocument();
+								uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+									showJobAttachment(jArray,'divDownloadAttachmentArea'+internshipId,false);
+									$('#trDownloadAttachmentArea'+internshipId).show();
+									initUploadCVForPlacement(internshipId,jObject.id);
+									$('#trUploadStudentAttachmentArea'+internshipId).show();
+								});
+		        			} else {
+		        				$('#trDownloadAttachmentArea'+internshipId).hide();
+		        				$('#trUploadStudentAttachmentArea'+internshipId).hide();
+		        			}
+		        		});
+		        	}
+		        	
+		        },
+		        error:function(){
+		        	alert("error in makeSpecialRequest");
+		       }
+			});
+	}
+	else if(type==3){
+		$.ajax({
+	        url:'makeSpecialRequestforTraining.json?trainingId='+internshipId+'&specialRequestResoan='+specialRequestResoan,
+	        //data:"trainingId="+internshipId+"&specialRequestResoan="+specialRequestResoan,
+	        dataType:'json',
+	        async:false,
+	        beforeSend: function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+	        success:function(jObject){
+	        	
+	        	$('#trSpecialRequest'+internshipId).hide();
+	        	$('#btnSpecialRequest'+internshipId).hide();
+	        	$('#btnRegister'+internshipId).hide();
+	        	$('.trPreference').hide();
+	        	
+	        	var boiler='';
+	        	//if(flag==1)
+	        	//{
+	        		boiler+= '<br><br><div align="center" class="alert alert-success"><strong>Your request has been successfully send</strong></div>';
+	        	//}
+	        	//else
+	        	//{
+	        	//	boiler+= '<br><br><div align="center" class="alert alert-error"><strong>You have already registered for this company</strong></div>';
+	        	$('#tddisplayMsg'+internshipId).append(boiler);
+	        	
+	        	askStudPreferences(3,internshipId);
+	        	
+	        	
+	        	if(jObject.jobMasterId != undefined){
+	        		var jobMasterId = jObject.jobMasterId;
+	        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+	        			if(responseObject.documentUploaded){
+	        				var uploadDocument = new  UploadStudentDocument();
+							uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+								showJobAttachment(jArray,'divDownloadAttachmentArea'+internshipId,false);
+								$('#trDownloadAttachmentArea'+internshipId).show();
+								initUploadCVForPlacement(internshipId,jObject.id);
+								$('#trUploadStudentAttachmentArea'+internshipId).show();
+							});
+	        			} else {
+	        				$('#trDownloadAttachmentArea'+internshipId).hide();
+	        				$('#trUploadStudentAttachmentArea'+internshipId).hide();
+	        			}
+	        		});
+	        	}
+	        	
+	        },
+	        error:function(){
+	        	alert("error in makeSpecialRequest");
+	       }
+		});
+	}
+	else if(type==4){
+		$.ajax({
+	        url:'makeSpecialRequestforWalkIn.json?walkInId='+internshipId+'&specialRequestResoan='+specialRequestResoan,
+	        //data:"walkInId="+internshipId+"&specialRequestResoan="+specialRequestResoan,
+	        dataType:'json',
+	        async:false,
+	        beforeSend: function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+	        success:function(flag){
+	        	
+	        	$('#trSpecialRequest'+internshipId).hide();
+	        	$('#btnSpecialRequest'+internshipId).hide();
+	        	$('#btnRegister'+internshipId).hide();
+	        	$('.trPreference').hide();
+	        	
+	        	var boiler='';
+	        	//if(flag==1)
+	        	//{
+	        		boiler+= '<br><br><div align="center" class="alert alert-success"><strong>Your request has been successfully send</strong></div>';
+	        	//}
+	        	//else
+	        	//{
+	        	//	boiler+= '<br><br><div align="center" class="alert alert-error"><strong>You have already registered for this company</strong></div>';
+	        	$('#tddisplayMsg'+internshipId).append(boiler);
+	        	
+	        	askStudPreferences(4,internshipId);
+	        	
+	        	if(jObject.jobMasterId != undefined){
+	        		var jobMasterId = jObject.jobMasterId;
+	        		checkForCVTemplateUpload(jobMasterId,function(responseObject){
+	        			if(responseObject.documentUploaded){
+	        				var uploadDocument = new  UploadStudentDocument();
+							uploadDocument.getDocument(responseObject.documentCategoryId,function(jArray){
+								showJobAttachment(jArray,'divDownloadAttachmentArea'+internshipId,false);
+								$('#trDownloadAttachmentArea'+internshipId).show();
+								initUploadCVForPlacement(internshipId,jObject.id);
+								$('#trUploadStudentAttachmentArea'+internshipId).show();
+							});
+	        			} else {
+	        				$('#trDownloadAttachmentArea'+internshipId).hide();
+	        				$('#trUploadStudentAttachmentArea'+internshipId).hide();
+	        			}
+	        		});
+	        	}
+	        },
+	        error:function(){
+	        	alert("error in makeSpecialRequest");
+	       }
+		});
+	}
+	
+}
+
+function askStudPreferences(jobTypeId, placTraiProjWalkId){
+	
+	jobType=jobTypeId;
+	
+	$.ajax({
+        url:'getPreferencesOfJobIfAny.json',
+        data:"jobType="+jobType+"&placTraiProjWalkId="+placTraiProjWalkId,
+        dataType:'text',
+        async:false,
+        beforeSend: function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+        success:function(text){
+        	if(text==""){
+        	}
+        	else{
+	        	var boilerLocation="";
+	        	var locations = text.split(',');
+	        	
+	        	$('#askPreferncesListDiv2').modal('show');
+	        	
+	        	for(var i=0; i<locations.length; i++){
+	        		boilerLocation += '<option value="'+locations[i]+'">'+locations[i]+'</option>';
+	        	}
+	        	$('#selectlist').html(boilerLocation);
+	        	
+	        	var tempBoiler='<input type="button" class="btn btn-inverse btn-mini  " onclick="savePreferences('+jobTypeId+','+placTraiProjWalkId+')" value="Save" />';
+	        	$('#divFooterSavePrefBtn').html(tempBoiler);
+        	}
+        },
+        error:function(){
+        	alert("error in fetching job preferences");
+       }
+	});
+}
+
+function savePreferences(jobTypeId, placTraiProjWalkId){
+
+	var cmb1values = document.getElementById("selectlist");
+	var cmb1length = cmb1values.length;
+	
+	var cmb2values = document.getElementById("selectedFieldList1");
+	var cmb2length = cmb2values.length;
+	
+	if(cmb1length!=cmb2length){
+		jAlert("Please select all locations");
+	}
+	else{
+		var locationString = "";
+		for(var i = 0;i<cmb2length;i++)
+		{
+			locationString += cmb2values.options[i].text;
+			if(i != (cmb2length-1))
+			{
+				locationString += ",";
+			}
+		}
+		
+		$.ajax({
+	        url:'saveStudLoactionPreference.json',
+	        data:"locationString="+locationString+"&jobType="+jobTypeId+"&placTraiProjWalkId="+placTraiProjWalkId,
+	        dataType:'text',
+	        async:false,
+	        beforeSend: function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+	        success:function(text){
+	        	jAlert("Your preferences have been saved successfully");
+	        	$('#askPreferncesListDiv2').modal('hide');
+	        },
+	        error:function(){
+	        	alert("error in saving preferences");
+	       }
+		});
+	}
+}
+
+
+function getPreferenceLocationNameList(placemenProjTrainWalktId,type)
+{
+	$.ajax({
+		url : 'getPreferenceLocationNameList.json?placemenProjTrainWalktId='+placemenProjTrainWalktId+'&type='+type,
+		dataType : 'json',
+		type : 'GET',
+		async : false,
+		success : function(jArray)
+		{
+			if(jArray[0].length > 0)
+			{
+				gNoOfAllowedPreference = jArray[0][0]["noOfAllowedPreference"];
+				var boiler = '<table class="table table-bordered">'+
+							 '<tr><td colspan="2">Location Preferences</td></tr>'+
+							 '<tr><td>No of Allowed Preferences</td><td>'+gNoOfAllowedPreference+'</td></tr>';
+				for(var i=0;i<jArray[0].length;i++)
+					boiler += '<tr><td><input type="checkbox" class="locationNameClass" value="'+jArray[0][i]["placementLocationPreferenceId"]+'" id="location_'+jArray[0][i]["placementLocationPreferenceId"]+'"></td>'+
+							  '<td>'+jArray[0][i]["locationPreferenceName"]+'</td></tr>';
+					boiler +='</table>';
+							
+				$("#showPreferenceList").html(boiler);
+				
+				if(jArray[1].length >0)
+				{
+					for(var i=0;i<jArray[1].length;i++)
+						$('#location_'+jArray[1][i]["placementLocationPreferenceId"]).attr('checked',true);
+						$('.locationNameClass').attr('disabled',true);
+						$('.trPreference').show();
+				}
+			}
+		},
+		error : function() {
+			jAlert("Error in Getting CPC List..", "Error");
+		}
+	});
+}¡«]|³      iÕÂ0iÕÂ0I\†ŽiÚe   l    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/studentMPW/placementJs/projectPlacement.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"85976-1770966820000"
+Last-Modified: Fri, 13 Feb 2026 07:13:40 GMT
+Content-Type: text/javascript
+Content-Length: 85976
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"85976-1770966820000"
+Last-Modified: Fri, 13 Feb 2026 07:13:40 GMT
+Content-Type: text/javascript
+Content-Length: 85976
+Keep-Alive: timeout=5, max=96
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 160 net-response-time-onstop 178  OØ

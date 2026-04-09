@@ -1,0 +1,1081 @@
+var searchKeyword = new Array();
+var globalArray = new Array();
+var globalMyArrArray = new Array();
+var countAnnouncement=0;
+
+
+$('document').ready(function(){
+	$('#replayToStudentMessageModal').modal({
+		keyboard:false,
+		show:false
+	}).css({
+		width:'700px',
+		'margin-left':function(){
+			return -($(this).width()/2);
+		},
+	});
+
+	$('#annScroll').slimScroll({
+		position: 'right',
+		height: '500px',
+		wheelStep: 2
+	});
+});
+function typeAhead(){
+	$('document').ready(function(){
+		$('#searchBox').typeahead({
+			source:searchKeyword
+		});
+	});
+}
+//getUnreadMessageAndAnnouncementForStudent();
+function viewAnnouncement(divId){
+	getUnreadAnnouncement();
+	getUnreadStudentMessage();
+	$("#viewAnnouncementAll").html('');
+	$("#viewAnnouncement").html('');
+	var hdnUserRole = $('#hdnUserRole').val();	
+	var boiler='<div>'+
+	'<br><div id="autoComplete"></div><div id="announcementList">'+
+	'</div><div id="paging"></div>';
+	$("#"+divId).html(boiler);
+	var url = 'getStudentAnnouncement.json';
+		if(hdnUserRole == "student" || hdnUserRole == "Student"){
+			url = 'stu_getStudentAnnouncement.json';
+	}
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend:function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			if(jArray.length>0){
+				globalArray = jArray;
+
+				var searchBoiler='<table class="table table-bordered">' +
+				'<tr>'+
+				'<td>'+
+				'<span id="searchDiv">'+
+				'&nbsp;&nbsp;<input type="text" id="searchBox" placeholder="Search By Keyword" data-provide="typeahead"/>'+
+				'</span>'+
+				'&nbsp;&nbsp;<a class="btn" style="vertical-align: top;" onclick="showAnnouncement(\'search\', 0);">Search</a><span id="cartBtn" class="pull-right"></span>'+
+				'&nbsp;&nbsp;<a class="btn" style="vertical-align: top;" onclick="showAnnouncement(\'no\', 0); ">Clear</a><span id="cartBtn" class="pull-right"></span>'+
+				'</td>'+
+				'</tr>'+
+				'</table>';
+				$("#autoComplete").html(searchBoiler);
+
+				var myArr = new Array();
+				for(var j=0;j<globalArray.length;j++)
+				{
+					myArr.push(decodeURIComponent(globalArray[j]["heading"]));
+				}
+
+				$.each(myArr, function(i, el){
+					if($.inArray(el, searchKeyword) === -1) searchKeyword.push(el);
+				});
+
+				typeAhead();
+				/*	$("#searchBox").keyup(function(e) {
+							showAnnouncement('search', 0);
+						});
+						$("#searchBox").click(function(e) {
+							showAnnouncement('search', 0);
+						});*/
+
+				showAnnouncement('no', 0);
+			}
+			else{
+				$('#announcementList').html('<div class = "alert alert-info">No announcements</div>');
+
+			}
+		},
+		error:function(){
+
+		}
+	});
+
+
+}
+
+function searchAnnouncement(divId,filterFlag){
+
+	var SearchWord=$("#txtSearchWord").val();
+	viewAnnouncementNew(divId,SearchWord,filterFlag,'');
+}
+
+
+function viewAnnouncementNew(divId,searchKeyword,filterFlag,flag){
+	//alert(flag);
+	
+	const params = new URLSearchParams(window.location.search);
+	const studentIdEncode = params.get("StudentId");	
+	const studentId = atob(studentIdEncode);		
+	$("#divalumpost").hide();
+	$("#"+divId).show();
+	$('#announcementDetails').html('');
+	getUnreadAnnouncement();
+	getUnreadStudentMessage();
+	var hdnUserRole = $('#hdnUserRole').val();
+    var url = 'getStudentAnnouncement.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+        url = 'stu_getStudentAnnouncement.json';
+    } else if (hdnUserRole == "parentadmin") {
+		url = 'par_getStudentAnnouncementFromParentSide.json?StudentId='+studentId;
+
+    }
+	
+	$.ajax({
+		url:url,
+		dataType:'json',
+		data:{SearchWord:searchKeyword,filterFlag:filterFlag},
+		async:false,
+		beforeSend:function() {
+			$("#"+divId).html('<div id="divPostLoading" style="text-align: center;width: 100%;"><i class="fa fa-spinner fa-pulse fa-fw fa-4x" style="color:#0b4971"></i></div>');
+			
+		},
+		complete: function() {
+
+		},
+		success:function(jArray){
+
+			var boilerNew='';
+			var annBody = '';
+			var allchecked = '';
+			var unreadchecked = '';
+			var todaysDate = new Date();
+			var cnt = jArray.length;
+			$("#announcementCount").text(cnt);
+			$("#countAnnouncement").text(cnt);
+			if(filterFlag=='unread')unreadchecked='checked';else allchecked='checked';
+			
+			if(flag == '')
+			{
+			boilerNew='<div class="row-fluid" style="margin-left:5px;">'+
+			'<div class="span4">'+
+			'<div class="switch-toggle well">'+
+			'<input id="Unread" name="view" '+unreadchecked+' type="radio"><label for="Unread" onclick="viewAnnouncementNew(\''+divId+'\',\''+searchKeyword+'\',\'unread\',\'\')">Unread</label>'+
+			'<input id="All" name="view" '+allchecked+' type="radio"><label for="All" onclick="viewAnnouncementNew(\''+divId+'\',\''+searchKeyword+'\',\'all\',\'\')">All</label><a class="btn btn-success"></a></div></div>'+
+
+			'<div class="span2">'+'<p style="margin-bottom:10px;font-size:13px;text-align:left;">Showing '+cnt+' results</p></div>'+
+
+			'<div class="span6" style="text-align:right;margin-top:-5px;">'+
+			'<input type=text id="txtSearchWord" value="'+searchKeyword+'" placeholder="Search Announcement" style="margin:5px;border-radius:5px;">'+
+			'<input type="button" class="btn btn-primary" value="Search" onclick="searchAnnouncement(\''+divId+'\',\''+filterFlag+'\')"></div>'+
+			//'</div>'+
+			'</div>';
+			}
+			//--------new---------
+			if(jArray.length>0){				
+				boilerNew+='<div id="announcementContainer"><section><div class="container" style="width:98%;">';
+				for(var j=0;j<jArray.length;j++)
+				{
+					if(jArray[j]["readStatus"]==false)
+					{
+						var createdDate =new Date(jArray[j]["createdDate"]);
+						if(todaysDate.getFullYear() == createdDate.getFullYear() && todaysDate.getMonth() == createdDate.getMonth()  && todaysDate.getDate() == createdDate.getDate() )
+						{
+							boilerNew+= '<div class="collapse-card" style="background-color:#dfeffc;" id="div'+jArray[j]["announcementId"]+'" >';
+						}
+						else
+						{
+							boilerNew+= '<div class="collapse-card" style="background-color:#F3F3F3;" id="div'+jArray[j]["announcementId"]+'" >';
+						}
+					}
+					else
+					{
+						boilerNew+= '<div class="collapse-card" id="div'+jArray[j]["announcementId"]+'" >';
+					}
+
+					boilerNew+= '<div class="title"  onclick="viewAnnouncementDetailNew(\''+jArray[j]["announcementId"]+'\')">';
+					boilerNew+= '<img src="getEmployeeProfileImageById.json?id='+jArray[j]["employeeId"]+'" style="border-radius:20px;float:left;border:0.5px solid lightgray;" height=40>';
+					boilerNew+= '<span>On '+jArray[j]["createdDate"]+' by <b>'+jArray[j]["employeeName"]+'</b></span>';
+					try{
+						boilerNew+= '<strong>'+decodeURIComponent(jArray[j]["heading"])+'</strong>';
+					}catch(e){
+						boilerNew+= '<strong>'+jArray[j]["heading"]+'</strong>';
+					}
+					boilerNew+= '</div>';
+					boilerNew+= '<div class="body"><div id="announcementBody-'+jArray[j]["announcementId"]+'"><div style="width:100%; text-align:center;"><img src="img/ajax.gif"></div></div>';
+
+					boilerNew+= '<h1 style="font-size: 18px; padding-bottom: 10px; margin-bottom: 10px; line-height: 22px; border-bottom: 1px solid #E5E5E5;"></h1>';
+					boilerNew+= '<div class="footer" style="float:right;margin-bottom:10px;">';
+					boilerNew+= '<a title="Move to Trash" onclick="removeStudentAnnouncement(\''+jArray[j]["announcementId"]+'\',\'div\',\''+jArray[j]["isPermanent"]+'\'),setReadAnnouncement(\''+jArray[j]["announcementId"]+'\')"><img src="img/trash.png"></a>';
+					boilerNew+= '</div><br></div></div>';
+				}
+				boilerNew+='</div></section></div>';
+			}
+			else
+			{
+				boilerNew+='<h4 style="text-align:center;font-size:14px;padding:5px;">No new Announcements</h4>';
+			}
+			$("#"+divId).html(boilerNew);
+			$('.collapse-card .title').paperCollapse({});
+			$('#announcementContainer').slimScroll({
+				position: 'right',
+				height: '450px',
+				width: '100%',
+				scrollBy: '10px',
+				railVisible: true,
+				wheelStep: 6,
+				alwaysVisible: true
+			});
+			//-------------end--------
+
+			/*for(var j=0;j<jArray.length;j++)
+				{
+
+				annBody = $('#body1').html(jArray[j]["announcementBody"] ).text();
+
+				if(jArray[j]["status"]==false){
+					boilerNew+= '<div style="background-color: #DDDDE5; padding: 5px; font-size: 11px; border: 1px solid #D5D5D5; border-radius: 2px; margin-bottom: 10px;" id="div'+jArray[j]["studentAnnouncmentId"]+'" >'+
+					'<div style="" onclick="viewAnnouncementDetailNew(\''+jArray[j]["announcementId"]+'\'), setReadAnnouncement(\''+jArray[j]["announcementId"]+'\')" style="cursor: pointer;">';
+					boilerNew+= '&nbsp;&nbsp;&nbsp;<span class="pull-right" id="new'+jArray[j]["announcementId"]+'"><img src="images/Icon_new.png"></span>'+
+						'<p style="padding-bottom: 5px; border-bottom: 1px solid #F0F0F0; margin-bottom: 5px;" id="subject'+j+'"><strong>';
+						//' '+decodeURIComponent(jArray[j]["heading"])+' '+
+						try{
+							boilerNew+= decodeURIComponent(jArray[j]["heading"]);
+						}catch(e){
+							boilerNew+= jArray[j]["heading"];
+						}
+						boilerNew+='</strong></p>';
+				}
+				else{
+					boilerNew+= '<div style="background-color: #FFF; padding: 5px; font-size: 11px; border: 1px solid #D5D5D5; border-radius: 2px; margin-bottom: 10px;" id="div'+jArray[j]["studentAnnouncmentId"]+'" >'+
+					'<div style="" onclick="viewAnnouncementDetailNew(\''+jArray[j]["announcementId"]+'\'), setReadAnnouncement(\''+jArray[j]["announcementId"]+'\')" style="cursor: pointer;">';
+					//boilerNew+= '&nbsp;&nbsp;&nbsp;<span class="label label-info" id="new'+jArray[j]["announcementId"]+'">New</span>';
+					boilerNew+= '<p style="padding-bottom: 5px; border-bottom: 1px solid #F0F0F0; margin-bottom: 5px;" id="subject'+j+'"><strong>';
+					//' '+decodeURIComponent(jArray[j]["heading"])+' '+
+					try{
+						boilerNew+= decodeURIComponent(jArray[j]["heading"]);
+					}catch(e){
+						boilerNew+= jArray[j]["heading"];
+					}
+					boilerNew+=' </strong></p>';
+
+				}
+				//boilerNew+= '<p style="color: #A0A0A0; padding-bottom: 5px; border-bottom: 1px solid #F0F0F0; margin-bottom: 5px;">'+annBody+'</p>'+
+				boilerNew+= '<p style="color: #555; padding-bottom: 5px; border-bottom: 1px solid #F0F0F0; margin-bottom: 5px;">On '+jArray[j]["createdDate"]+' by '+jArray[j]["employeeName"]+'</p>'+
+				'</div>'+
+				'<p><a style="color: #1D719F;" onclick="setReadAnnouncement(\''+jArray[j]["announcementId"]+'\')"><span class="icon-envelope"></span> Mark read</a> '+
+				'<a style="color: #AF0000;" onclick="removeStudentAnnouncement(\''+jArray[j]["announcementId"]+'\',\'div\',\''+jArray[j]["isPermanent"]+'\'),setReadAnnouncement(\''+jArray[j]["announcementId"]+'\')"><span class="icon-trash"></span> Move to trash</a></p>'+
+				'</div>';
+			}
+			//alert(boiler);
+			$("#listAnn").html(boilerNew);*/
+		},
+		error:function(){
+			return;
+		}
+	});
+
+
+}
+
+
+function viewAnnouncementDetailNew(announcementId){
+	if(!$('#announcementBody-'+announcementId).hasClass("loaded")){
+		setReadAnnouncement(announcementId);
+		//alert(!$('#announcementBody-'+announcementId).hasClass("loaded"));
+		$('#member'+announcementId).html('').hide();
+		if(announId != announcementId)
+			aCount=0;
+
+		if(aCount == 0){
+			aCount++;
+			announId=announcementId;
+
+			viewDetailsOfAnnouncementNew(announcementId,function(announcementArray){
+				var isCreator = false;
+				//alert('announcementArray: '+announcementArray.length);
+				if(announcementArray.length > 0){
+					var annoucementObj = announcementArray[0];
+
+					if(annoucementObj.createdByEmployeeId == annoucementObj.viewerEmployeeId){
+						isCreator = true;
+					}
+
+					var boiler = '';
+					getDocumentCategoryByAnnoucementId(announcementId,function(categoryId){
+						var uploaddocument = new UploadDocument();
+						if(categoryId != 'null' && categoryId != undefined){
+							uploaddocument.getDocument(categoryId,function(jArray){
+								if(jArray.length > 0){
+									showAnnouncementAttachment(jArray,'announcementAttachment-'+announcementId,isCreator);
+								} else {
+									boiler = '<div class = "alert alert-info">No attachments</div>';
+									$('#announcementAttachment-'+announcementId).html(boiler);
+								}
+							});
+						} else {
+							boiler = '<div class = "alert alert-info">No attachments</div>';
+							$('#announcementAttachment-'+announcementId).html(boiler);
+						}
+					});
+				}
+
+			});
+
+		}
+	}
+}
+
+
+function viewDetailsOfAnnouncementNew(announcementId,callback){
+	//alert("gfdfg"+announcementId);
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getAnnouncementByAnnouncementId.json?announcementId='+announcementId;
+			if(hdnUserRole == "student" || hdnUserRole == "Student"){
+				url = 'stu_getAnnouncementByAnnouncementId.json?announcementId='+announcementId;
+		}
+		$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			/*startCommonAjaxSpinner();
+*/
+		},
+		complete: function() {
+			/*stopCommonAjaxSpinner();*/
+		},
+		success:function(jArray){
+			var accordianBoiler='';
+			//alert(+jArray[0]["heading"]);
+			body='';
+			for(var i=0;i<jArray.length;i++)
+			{
+
+				body=jArray[i]["announcementBody"];
+				accordianBoiler+= '<div style="background-color: #FFF; border: 1px solid #D5D5D5; border-radius: 2px; padding: 20px; height: auto; overflow-y: auto; ">';
+
+					accordianBoiler += '<div style="padding-bottom: 20px; border-bottom: 1px solid #E5E5E5; margin-bottom: 20px;">';
+				//''+decodeURIComponent(jArray[i]["announcementBody"])+''+
+				try{
+					accordianBoiler+= decodeURIComponent(jArray[i]["announcementBody"]);
+				}catch(e){
+					accordianBoiler+= jArray[i]["announcementBody"];
+				}
+				accordianBoiler+='</div>';
+				if(jArray[i]["hasPoll"]=='true'|| jArray[i]["hasPoll"]==true){
+					if(jArray[i]["hasCustomOption"]=="true" || jArray[i]["hasCustomOption"]==true){
+						accordianBoiler +='<strong style="font-size:10pt"> Cast your Vote:</strong>'+
+						'<div class = "well" align="left"><strong style="font-size:10pt">'+jArray[i]["pollQuestion"]+'</strong>'+
+						'<ul style="list-style-type: none;">';
+						var customOptionJArray = jArray[i]["customOptionJArray"];											
+						for(var j=0;j<customOptionJArray.length;j++)
+							accordianBoiler +='<li><input id="rd_'+customOptionJArray[j]["OptionId"]+'_'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="'+customOptionJArray[j]["OptionId"]+'">'+customOptionJArray[j]["OptionName"]+'</li>';
+
+						accordianBoiler += '<li>&nbsp;</li>'+
+						'<li><input type="button" class="btn btn-inverse btn-mini" id="btnVote" value="Vote" onClick="voteForAnnouncementPollStudent(\'Custom\','+announcementId+')"/></li>'+
+						'</ul>'+
+						'<div id="voteAlertMsg'+announcementId+'"></div>'+
+						'</div>';
+					}else if(jArray[i]["hasCustomOption"]==undefined || jArray[i]["hasCustomOption"]=="false" || jArray[i]["hasCustomOption"]==false){
+						accordianBoiler +='<strong style="font-size:10pt"> Cast your Vote:</strong>'+
+						'<div class = "well" align="left"><strong style="font-size:10pt">'+jArray[i]["pollQuestion"]+'</strong>'+
+						'<ul style="list-style-type: none;">'+
+						'<li><input id="rd_yes'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="yes">Yes</li>'+
+						'<li><input id="rd_no'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="no">No</li>'+
+						'<li><input id="rd_maybe'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="maybe">Maybe</li>'+
+						'<li><input id="rd_remindmelater'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="remindmelater">Remind me later</li>'+
+						'<li style="display:none"><input id="rd_ignore'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="ignore" >Ignore</li>'+
+						'<li>&nbsp;</li>'+
+						'<li><input type="button" class="btn btn-inverse btn-mini" id="btnVote" value="Vote" onClick="voteForAnnouncementPollStudent(\'Default\','+announcementId+')"/></li>'+
+						'</ul>'+
+						'<div id="voteAlertMsg'+announcementId+'"></div>'+
+						'</div>';
+					}
+				}
+				accordianBoiler +='<p style="padding-bottom: 20px; font-size: 11px; margin-bottom: 10px; border-bottom: 1px solid #E5E5E5;"id="announcementAttachment-'+announcementId+'"><img src="img/loading-small.gif"><a style="color: #1D719F;"></a> </p>'+				
+				/*'<p style="padding-bottom: 10px; font-size: 11px;">'+
+				'<a style="color: #AF0000;" onclick="removeAnnouncement(\''+jArray[i]["studentAnnouncmentId"]+'\',\'announcementDetails\',\''+jArray[i]["isPermanent"]+'\'),setReadAnnouncement(\''+jArray[i]["announcementId"]+'\')"><span class="icon-trash"></span> Move to trash</a>'+
+				'<span style="float: right;">'+
+					'<a style="color: #1D719F;" onclick="forwardAnnouncement(\''+jArray[i]["announcementId"]+'\',\''+jArray[i]["heading"]+'\')">Forward <span class="icon-chevron-right"></span></a>'+
+				'</span>'+
+				'</p>'+*/
+
+				'</div>';
+			}
+			//alert(boiler);
+			$("#announcementBody-"+announcementId).html(accordianBoiler);
+			$("#announcementBody-"+announcementId).addClass("loaded");
+			
+			//$("#announcementDetails").html(accordianBoiler);
+
+
+			$("input:radio[name=pollAnswer"+jArray[0]["employeeAnnouncementDetailId"]+"][value=" + jArray[0]["PollAnswer"] + "]").attr('checked', 'checked');
+			callback(jArray);	
+		},
+		error:function(){
+			return;
+		}
+	});
+
+	//getUnreadMessageAndAnnouncementForStudent();
+}
+
+
+function removeAnnouncement(employeeAnnouncementDetailId,div,isPermanent) 
+{
+	if(isPermanent!="PERMANENT")
+	{
+		$.ajax({
+			url:'removeAnnouncement.json?employeeAnnouncementDetailId='+employeeAnnouncementDetailId,
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray)
+			{
+				$('#div'+employeeAnnouncementDetailId).fadeOut(1200);
+				$('#announcementDetails').html('');
+			},
+			error:function(){
+
+			}
+		});
+	}
+	else
+		jAlert("The sender has not allow you to delete this announcement..","Warning");
+}
+
+
+
+
+function showAnnouncement(isHistory,index){
+	aCount=0;
+	var boiler = '';
+	var flag = true;
+	if(isHistory!='search')
+	{
+		$("#searchBox").val("");
+		globalMyArrArray = globalArray;
+	}
+	else
+	{
+		var keyword = $("#searchBox").val();//.toUpperCase();
+		var myArr = new Array();
+		flag = false;
+		for(var j=0;j<globalArray.length;j++)
+		{
+			if(keyword!="")
+			{
+				if(keyword==globalArray[j]["heading"])
+				{
+					myArr.push(globalArray[j]);
+					flag = true;
+				}
+			}
+		}
+		globalMyArrArray = myArr;
+		if(keyword=="")
+			$("#announcementList").html('<br/><div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">√ó</button><strong>Sorry !</strong> Please enter some keyword.</div>');
+		else if(flag==false)
+			$("#announcementList").html('<br/><div class="alert alert-error"><button type="button" class="close" data-dismiss="alert">√ó</button><strong>Sorry !</strong> No Result found.</div>');
+	}
+	if(flag==true)
+	{
+		var j = '';
+		if((globalMyArrArray.length-index)<10)
+			j = globalMyArrArray.length;
+		else
+			j = index+10;
+		for(var i=index;i<j;i++)
+		{
+			if(i==globalMyArrArray.length)
+			{
+				break;
+			}
+
+
+			if(globalArray[i]["readStatus"]==false){
+				boiler+=
+					'<h3 id="h3'+globalMyArrArray[i]["announcementId"]+'">'+
+					//'<a href="#" id ="a'+jArray[i]["documentId"]+'"  onclick="displayDocumentDetail(\''+jArray[i]["documentId"]+'\')">'+
+					'<a href="#" id ="a'+globalMyArrArray[i]["announcementId"]+'" onclick="viewAnnouncementDetail(\''+globalMyArrArray[i]["announcementId"]+'\'),setReadAnnouncement(\''+globalMyArrArray[i]["announcementId"]+'\')">';
+				try{
+					boiler+=''+decodeURIComponent(globalMyArrArray[i]["heading"])+'';
+				}
+				catch(e){
+					boiler+=''+globalMyArrArray[i]["heading"]+'';
+				}
+				boiler+=' Created on '+globalMyArrArray[i]["createdDate"]+' (Created By:-'+globalMyArrArray[i]["employeeName"]+')&nbsp;&nbsp;&nbsp;<span class="label label-info" id="new_'+globalMyArrArray[i]["announcementId"]+'">New</span>'+
+				'</a></h3>'+
+				'<div id="div'+globalMyArrArray[i]["announcementId"]+'" align="center"></div>';
+
+			}
+			else{
+				boiler+=
+					'<h3 id="h3'+globalMyArrArray[i]["announcementId"]+'">'+
+					//'<a href="#" id ="a'+jArray[i]["documentId"]+'"  onclick="displayDocumentDetail(\''+jArray[i]["documentId"]+'\')">'+
+					'<a href="#" id ="a'+globalMyArrArray[i]["announcementId"]+'" onclick="viewAnnouncementDetail(\''+globalMyArrArray[i]["announcementId"]+'\')">';
+				//''+decodeURIComponent(globalMyArrArray[i]["heading"])+''+
+				try{
+					boiler+=''+decodeURIComponent(globalMyArrArray[i]["heading"])+'';
+				}
+				catch(e){
+					boiler+=''+globalMyArrArray[i]["heading"]+'';
+				}
+				boiler+=' Created on '+globalMyArrArray[i]["createdDate"]+' (Created By:-'+globalMyArrArray[i]["employeeName"]+')'+
+				'</a></h3>'+
+				'<div id="div'+globalMyArrArray[i]["announcementId"]+'" align="center"></div>';
+				/*boiler+='<div id="accordian"class="accordion-group">'+
+							'<div class="accordion-heading">'+
+
+							'<a class="accordion-toggle" data-toggle="collapse" data-parent="#viewAnnouncement" href="#collapse'+i+'"onclick="viewAnnouncementDetail(\''+globalArray[i]["announcementId"]+'\')">'+globalArray[i]["heading"]+' Created on '+globalArray[i]["createdDate"]+' (Created By:-'+globalArray[i]["employeeName"]+')'+
+							'</a>'+
+							'</div>'+
+							'<div id="collapse'+i+'" class="accordion-body collapse">'+
+								'<div class="accordion-inner">'+
+								'<div id="div'+globalArray[i]["announcementId"]+'" class="mini-layout fluid"  style="height:450px"></div>'+	
+								'</div>'+
+							'</div>'+
+						'</div>';*/
+			}
+			$("#announcementList").html(boiler);
+			$('#announcementList').accordion('destroy');
+			$('#announcementList').accordion({ header: "h3",
+				autoHeight: false, collapsible: true, active:false
+
+			});
+
+			if(globalMyArrArray.length>10)
+			{
+				var totPages=(globalMyArrArray.length/10)+1;
+				if(globalMyArrArray.length%10==0)
+					totPages--;
+				var pagerBoiler='<div class="pagination"><ul><li id="pagePrev"><a id="prevLink" onclick="showAnnouncement(\''+isHistory+'\', '+(index-10)+')"><<</a></li>';
+				for(var j=1;j<=totPages;j++)
+					pagerBoiler+='<li id="page'+j+'"><a href="#" onclick="showAnnouncement(\''+isHistory+'\', '+((j*10)-10)+')">'+j+'</a></li>';
+				pagerBoiler+='<li id="pageNext"><a id="nextLink" onclick="showAnnouncement(\''+isHistory+'\', '+(index+10)+')">>></a></li></ul></div>';
+				$("#paging").html(pagerBoiler);
+			}
+			if(index==0)
+			{
+				$('#prevLink').attr('onclick','').unbind('click');
+				$('#pagePrev').addClass('disabled');
+			}
+			if((globalMyArrArray.length-index)<10)
+			{
+				$('#nextLink').attr('onclick','').unbind('click');
+				$('#pageNext').addClass('disabled');
+			}
+			var temp=(index+10)/10;
+			$('#page'+temp).addClass('active');
+		}
+	}
+}
+function viewDetailsOfAnnouncement(announcementId,callback){
+	var accordianBoiler='';
+	var hdnUserRole = $('#hdnUserRole').val();
+		var url = 'getAnnouncementByAnnouncementId.json?announcementId='+announcementId;
+				if(hdnUserRole == "student" || hdnUserRole == "Student"){
+					url = 'stu_getAnnouncementByAnnouncementId.json?announcementId='+announcementId;
+			}
+		
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+
+			//alert(jArray.length);
+			$('#div'+announcementId).html('');
+			for(var i=0;i<jArray.length;i++){
+				//style="margin-left:20%;margin-right:20%;width:60%;"
+				accordianBoiler +=	'<div class="well">'+
+				'<h3 style="background-color:#1EA6D7">';
+				try{
+					accordianBoiler +=''+decodeURIComponent(jArray[i]["heading"])+'';
+				}
+				catch(e){
+					accordianBoiler +=''+jArray[i]["heading"]+'';
+				}
+				accordianBoiler +='</h3><br>'+
+				'<span style="float:left;font-size:10pt"><strong>Created By:</strong>'+jArray[i]["employeeName"]+'</span>'+
+				'<span style="float:right;font-size:10pt"><strong>Date:</strong>'+jArray[i]["createdDate"]+'</span><br><br>';
+				if(jArray[i]["isForwarded"]){
+					accordianBoiler+='<span style="float:left;font-size:10pt"><strong>Created By :</strong> '+jArray[i]["ForwardedByEmployeeName"]+'</span>'+
+					'<span style="float:right;font-size:10pt"><strong>Date : </strong>'+jArray[i]["forwardedDate"]+'</span><br><br>';
+				}
+				accordianBoiler+='<div class = "well" align="left"><span style="font-size:10pt">';
+				//''+jArray[i]["announcementBody"]+''+
+				try{
+					accordianBoiler +=''+decodeURIComponent(jArray[i]["announcementBody"])+'';
+				}
+				catch(e){
+					accordianBoiler +=''+jArray[i]["announcementBody"]+'';
+				}
+				accordianBoiler +='</span></div>';
+				if(jArray[i]["hasPoll"]=='true'|| jArray[i]["hasPoll"]==true){
+					if(jArray[i]["hasCustomOption"]=="true" || jArray[i]["hasCustomOption"]==true){
+						accordianBoiler +='<strong style="font-size:10pt"> Cast your Vote:</strong>'+
+						'<div class = "well" align="left"><strong style="font-size:10pt">'+jArray[i]["pollQuestion"]+'</strong>'+
+						'<ul style="list-style-type: none;">';
+						var customOptionJArray = jArray[i]["customOptionJArray"];											
+						for(var j=0;j<customOptionJArray.length;j++)
+							accordianBoiler +='<li><input id="rd_'+customOptionJArray[j]["OptionId"]+'_'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="'+customOptionJArray[j]["OptionId"]+'">'+customOptionJArray[j]["OptionName"]+'</li>';
+
+						accordianBoiler += '<li>&nbsp;</li>'+
+						'<li><input type="button" class="btn btn-inverse btn-mini" id="btnVote" value="Vote" onClick="voteForAnnouncementPollStudent(\'Custom\','+announcementId+')"/></li>'+
+						'</ul>'+
+						'<div id="voteAlertMsg'+announcementId+'"></div>'+
+						'</div>';
+					}else if(jArray[i]["hasCustomOption"]==undefined || jArray[i]["hasCustomOption"]=="false" || jArray[i]["hasCustomOption"]==false){
+						accordianBoiler +='<strong style="font-size:10pt"> Cast your Vote:</strong>'+
+						'<div class = "well" align="left"><strong style="font-size:10pt">'+jArray[i]["pollQuestion"]+'</strong>'+
+						'<ul style="list-style-type: none;">'+
+						'<li><input id="rd_yes'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="yes">Yes</li>'+
+						'<li><input id="rd_no'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="no">No</li>'+
+						'<li><input id="rd_maybe'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="maybe">Maybe</li>'+
+						'<li><input id="rd_remindmelater'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="remindmelater">Remind me later</li>'+
+						'<li><input id="rd_ignore'+announcementId+'" type="radio" name="pollAnswer'+announcementId+'" value="ignore">Ignore</li>'+
+						'<li>&nbsp;</li>'+
+						'<li><input type="button" class="btn btn-inverse btn-mini" id="btnVote" value="Vote" onClick="voteForAnnouncementPollStudent(\'Default\','+announcementId+')"/></li>'+
+						'</ul>'+
+						'<div id="voteAlertMsg'+announcementId+'"></div>'+
+						'</div>';
+					}
+				}
+				accordianBoiler +='<strong style="font-size:10pt"> Attachments:</strong>'+
+				'<div class = "well" id = "announcementAttachment-'+announcementId+'"></div>'+
+				'</div>';
+
+
+			}
+			accordianBoiler +='</table>';
+			$('#div'+announcementId).html(accordianBoiler);
+
+			$("input:radio[name=pollAnswer"+announcementId+"][value=" + jArray[0]["PollAnswer"] + "]").attr('checked', 'checked');
+
+			//$('#announcementAttachment').html('');
+			callback();
+
+		},
+		error:function(){
+		}
+	});
+}
+
+function voteForAnnouncementPollStudent(optionsType,announcementId){
+	if(optionsType=="Default"){
+		var pollAnswer=	$("input:radio[name=pollAnswer"+announcementId+"]:checked").val();
+		var hdnUserRole = $('#hdnUserRole').val();
+				var url = 'voteForAnnouncementPollStudent.json?announcementId='+announcementId+'&pollAnswer='+pollAnswer+'&optionsType='+optionsType;
+				if(hdnUserRole == "student" || hdnUserRole == "Student"){
+					url = 'stu_voteForAnnouncementPollStudent.json?announcementId='+announcementId+'&pollAnswer='+pollAnswer+'&optionsType='+optionsType;
+			}
+		$.ajax({
+			url:url,
+			dataType:'text',
+			async:false,
+			beforeSend:function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(msg){
+				if(msg=="success"){
+				var boiler = '<div class="alert alert-info">Successfully Saved</div>';
+
+				$('#voteAlertMsg'+announcementId).html(boiler);
+				setTimeout("$('#voteAlertMsg"+announcementId+"').html('')",3000);
+				}
+			},
+			error:function(){
+				jAlert("Something went wrong, Please try after some time","Error");
+			}
+		});
+	}
+	else{
+		var pollAnswer=	$("input:radio[name=pollAnswer"+announcementId+"]:checked").val();
+		var hdnUserRole = $('#hdnUserRole').val();
+						var url = 'voteForAnnouncementPollStudent.json?announcementId='+announcementId+'&pollAnswer='+pollAnswer+'&optionsType='+optionsType;
+						if(hdnUserRole == "student" || hdnUserRole == "Student"){
+							url = 'stu_voteForAnnouncementPollStudent.json?announcementId='+announcementId+'&pollAnswer='+pollAnswer+'&optionsType='+optionsType;
+					}
+		$.ajax({
+			url:url,
+			dataType:'text',
+			async:false,
+			beforeSend:function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(msg){
+				if(msg=="success"){
+				var boiler = '<div class="alert alert-info">Successfully Saved</div>';
+				
+				$('#voteAlertMsg'+announcementId).html(boiler);
+				setTimeout("$('#voteAlertMsg"+announcementId+"').html('')",3000);
+				}
+			},
+			error:function(){
+				jAlert("Something went wrong, Please try after some time","Error");
+			}
+		});	
+	}
+}
+
+var announId='';
+var aCount=0;
+function viewAnnouncementDetail(announcementId){
+	if(announId != announcementId){
+		aCount=0;
+	}
+
+	if(aCount == 0){
+		aCount++;
+		announId=announcementId;
+		viewDetailsOfAnnouncement(announcementId,function(){
+			var boiler = '';
+			getDocumentCategoryByAnnoucementId(announcementId,function(categoryId){
+				var uploaddocument = new UploadStudentDocument();
+				if(categoryId != 'null' && categoryId != undefined){
+					uploaddocument.getDocument(categoryId,function(jArray){
+						if(jArray.length > 0){
+							showAnnouncementAttachment(jArray,'announcementAttachment-'+announcementId);
+						} else {
+							boiler = '<div class = "alert alert-info">No attachments</div>';
+							$('#announcementAttachment-'+announcementId+'').html(boiler);
+						}
+					});
+				} else {
+					boiler = '<div class = "alert alert-info">No attachments</div>';
+					$('#announcementAttachment-'+announcementId+'').html(boiler);
+				}
+			});
+		});
+	}
+}
+
+
+function getUnreadAnnouncement(){
+	
+	const params = new URLSearchParams(window.location.search);
+	const studentIdEncode = params.get("StudentId");	
+		const studentId = atob(studentIdEncode);
+//	var instituteCourseId = $('#departmentCmb').val().split("-")[0];
+	var hdnUserRole = $('#hdnUserRole').val();
+		var url = 'getUnreadStudentAnnouncement.json';
+		if(hdnUserRole == "student" || hdnUserRole == "Student"){
+			url = 'stu_getUnreadStudentAnnouncement.json';
+	}else if(hdnUserRole == "parentadmin"){
+		url = 'par_getUnreadStudentAnnouncement.json?StudentId='+studentId;
+
+	}
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+		
+		},
+		complete: function() {
+			
+		},
+		success:function(jArray)
+		{
+			if(jArray.length>0){
+				$("#countAnnouncement").html(jArray[0]["count"]);
+				$("#announcementCount").html(jArray[0]["count"]);
+			}
+			else
+				$("#countAnnouncement").html('0');
+		},
+	});
+}
+
+
+function setReadAnnouncement(announcementId){
+
+	if(!$('#announcementBody-'+announcementId).hasClass("loaded")) {
+		var hdnUserRole = $('#hdnUserRole').val();
+						var url = 'setReadAnnouncement.json?announcementId='+announcementId;
+						if(hdnUserRole == "student" || hdnUserRole == "Student"){
+							url = 'stu_setReadAnnouncement.json?announcementId='+announcementId;
+					}
+		$('#new'+announcementId).hide();
+		if($("#countAnnouncement").text()!=0 || $("#announcementCount").text()!=0)
+		{
+			$.ajax({
+				url:url,
+				dataType:'json',
+				async:false,
+				beforeSend: function() {
+					startCommonAjaxSpinner();
+				},
+				complete: function() {
+					stopCommonAjaxSpinner();
+				},
+				success:function(jArray){
+					$('#new_'+announcementId).remove();
+					getUnreadAnnouncement();
+					
+					
+				},
+			});
+		}
+	}
+}
+
+
+function removeStudentAnnouncement(studentAnnouncmentId,div,isPermanent) 
+{
+	var hdnUserRole = $('#hdnUserRole').val();
+
+	if(isPermanent!="PERMANENT")
+	{
+		var url = 'removeStudentAnnouncement.json?studentAnnouncmentId='+studentAnnouncmentId
+		    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+		        url = 'stu_removeStudentAnnouncement.json?studentAnnouncmentId='+studentAnnouncmentId;
+		    }
+		$.ajax({
+			url:url,
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+
+				$('#div'+studentAnnouncmentId).fadeOut(1200);
+				$('#announcementDetails').html('');
+
+			},
+			error:function(){
+
+			}
+		});
+	}
+	else
+		jAlert("The sender has not allowed you to delete this announcement..","Warning");
+}
+
+
+function getStudentMessage(){
+    var hdnUserRole = $('#hdnUserRole').val();
+	const params = new URLSearchParams(window.location.search);
+	const studentIdEncode = params.get("StudentId");	
+	const studentId = atob(studentIdEncode);
+    var url = 'getStudentMessage.json';
+    if (hdnUserRole == "student" || hdnUserRole == "Student") {
+        url = 'stu_getStudentMessage.json';
+    }else if(hdnUserRole == "parentadmin"){
+	 url = 'par_getStudentMessage.json?StudentId='+studentId;
+	}
+	$('#message').val('');
+	$.ajax({
+		url:url,
+		dataType:'json',
+		async:false,
+
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			var subcnt=1;
+			var j=jArray.length;
+			var boiler='';
+			boiler+='<table id="dMtbl1" cellpadding="0" cellspacing="0" border="1" class="table table-striped table-bordered table-condensed" style="width: 100%"><thead>'+
+			'<tr><th>Sr No.</th><th>Date</th><th>Time</th><th>Message</th>'+
+			'<th>Sent By</th><th>Reply</th><th style="display:none">employeeMessageId</th></tr></thead><tbody>';
+
+			for( var i=0; i<j; i++)
+			{
+				var studentMessageId = jArray[i]["studentMessageId"];
+				if(jArray[i]["status"]==false){
+					boiler+='<tr id="'+studentMessageId+'" style="font-weight:bold">';
+				}
+				else{
+					boiler+='<tr id="'+studentMessageId+'">';
+				}
+
+				boiler+='<td>'+subcnt+'</td>'+
+				'<td>'+jArray[i]["date"]+'</td>'+
+				'<td>'+jArray[i]["time"].split(".")[0]+'</td>'+
+				'<td>'+jArray[i]["message"]+'</td>'+
+				//'<td align="center"><input type="button" value="Message" class="viewMessage" onclick="showMessage(\''+jArray[i]["message"]+'\')"></td>'+
+				'<td>'+jArray[i]["sentBy"]+'</td>'+
+				'<td style="text-align:center">'+
+				'<input type="button" value="Reply" class="btn btn-inverse btn-mini  " onclick="sendEmployeeMessage(\''+jArray[i]["employeeId"]+'\' ,\''+jArray[i]["sentBy"]+'\')"></td>'+
+				'<td style="display:none">'+studentMessageId+'</td></tr>';
+				subcnt++;
+			}
+			boiler+='</tbody></table><br /><div id="divMeetingForCoordinator"></div>';
+			$("#message").html(boiler);
+
+
+			$('#dMtbl1').dataTable( {
+				"sDom": "<'row'<'margin-left-22'l><'pull-right'f>r>t<'row'<'margin-left-22'i><'pull-right'p>>",
+				"sPaginationType": "bootstrap",
+				"oLanguage": {
+					"sLengthMenu": "_MENU_ records per page"
+				}
+			} );
+
+		},
+	});
+	if($("#countMessage").text()!=0){
+		setReadStudentMessage();
+	}
+}
+
+function sendEmployeeMessage(employeeId,empName)
+{
+	$('#studName').html('');
+	$('#replayDiv').html('');
+	$('#replayToStudentMessageModal').modal('show');
+	$('#studName').html("Reply To : "+empName);
+
+	var boiler ='<table class="table table-bordered"><thead>'+
+	'<tr><th>Reply Message</th></tr></thead>'+
+	'<tr><td><textarea id="replyStudent" style="width:650px"></textarea></td></tr>'+
+	'<tr><td><div align="center">'+
+	'<input type="button" class="btn btn-inverse btn-mini" value="Send Reply" onclick="sendReplayToEmployee(\''+employeeId+'\')"></div></td></tr>'+
+	'</table>'+
+	'</div>';
+	$('#replayDiv').html(boiler);
+}
+
+function sendReplayToEmployee(employeeId)
+{
+	var description = $('#replyStudent').val();
+	$.ajax({      
+		url:'sendReplayToEmployee.json',
+		dataType:'text',
+		type:'POST',
+		data:{employeeId:employeeId,description:description.toString()},
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type)
+		{	
+			$('#replayToStudentMessageModal').modal('hide');
+			jAlert("Successfully Send Message","Success");
+		},
+		error:function(){
+			alert("Error");
+		}
+	});
+
+}
+
+
+function getUnreadStudentMessage(){
+	const params = new URLSearchParams(window.location.search);
+//	var instituteCourseId = $('#departmentCmb').val().split("-")[0];
+const studentIdEncode = params.get("StudentId");	
+	const studentId = atob(studentIdEncode);
+var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getUnreadStudentMessage.json';
+			if(hdnUserRole == "student" || hdnUserRole == "Student"){
+				url = 'stu_getUnreadStudentMessage.json';
+		}else if(hdnUserRole == "parentadmin"){
+		 url = 'par_getUnreadStudentMessage.json?StudentId='+studentId;
+		}
+	$.ajax({ 
+		url:url,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			/*startCommonAjaxSpinner();*/
+		},
+		complete: function() {
+			/*stopCommonAjaxSpinner();*/
+		},
+		success:function(jArray){
+				$("#countMessage").html(jArray[0]["count"]);
+		},
+	});
+}
+
+
+function setReadStudentMessage(){
+	$.ajax({      
+		url:'setReadStudentMessage.json',
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(type){	
+
+			getUnreadStudentMessage();
+		},
+		error:function(){
+			return;
+		}
+	});
+}
+
+function getUnreadStudentMessageByStudent(){
+	var stud = $('#sonDaugtherName').val();
+	$.ajax({
+		url:'getUnreadStudentMessageByStudent.json?stud='+stud,
+		dataType:'json',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+				$("#countMessage").html(jArray[0]["studMessagecount"]);
+		},
+	});
+}ù‘Ì¢      i’¬0i’¬0I\ÜéiÿXX   k    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/studentMPW/scripts/studentAnnouncement.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Accept-Ranges: bytes
+ETag: W/"38460-1773921440000"
+Last-Modified: Thu, 19 Mar 2026 11:57:20 GMT
+Content-Type: text/javascript
+Content-Length: 38460
+Date: Wed, 08 Apr 2026 02:49:20 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"38460-1773921440000"
+Last-Modified: Thu, 19 Mar 2026 11:57:20 GMT
+Content-Type: text/javascript
+Content-Length: 38460
+Keep-Alive: timeout=5, max=93
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 175 net-response-time-onstop 176   ñ<

@@ -1,0 +1,793 @@
+$(document).ready(function(){
+
+	
+	function createLightCKEditor(id) {
+		var instance = CKEDITOR.instances[id];
+		if (instance)
+			CKEDITOR.remove(instance);
+		CKEDITOR.replace(id, {
+			uiColor : '#FFFFFF',
+			height : '20%',
+			toolbar : [ [ 'Font', 'FontSize', '-', 'Bold', 'Italic',
+					'Underline', 'Strike', 'Subscript', 'Superscript',
+					'RemoveFormat', '-', 'NumberedList', 'BulletedList', '-',
+					'JustifyLeft', 'JustifyCenter', 'JustifyRight',
+					'JustifyBlock', '-' ] ]
+		});
+		//$('#cke_top_'+id+' .cke_toolbox').hide();
+	}
+	
+	getAlumniPost(5);
+});
+function getAlumniPost(limit){
+	try{
+		$("#divalumpost").show();
+		$("#tabResult").hide();
+	}catch(e){
+		
+	}
+	$('.displayBoxes').hide();
+	$('#postHome').show();
+	var hdnUserRole = $('#hdnUserRole').val();
+	var url = 'getAlumniPost.json';
+	if(hdnUserRole == "student" || hdnUserRole == "Student"){
+		url = 'stu_getAlumniPost.json';
+	}
+		$.ajax({
+			url:url,
+			data:{limit:limit},
+			dataType:'json',
+			beforeSend: function() {
+				$('#divalumpost').html('<div id="divPostLoading" style="text-align: center;width: 100%;"><img src="img/loading-image.gif"></div> ');
+			},
+			complete: function() {
+				//$('#divPostLoading').hide();
+			},
+			success:function(jArray){
+				paintAlumniPost(jArray);
+			},
+			error:function(){
+		
+			}
+		});
+}
+function getSpecificAlumniPost(alumniRingPostIds){
+	$('.displayBoxes').hide();
+	$('#postHome').show();
+		$.ajax({
+			url:'getAlumniPostByAlumniRingPostIds.json?alumniRingPostIds='+alumniRingPostIds,
+			dataType:'json',
+			beforeSend: function() {
+				$('#divalumpost').html('<div id="divPostLoading" style="text-align: center;width: 100%;"><img src="img/loading-image.gif"></div> ');
+			},
+			complete: function() {
+				//$('#divPostLoading').hide();
+			},
+			success:function(jArray){
+				if(jArray.length > 0)
+					paintAlumniPost(jArray);
+				else{
+					$('#tabResult').html('<p style="text-align:center;font-size:14px;">No Details found</p>');
+					$("#divalumpost").hide();
+				}
+			},
+			error:function(){
+		
+			}
+		});
+}
+
+
+function paintAlumniPost(jArray){
+	$('#divalumpost').html('');
+	var replyid=1;
+	var template = '';
+	var isAlumniHomeHtm = false;
+	if(window.location.pathname.includes('alumniHome.htm')) isAlumniHomeHtm = true;
+	//alert(isAlumniHomeHtm);	
+    for(var i=jArray.length-1; i>=0; i--){
+	
+		template = '';
+        var id=jArray[i]["alumniRingPostDetailId"];
+        var des=jArray[i]["description"];
+        try{
+        	des = decodeURIComponent(des);
+		}catch(e){
+			des = jArray[i]["description"];
+		}
+		
+		template += '<div id="alumPost'+jArray[i]["alumniRingPostDetailId"]+'" style="background-color: #FFF; border: 1px solid #C0C0C0; font-size: 11px;margin-bottom: 5px;">';
+		if(!jArray[i]["latestPost"])
+			template += '<div style="padding: 5px; background-color: #F7F7F7; border-bottom: 1px solid #F0F0F0;">';
+		else
+			template += '<div style="padding: 5px; background-color: #E7F7E7; border-bottom: 1px solid #F0F0F0;">';
+
+		template += '<img src="'+jArray[i]["ImageURL"]+'" style="margin-right: 10px; height:25px;width:25px;" onclick="showPostofUser('+jArray[i]["userId"]+')">';
+		if(!jArray[i]["selfPost"]){
+			template += '<strong>'+jArray[i]["name"]+'</strong>';
+			template += ' shared this with <strong>You</strong>';
+		}/*else if(jArray[i]["userId"]==jArray[i]["userToId"] && jArray[i]["sharedWith"]=='none'){
+            template += '<strong>Admin</strong>';
+            template += ' shared this with <strong>You</strong>';
+        }*/else{
+			template += '<strong>You</strong>';
+			template += ' shared this with <strong>'+jArray[i]["sharedWith"]+'</strong>';
+		}
+
+		template += '</div>';
+		template += '<div class="ignoreGEMSStyling" style="padding: 15px;overflow:auto;margin-left: 10px;" id="description'+jArray[i]["alumniRingPostDetailId"]+'" contenteditable="false">';
+		try{
+			template += decodeURIComponent(jArray[i]["description"]);
+		}catch(e){
+			template += jArray[i]["description"];
+		}
+		template += '<div id="attachment-'+jArray[i]["alumniRingPostId"]+'"></div>';
+		template += '</div>';
+		template += '<div style="padding: 5px; background-color: #FAFAFA; border-bottom: 1px solid #F0F0F0; font-size: 11px;">';
+		if(!jArray[i]["selfPost"])
+		{
+			if($('#showCommentHide').attr('showhide')=='hide'){
+				template += ''; 
+				template += ''; 
+			}else{
+				template += '<a data-toggle="popover" title=""  data-content="" data-original-title="" id="reply'+replyid+'" href="javascript:void(0)" onclick="replyToBulletin('+jArray[i]["userId"]+',\''+jArray[i]['type']+'\',\''+jArray[i]['status']+'\','+replyid+',\''+jArray[i]["id"]+'\')">Reply</a>';
+				template += ' - ';	
+			}
+		}//new
+			template +='<a href="javascript:void(0);" onclick="removePost('+jArray[i]["alumniRingPostDetailId"]+')" >Remove</a>';
+			template +='<a href="javascript:void(0);" onclick="removeAllPost(\''+jArray[i]["alumniRingPostDetailId"]+'\',\''+jArray[i]["alumniRingPostId"]+'\')" >Remove All</a>'; //jm
+	
+		if(isAlumniHomeHtm){
+			template +='<div id="shareSocialDiv-'+i+'" style="font-size: 10px;"></div>';
+		}
+		/*template += ' - ';
+		template +='<a id="forward" href="javascript:void(0);" onclick="forwardPost(\''+id+'\',\''+des+'\')" >Forward</a>';*/
+//		if($('#customerHelper').val() != 'DYPATIL') // coustmer condition by awanish
+		template +='<span style="float: right;"> '+jArray[i]["date"]+' '+jArray[i]["time"]+'</span>';
+		template += '</div>';
+		template += '<div style="width:100%;display:block;" class="commentbox"><div id="divNewCommen-'+jArray[i]["alumniRingPostId"]+'" class="'+$('#showCommentHide').attr('showhide')+'"><input type="text" id="txtNewCommen-'+jArray[i]["alumniRingPostId"]+'" style="width:80%;margin:5px;border-radius:0px; display:inline;" placeholder="Enter Comment..." class="tComment"><button id="btnNewCommen-'+jArray[i]["alumniRingPostId"]+'" onclick="savePostComment('+jArray[i]["alumniRingPostId"]+')" class="btn btn-mini btn-primary" style="border-radius:0px;width:15%;float:right;margin-left:0px; display:inline;">Send</button></div></div>';
+		template += '</div>';
+		
+		replyid++;
+		
+		$('#divalumpost').prepend(template);
+
+		if(isAlumniHomeHtm){
+			$("#shareSocialDiv-"+i).jsSocials({
+				url: des,
+				text: "Share Post",
+				showCount: false,
+				showLabel: true,
+				shares: [
+				         "email",
+				         "twitter",
+				         { share: "facebook", label: "Share" },
+				         "googleplus",
+				         "linkedin",
+				         "pinterest",
+				         "whatsapp"
+				         ]
+			});
+		}
+		var docArray = jArray[i]["attachments"];
+		if(docArray.length > 0){
+			var isCreator = false;
+			if(jArray[i]["selfPost"]){
+				isCreator = true;
+			}
+			var person = $('#hdnUserRole').val();
+			if(person.toLowerCase() != 'student' && person != 'alumnistudent'){
+				person = 'Employee';
+			} else if(person == 'alumnistudent'){
+				person = 'Student';
+			}
+			showAluminiPostAttachment(docArray,'attachment-'+jArray[i]["alumniRingPostId"],isCreator,person);
+		}
+		var commentjArray = eval( '('+jArray[i]["commentjArray"]+')' );
+		var commentLength = commentjArray.length;
+		if($('#showCommentHide').attr('showhide')=='show'){
+		var showHideBoiler='<table id="tableShowHideComment-'+jArray[i]["alumniRingPostId"]+'" style="margin-left:5%; display:none;margin-top:3px;width:94%;background-color:#F3F3F3;" class="'+$('#showCommentHide').attr('showhide')+'">'+
+		'<tr id="tr_showComments-'+jArray[i]["alumniRingPostId"]+'">'+
+		'<td><a href="javascript:void(0);" onclick="showHiddenComment('+jArray[i]["alumniRingPostId"]+')">Show all comments('+commentLength+')</a></td>'+    
+		'</tr>'+
+		'<tr id="tr_hideComments-'+jArray[i]["alumniRingPostId"]+'" style="display:none;">'+
+		'<td><a href="javascript:void(0);" onclick="hideShownComment('+jArray[i]["alumniRingPostId"]+')">Hide comments</a></td>'+     
+		'</tr>'+
+		'</table>';
+		$("#divNewCommen-"+jArray[i]["alumniRingPostId"]).after(showHideBoiler);
+
+		for(var k=0;k<commentLength;k++){
+			var boiler='';
+			if(commentLength>3 && k<(commentLength-3)){
+				boiler= '<table class="hiddenComment-'+jArray[i]["alumniRingPostId"]+'" style="display:none;margin-left:5%;margin-top:3px;width:94%;background-color:#F3F3F3;" class"'+$('#showCommentHide').attr('showhide')+'">'+
+				'<tbody id="tr-'+commentjArray[k]["commentThreadId"]+'">'+
+				'<tr>'+
+				'<td rowspan="2" style="vertical-align:top;padding:4px;width:30px;"><img src="'+commentjArray[k]["ImageURL"]+'" height="20px" width="20px"></td>'+
+				'<td><p style="display:inline;"><b>'+commentjArray[k]["name"]+':</b></p><p style="display:inline;float:right" class="muted"></p></td>'+    //'+commentjArray[k]["commentDateTime"]+'
+				'</tr>'+
+				'<tr>'+
+				'<td>'+
+				'<p class="muted"><span id="commentData-'+commentjArray[k]["commentThreadId"]+'">'+commentjArray[k]["comment"]+'</span>';
+				if(commentjArray[k]["isOwner"])
+				{	
+				boiler+='<span id="parentAction"><span id="actionRemove-'+commentjArray[k]["commentThreadId"]+'"><a href="#linkDiv" title="Remove" onclick="deleteCommentThread('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">remove</i></a></span>'+
+'<span id="actionEdit-'+commentjArray[k]["commentThreadId"]+'"><a href="javascript:void(0);" onclick="editComment('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">edit</i></a></span>';
+				}
+				boiler+='</span></p>'+
+
+				'</td>'+
+				'</tr>'+
+				'</tbody>'+
+				'</table>';
+			}
+			else{
+				boiler= '<table class="comment-'+jArray[i]["alumniRingPostId"]+'" style="margin-left:5%;margin-top:3px;width:94%;background-color:#F3F3F3;" class"'+$('#showCommentHide').attr('showhide')+'">'+
+				'<tbody id="tr-'+commentjArray[k]["commentThreadId"]+'">'+
+				'<tr>'+
+				'<td rowspan="2" style="vertical-align:top;padding:4px;width:30px;"><img src="'+commentjArray[k]["ImageURL"]+'" height="20px" width="20px"></td>'+
+				'<td><p style="display:inline;"><b>'+commentjArray[k]["name"]+':</b></p><p style="display:inline;float:right" class="muted">'+($('#customerHelper').val() == 'DYPATIL' ? "" :commentjArray[k]["commentDateTime"])+'</p></td>'+   //customer condition by awanish 
+				'</tr>'+
+				'<tr>'+
+				'<td>'+
+				'<p class="muted"><span id="commentData-'+commentjArray[k]["commentThreadId"]+'">'+commentjArray[k]["comment"]+'</span>';
+			//change
+				if(commentjArray[k]["isOwner"]){	
+					boiler+='<span id="parentAction"><span id="actionRemove-'+commentjArray[k]["commentThreadId"]+'"><a href="#linkDiv" title="Remove" onclick="deleteCommentThread('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">remove</i></a></span>'+
+							'<span id="actionEdit-'+commentjArray[k]["commentThreadId"]+'"><a href="javascript:void(0);" onclick="editComment('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">edit</i></a></span>';
+				}
+				boiler+=			'</span></p>'+
+				'</td>'+
+				'</tr>'+
+				'</tbody>'+
+				'</table>';
+			}
+			$('#tableShowHideComment-'+jArray[i]["alumniRingPostId"]).after(boiler);
+			$("#txtNewCommen-"+jArray[i]["alumniRingPostId"]).val("");
+		}
+		}	
+		if(commentLength>3){
+			$('#tableShowHideComment-'+jArray[i]["alumniRingPostId"]).show();
+		}
+		else{
+			$('#tableShowHideComment-'+jArray[i]["alumniRingPostId"]).hide();
+		}
+	}
+}
+
+function showHiddenComment(alumniRingPostId){
+	$('.hiddenComment-'+alumniRingPostId).show();
+	$('#tr_showComments-'+alumniRingPostId).hide();
+	$('#tr_hideComments-'+alumniRingPostId).show();
+}
+function hideShownComment(alumniRingPostId){
+	$('.hiddenComment-'+alumniRingPostId).hide();
+	$('#tr_showComments-'+alumniRingPostId).show();
+	$('#tr_hideComments-'+alumniRingPostId).hide();
+}
+function showAllPostedToUser(alumniRingPostId){
+	$.ajax({
+		url:'showAllPostedToUser.json?alumniRingPostId='+alumniRingPostId,
+		dataType:'json',
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(jArray){
+			var modalBoiler ='			<div id="divSharedWithModal" class="modal hide fade">' +
+						'				<div class="modal-header">' +
+						'					<button type="button" class="close" data-dismiss="modal">x</button>' +
+						'					<h3>You shared the post with...</h3>' +
+						'				</div>' +
+						'				<div class="modal-body">' +
+						'					<div id="divSharedWithModalBody"></div>' +
+						'				</div>' +
+						'				<div class="modal-footer">' +
+						'					<input type="button" class="btn btn-inverse btn-mini"' +
+						'						data-dismiss="modal" value="Close" />' +
+						'				</div>' +
+						'			</div>';
+			$('#sharedWithModalDiv').html(modalBoiler);
+			var boiler ='<table class="table">';
+			for(var i=0;i<jArray.length;i++){
+				boiler +='<tr>';
+				boiler +='<td><img src="'+jArray[i]["ImageURL"]+'"/></td>';
+				boiler +='<td><strong>'+jArray[i]["name"]+'</strong></td>';
+				boiler +='</tr>';
+			}
+			boiler +='</table>';
+			$('#divSharedWithModalBody').html(boiler);
+			$('#divSharedWithModal').modal('show');
+		},
+		error:function(){
+
+		}
+	});
+}
+$(function(){
+//pankaj try catch to avoid error in file uploading
+$('#post-alum').click(function(){
+	globalPostType = $('.shareType').val();
+	var alumniTextPost='';
+	  let emailSubject = "";
+
+	if(globalPostType=='status'){
+		try{
+		alumniTextPost= encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData());//$('#alumniTextPost').val();
+		}catch(Exception){alumniTextPost="";}
+	}else if(globalPostType=='videos'){
+		try{
+			var textPost= encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData()); //$('#alumniTextPost').val();
+		}catch(Exception){alumniTextPost="";}
+		var url = $('div.liveurl div.inner div.url').html();
+		var urlboiler='<a href="'+url+'" target="_blank">'+url+'</a>';
+		$('div.liveurl div.inner div.url').html(urlboiler);
+		
+		var title=$('div.liveurl div.inner div.title').html();
+		var titleBoiler='<b>'+title+'</b>';
+		$('div.liveurl div.inner div.title').html(titleBoiler);
+		
+		//alumniTextPost=textPost+'<div class="row-fluid">'+$('div.liveurl div.inner').html()+'</div>';
+		//$('div.liveurl div.inner').html()
+		alumniTextPost=textPost+encodeURIComponent('<div class="row-fluid">'+$('#alumniLinkPost').val()+'</div>');
+				
+	}else if(globalPostType=='photos'){
+		try{
+		alumniTextPost=encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData());//$('#alumniTextPost').val();
+	}catch(Exception){alumniTextPost="";}
+	}else if(globalPostType=='location'){
+		try{
+		alumniTextPost=encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData());//$('#alumniTextPost').val();
+	}catch(Exception){alumniTextPost="";}
+		var lng = $( "input[name='lng']" ).val();
+		var lat = $( "input[name='lat']" ).val();
+		
+		if(lat!=undefined && lng!=undefined && lat!=0 && lng!=0 && lat!='' && lng!=''){
+			alumniTextPost += '<br><strong>'+$('#geocomplete').val()+'</strong><br/>';
+			alumniTextPost += '<img class="img-responsive" src="http://maps.googleapis.com/maps/api/staticmap?size=500x150&maptype=roadmap\&markers=size:mid%7Ccolor:red%7C'+lat+','+lng+'&zoom=15&sensor=false" />';
+		}
+	}else if(globalPostType == 'sms'){
+		try{
+			alumniTextPost = $('#alumniTextPost').val();
+		}
+		catch(Exception){
+			alumniTextPost = "";
+		}
+	}else if(globalPostType == 'email'){
+		try{
+			if(ckeditorFlag != undefined)
+				ckeditorFlag = false;
+				emailSubject = $("#emailSubject").val();
+			alumniTextPost= encodeURIComponent(CKEDITOR.instances.alumniTextPost.getData());//$('#alumniTextPost').val();
+		}
+		catch(Exception){
+			alumniTextPost = "";
+		}
+	}
+	
+	
+	var alumUserId='';
+	var selfPostFlag=false;
+	if($('#postScope').val()!='' && $('#postScope').val()!=undefined){
+		alumUserId=$('#postScope').val();
+		$('#postScope').focus();
+		selfPostFlag=true;
+	}else{
+		selfPostFlag=false;
+	}
+
+	if(selfPostFlag){
+		$.ajax({
+			url:'addAlumniPostNew.json',
+			dataType:'json',
+			type:'POST',
+			data:{alumUserId:alumUserId,alumniTextPost:alumniTextPost, postType : globalPostType,emailSubject: emailSubject},
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+				try{
+				CKEDITOR.instances.alumniTextPost.setData("");
+				}catch(Exception){}
+				//$('#alumniTextPost').val("");
+				$('#alumniLinkPost').val("");
+				$('#alumniDocumentPostText').val('');
+				$('#showAluminiPostUploadDiv').html('');				
+				$('#postScope').tokenInput("clear");
+				$('.liveurl').hide();
+				//$('#alumniTextPost').focus();
+				/*for(name in CKEDITOR.instances){
+				    CKEDITOR.instances[name].destroy(true);
+				}*/
+				$('#post-alum').focus();
+				//changeMessageType(globalPostType);
+			},
+			success:function(jArray){
+				getAlumniPost(5);
+			},
+			error:function(){
+			}
+		});
+	}
+});
+
+
+
+$('#post-alum-home').click(function(){
+	
+	var alumniTextPost=CKEDITOR.instances['alumniTextPost'].val().getData();
+	var alumUserId='';
+	var selfPostFlag=false;
+	if($('#postScope').val()!='' && $('#postScope').val()!=undefined){
+		alumUserId=$('#postScope').val();	
+		selfPostFlag=false;
+	}else{
+		alumUserId=$('#alumUserId').val();
+		selfPostFlag=true;
+	}
+	
+	$.ajax({
+		url:'addAlumniPostNew.json',
+		dataType:'json',
+		type:'POST',
+		data:{alumUserId:alumUserId,alumniTextPost:alumniTextPost},
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+			changeMessageType('Text');
+			//$('#alumniTextPost').focus();
+			CKEDITOR.instances.alumniTextPost.setData("");
+			//$('#alumniTextPost').val("");
+			//$('#alumniLinkPost').val("");
+			$('#alumniDocumentPostText').val('');
+			$('#showAluminiPostUploadDiv').html('');				
+			$('#postScope').tokenInput("clear");
+			$('.liveurl').hide();
+			
+			for(name in CKEDITOR.instances){
+			    CKEDITOR.instances[name].destroy(true);
+			}
+			//$('#alumniTextPost').val("");
+			$('#post-alum-home').focus();
+		},
+		success:function(jArray){
+			if(selfPostFlag){
+				var alum='<div class="row-fluid" id="alumPost'+jArray["alumniRingPostId"]+'"><div style="background-color: white; border:1px solid; border-color:#c4cde0; margin-top:20px; min-height: 90px;" class="span12">';
+				var alumRemoveAll ='<div class="row-fluid" id="alumPostAllRemove'+jArray["alumniRingPostId"]+'"><div style="background-color: white; border:1px solid; border-color:#c4cde0; margin-top:20px; min-height: 90px;" class="span12">'; 
+				if(jArray['status']=='yes' && jArray['type']=='employee'){ 
+					alum+='<div class="modal-header post"><img src="getEmployeeProfileImageById.json?id='+jArray["id"]+'" /><label style="margin-left:50px; font-weight:bold;"> '+jArray["name"]+'</label><div class="postclose"><a href="javascript:void(0)"><img src="img/close.png" style="border:0px;" onclick="removePost('+jArray["alumniRingPostId"]+')" /></a></div><div class="name" style="float:right;"> Created '+jArray["date"]+' at '+jArray["time"]+'</div></div>';
+					alumRemoveAll+='<div class="modal-header post"><img src="getEmployeeProfileImageById.json?id='+jArray["id"]+'" /><label style="margin-left:50px; font-weight:bold;"> '+jArray["name"]+'</label><div class="postclose"><a href="javascript:void(0)"><img src="img/close.png" style="border:0px;" onclick="removeAllPost('+jArray["alumniRingPostId"]+')" /></a></div><div class="name" style="float:right;"> Created '+jArray["date"]+' at '+jArray["time"]+'</div></div>';
+                 }
+				else if(jArray['status']=='yes' && jArray['type']=='student') {
+					alum+='<div class="modal-header post"><img src="getStudentProfileImageById.json?id='+jArray["id"]+'" /><label style="margin-left:50px; font-weight:bold;"> '+jArray["name"]+'</label><div class="postclose"><a href="javascript:void(0)"><img src="img/close.png" style="border:0px;" onclick="removePost('+jArray["alumniRingPostId"]+')" /></a></div><div class="name" style="float:right;"> Created '+jArray["date"]+' at '+jArray["time"]+'</div></div>';
+					alumRemoveAll+='<div class="modal-header post"><img src="getStudentProfileImageById.json?id='+jArray["id"]+'" /><label style="margin-left:50px; font-weight:bold;"> '+jArray["name"]+'</label><div class="postclose"><a href="javascript:void(0)"><img src="img/close.png" style="border:0px;" onclick="removeAllPost('+jArray["alumniRingPostId"]+')" /></a></div><div class="name" style="float:right;"> Created '+jArray["date"]+' at '+jArray["time"]+'</div></div>';
+				}else {
+					alum+='<div class="modal-header post"><img src="'+jArray["profileImage"]+'" /><label style="margin-left:50px; font-weight:bold;"> '+jArray["name"]+'</label><div class="name" style="float:right;"> Created '+jArray["date"]+' at '+jArray["time"]+'</div></div>';
+					alumRemoveAll+='<div class="modal-header post"><img src="'+jArray["profileImage"]+'" /><label style="margin-left:50px; font-weight:bold;"> '+jArray["name"]+'</label><div class="name" style="float:right;"> Created '+jArray["date"]+' at '+jArray["time"]+'</div></div>';
+                     }
+                     alum += '<div style="margin-top:10px; margin-left:50px;">' + alumniTextPost + '</div><br>';
+                    alumRemoveAll += '<div style="margin-top:10px; margin-left:50px;">' + alumniTextPost + '</div><br>';
+ 
+				//alum+='<div style="margin-top:10px; margin-left:50px;">'+alumniTextPost+'</div>'+ // jm
+
+			}
+			showSuccessMessage("Posted successfully",5000);
+		},
+		error:function(){
+
+		}
+	});
+});
+});
+
+function showPostofUser(userId)
+{
+	window.location.href="alumniPost.htm?type=other&id="+userId;
+}
+
+
+
+function replyToBulletin(userId,type,status,replyid,id)
+{
+	//alert("dsa");
+	var name=$('#lblpwnername').text();
+	
+	var ownid=userId;
+	//alert(typeown);
+	$('#txttempwritediv').show();
+	$('#tempMsg').hide();
+	var link='';
+		
+	link='<div class="post"></div>'+
+	'<div style="background-color: white; border:1px solid; border-color:#c4cde0; min-height: 90px; width: 98%;" id="txttempwritediv">'+
+	'<textarea style="width: 94.5%;" class="commentMark" id="txttempwrite"></textarea>'+
+	'<div>'+
+	'<div class="pull-right"><input type="button" class="btn btn-primary btn-mini" value="post" onclick="saveBulletin('+userId+')" /></div>'+
+	'</div>'+
+	'</div>'+
+	'<div class="alert alert-info" id="tempMsg" style="display:none;"></div>';
+
+tourStates1 = [
+	          	{
+	          		html: link,
+	          		buttons: {},
+	          		focus: 1,
+	          		position: { container: '#reply'+replyid, x: 35, y: -20, width: 300, arrow: 'lt' },
+	          		//submit: tourSubmitFunc
+	          	}];
+	$.prompt(tourStates1, { opacity: 0.3 });
+}
+
+function saveBulletin(toid)
+{
+	var txttempwrite= $('#txttempwrite').val();
+	
+	$.ajax({
+		url:'addAlumniPostNew.json',
+		//url:'saveBulletin.json?toid='+toid+'&txttempwrite='+txttempwrite,
+		dataType:'text',
+		data:{
+			alumUserId:'Individual-'+toid,
+			alumniTextPost:encodeURIComponent(txttempwrite)
+		},
+		type:'POST',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(msg){
+			
+			//$('#tempMsg').html("Your Post is sent Successfully");
+			//$('#tempMsg').show();
+			$('#txttempwritediv').hide();
+			getAlumniPost(5);
+			
+			
+		},
+		error:function(){
+
+		}
+	});
+}
+
+function removePost(alumnipostDetailId) {
+	$.ajax({
+		url:'removeAlumniPost.json?alumnipostDetailId='+alumnipostDetailId,
+		beforeSend: function() {
+			
+		},
+		complete: function() {
+			
+		},
+		success:function(jArray){
+			$('#alumPost'+alumnipostDetailId).fadeOut(1200);
+		},
+		error:function(){
+
+		}
+	});
+}
+//jm
+function removeAllPost(alumnipostDetailId, alumniRingPostId) {
+    $.ajax({
+        url: 'removeAllAlumniPost.json?alumnipostDetailId=' + alumnipostDetailId + '&alumniRingPostId=' + alumniRingPostId,
+        success: function (jArray) {
+        $('#alumPost'+alumnipostDetailId).fadeOut(1200);
+        },       
+    });
+}
+
+function savePostComment(alumniRingPostId){
+	
+	var comment=$("#txtNewCommen-"+alumniRingPostId).val().trim();
+	
+		if(comment == ""){
+		jAlert("Please Enter Comment");
+		return;
+	}
+	
+	$.ajax({
+			url:'savePostCommentThread.json?comment='+escape(comment)+'&alumniRingPostId='+alumniRingPostId,
+			dataType:'json',
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(commentjArray){
+				
+				var k = 0;
+				
+				var boiler=	'<table style="margin-left:5%;margin-top:3px;width:94%;background-color:#F3F3F3;">'+
+				'<tbody id="tr-'+commentjArray[k]["commentThreadId"]+'">'+
+								'<tr>'+
+									'<td rowspan="2" style="vertical-align:top;padding:4px;width:30px;"><img src="'+commentjArray[k]["ImageURL"]+'" height="20px" width="20px"></td>'+
+									'<td><p style="display:inline;"><b>'+commentjArray[k]["name"]+':</b></p><p style="display:inline;float:right" class="muted">'+($('#customerHelper').val() == 'DYPATIL' ? "" : commentjArray[k]["commentDateTime"])+'</p></td>'+  // customer helper condition by awanish  
+								'</tr>'+
+								'<tr>'+
+								//change here
+									'<td><p class="muted"><span id="commentData-'+commentjArray[k]["commentThreadId"]+'">'+commentjArray[k]["comment"]+'</span><span id="parentAction"><span id="actionRemove-'+commentjArray[k]["commentThreadId"]+'"><a href="#linkDiv" title="Remove" onclick="deleteCommentThread('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">remove</i></a></span>'+
+									'<span id="actionEdit-'+commentjArray[k]["commentThreadId"]+'"><a href="javascript:void(0);" onclick="editComment('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">edit</i></a></span>';
+									'</span></p></td>'+
+								'</tr>'+
+								'</tbody>'
+							'</table>';
+				
+				$('#tableShowHideComment-'+alumniRingPostId).after(boiler);
+				$("#txtNewCommen-"+alumniRingPostId).val("");
+			},
+	        error : function() {
+	        	jAlert("Error posting your comment, Please try after some time");
+			}
+	       
+	    });
+}
+
+function deleteCommentThread(commentThreadId){
+	$.ajax({
+		url:'deleteCommentThread.json?commentThreadId='+commentThreadId,
+		dataType:'text',
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(text){
+			$("#tr-"+commentThreadId).hide();
+			/*var commCnt=$("#lblCommentCnt").text();
+			$("#lblCommentCnt").html(parseInt(commCnt)-1);*/
+		},
+        error : function() {
+        	alert("error in deleteCommentThread");
+		}
+       
+    });
+}
+/*function forwardPost(id,des)
+{
+  alert(id);
+  alert(des);
+ document.getElementById('description'+alumnipostDetailId).contentEditable=true;
+ document.getElementById('description'+alumnipostDetailId).focus();
+		
+ var boiler='<table class="table">'+
+	'<tr><td style="width: 477px;"><textarea id="descriptiontxt" style="width:600px">'+decodeURIComponent(des)+'</textarea></td></tr>'+
+	'<tr><td><input id="textTo" style="float: left;width:98.6%; margin-left: 5px;" placeholder="To..." type="text"/></td></tr>'+
+ 	'<tr><td><input class="btn btn-primary" id="post-alum" value="Post" style="border-radius:0px; "></td></tr>';
+ 	$('#forwardModalContent').html(boiler);
+	$('#forwardModal').modal('show');
+	createLightCKEditor('descriptiontxt');
+	
+	$('#textTo').tokenInput("populateAllforEmployeePost.json",{
+		theme: "facebook",
+		resultsLimit: 10,
+		placeholder: 'To...',
+		propertyToSearch: "name",
+		//preventDuplicates: true,
+        resultsFormatter: function(item){ return "<li><img src='" + item.imageUrl + "' title='" + item.name + "' style='height:25px; width:25px;' />" +
+        										 "<div style='display: inline-block; padding-left: 10px;'><div class='full_name'>" + item.name +
+        										 "</div><div class='email'>" + item.Desc + "</div></div></li>";},
+        tokenFormatter: function(item) { return "<li><p><img src='" + item.imageUrl + "' title='" + item.name + "' style='height:25px; width:25px;' />" + item.name + "</p></li>";}
+	});
+}*/
+
+
+
+function saveEditComment(commentThreadId)
+{
+var comment=$("#txtCommentEdit-"+commentThreadId).val().trim();
+		
+	if(comment == ""){
+		jAlert("Please Enter Comment");
+		return;
+	}
+	
+	$.ajax({
+			url:'editCommentThread.json',
+			dataType:'json',
+			data:{commentThreadId:commentThreadId,comment:comment},
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(commentjArray){
+				//alert(commentjArray.length);
+				/*var k = 0;
+				var boiler=	'<table style="margin-left:5%;margin-top:3px;width:94%;background-color:#F3F3F3;">'+
+								'<tr id="tr'+commentjArray[k]["commentThreadId"]+'">'+
+									'<td rowspan="2" style="vertical-align:top;padding:4px;width:30px;"><img src="'+commentjArray[k]["ImageURL"]+'" height="20px" width="20px"></td>'+
+									'<td><p style="display:inline;"><b>'+commentjArray[k]["name"]+':</b></p><p style="display:inline;float:right" class="muted">'+commentjArray[k]["commentDateTime"]+'</p></td>'+    
+								'</tr>'+
+								'<tr>'+
+								//change here
+									'<td><div id="commentData-'+commentjArray[k]["commentThreadId"]+'"><p class="muted">'+commentjArray[k]["comment"]+'</div><a href="#linkDiv" title="Remove" onclick="deleteCommentThread('+commentjArray[k]["commentThreadId"]+')"><i style="float:right;margin-left:5px;">remove</i></a><a href="javascript:void(0);" onclick="editComment('+commentjArray[k]["commentThreadId"]+')" title="Edit"><i id="commentModifyId-'+commentjArray[k]["commentThreadId"]+'" style="float:right">edit</i></a></p></td>'+
+								'</tr>'+
+							'</table>';
+				
+				$('#tableShowHideComment-'+alumniRingPostId).after(boiler);
+				$("#txtNewCommen-"+alumniRingPostId).val("");*/
+			},
+	        error : function() {
+	        	jAlert("Error posting your comment, Please try after some time");
+			}
+	       
+	    });
+
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ function editComment(id)
+ {
+	 var textVal=$('#actionEdit-'+id).text();
+	 if(textVal=="edit")
+		  {
+		  var data=$('#commentData-'+id).text();
+		  $('#actionEdit-'+id).html('<span id="actionSave-'+id+'"><a href="javascript:void(0);" onClick="saveComment('+id+')"><i style="float:right;margin-left:5px;">save</i></a></span><span id="actionCancle-'+id+'"><a href="javascript:void(0);" onclick="cancleComment(\''+id+'\',\''+data+'\')"><i style="float:right;margin-left:5px;">cancel</i></span>');
+		  var boiler='<input type="text" style="width:80%; margin:5px;border-radius:0px; display:inline;" id="txtCommentEdit-'+id+'" value="'+data+'">';
+		  $("#commentData-"+id).html(boiler);
+		  document.getElementById('txtCommentEdit-'+id).contentEditable=true;
+		  document.getElementById('txtCommentEdit-'+id).focus();
+		  }
+			  
+ }
+function saveComment(id)
+{
+saveEditComment(id);
+var editedComment=$('#txtCommentEdit-'+id).val();
+var boiler=''+editedComment;
+$('#commentData-'+id).html(boiler);
+$('#actionEdit-'+id).html('<a href="javascript:void(0);" onclick="editComment('+id+')"><i style="float:right;margin-left:5px;">edit</i></a>');
+}
+
+function cancleComment(id,data)
+{
+	var editedComment=$('#txtCommentEdit-'+id).val();
+	var boiler=''+editedComment;
+	$('#actionEdit-'+id).html('<a href="javascript:void(0);" onclick="editComment('+id+')"><i style="float:right;margin-left:5px;">edit</i></a>');
+	$('#commentData-'+id).html(data);
+}9ÌÔãÂ_      iÕÂ0iÕÂ0I\†ŽiÚe   a    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/scripts/alumni/alumniPostNew.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"31155-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 31155
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:01 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"31155-1770966818000"
+Last-Modified: Fri, 13 Feb 2026 07:13:38 GMT
+Content-Type: text/javascript
+Content-Length: 31155
+Keep-Alive: timeout=5, max=93
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 246 net-response-time-onstop 246   y³

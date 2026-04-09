@@ -1,0 +1,66 @@
+#include<stdio.h>
+#include<stdlib.h>
+int *ht;
+int count=0;int m;int i;
+void insert(int key){
+int index=key%m;
+int start=index;
+while(ht[index]!=NULL){
+index=(index+1)%m;
+if(index==start){
+printf("Hash table is full.Cannot insert %d\n",key);
+return;
+}
+}
+ht[index]=key;
+count++;
+}
+void display(){
+for(i=0;i<m;i++){
+if(ht[i]==-1){
+printf("T[%d]-->EMPTY\n",i);
+}
+else{
+printf("T[%d]-->%d\n",i,ht[i]);
+}
+}
+}
+int main(){
+int n,i,key;
+FILE *file;
+file =fopen("records.txt","w");
+if(file==NULL)
+printf("File creation failed");
+fprintf(file,"4\n");
+fprintf(file,"10\n");
+fprintf(file,"1234 2346 1259 2946\n");
+fclose(file);
+file =fopen("records.txt","r");
+fscanf(file,"%d",&n);
+fscanf(file,"%d",&m);
+if (n > m)
+{
+printf("Number of keys exceeds hash table size.\n");
+fclose(file);
+return 1;
+}
+ht=(int*)malloc(m*(sizeof(int)));
+if(ht==NULL){
+printf("Memory allocation failed\n");
+exit(1);
+fclose(file);
+}
+for(i=0;i<m;i++)
+ht[i]=-1;
+for(i=0;i<n;i++){
+fscanf(file,"%d",&key);
+insert(key);
+}
+fclose(file);
+display();
+free(ht);
+return 0;
+}
+
+
+

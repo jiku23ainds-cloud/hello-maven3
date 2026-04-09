@@ -1,0 +1,79 @@
+#include<stdio.h>
+int array[10],stacklen,pointer;
+
+//push
+void push()
+{
+if(pointer<stacklen)
+{
+printf("Enter the elements: \n");
+scanf("%d",&array[pointer]);
+pointer++;
+}
+else
+{
+printf("Stack is full.\n");
+pointer--;
+}
+printf("New Array: \n");
+for(int i=0;i<pointer;i++)
+printf("%d\t",array[i]);
+}
+
+//pop
+void pop()
+{
+if(pointer!=-1)
+{
+array[pointer]='\0';
+pointer--;
+}
+else
+printf("Stack is empty.\n");
+printf("New array: \n");
+for (int i=0;i<pointer;i++)
+printf("%d\t",array[i]);
+}
+
+//palindrome
+void palindrome()
+{
+int c=0;
+for(int i=0;i<pointer/2;i++)
+{
+if(array[i]!=array[pointer-i-1])
+{
+c=c+1;
+printf("It is not a palindrome.");
+break;
+}
+}
+if(c==0)
+printf("It is a palindrome.");
+}
+
+
+//choice
+int main()
+{
+int choice=0;
+printf("Enter the length of the stack:\n");
+scanf("%d",&stacklen);
+while(choice!=4)
+{
+printf("Enter the operation to perform : \n1.Push \n2.Pop \n3.Palindrome \n4.Exit");
+scanf("%d",&choice);
+if(choice==1)
+push();
+else if(choice==2)
+pop();
+else if(choice==3)
+palindrome();
+else
+break;
+}
+return 0;
+}
+
+
+

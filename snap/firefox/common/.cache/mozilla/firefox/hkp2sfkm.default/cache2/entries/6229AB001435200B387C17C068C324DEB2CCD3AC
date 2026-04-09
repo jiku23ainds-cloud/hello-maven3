@@ -1,0 +1,2349 @@
+var kpaScheduleAttributecompetencyid=new Array();
+var kpaScheduleAttributecompetencypracticalid=new Array();
+var csize='';
+var pracsize='';
+var kpaBoilerPlate = '';
+var kpaBoilerPlatePractical = '';
+var kpaGradeTypeTheory='';
+var kpaGradeTypePractical='';
+var globalMyIp = '';
+
+
+$('document').ready(function(){
+	getMyLocalIp();
+	 setTimeout(function(){configurePlanList();}, 200);
+	
+	 
+});
+
+
+function getkpaplanForStudent()
+{
+	$.ajax({
+		url : 'getkpaplanForStudent.json',
+		dataType : 'json',
+		async : false,
+		beforeSend:function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+		success : function(jArray) {
+			var j=jArray.length;
+			var sidemenu='<option value="0">Select</option>';
+			for(var i=0;i<j;i++)
+			{
+				sidemenu+='<option value="'+jArray[i]["kpaplanid"]+'">'+jArray[i]["kpaplanname"]+'</option>';
+
+			}
+			$('#feedkpaid').html(sidemenu);
+		},
+		error : function() {
+//			jAlert("Something went wrong, Please try after some time","Error");
+			getCustomAlertMessage("alert_error");
+		}
+	});
+}
+
+function loadStudeFeedAttributeList()
+{
+	//	alert("function call");
+
+	var kpaPlanid=$('#feedkpaid').val();
+	$.ajax({
+		url : 'getattributelistForInstituteAppraisal.json?kpaPlanid='+kpaPlanid,
+		dataType : 'json',
+		async : false,
+		beforeSend:function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+		success : function(jArray) {
+			var j=jArray.length;
+
+			if(j>0)
+				loadprecomptTheory(jArray[0]["kpaPlanAttributeID"]);
+
+			$('#feedbackstart').hide();
+			$('#msgparaegraph').hide();
+		},
+		error : function() {
+//			jAlert("Something went wrong, Please try after some time","Error");
+			getCustomAlertMessage("alert_error");
+		}
+	});
+}
+function getEmployeeListForStudentFeedback(attibuteID) {
+
+	var feedkpaid=$('#feedkpaid').val();
+
+	$.ajax({
+		url : 'getEmployeeListForInstituteStudentFeedback.json?kpaPlanid='+feedkpaid+'&kpaplanattributeid='+attibuteID,
+		dataType : 'json',
+		async : false,
+		beforeSend:function() {
+			$('#loading').modal('show');
+		},
+		complete: function() {
+			$('#loading').modal('hide');
+		},
+		success : function(jArray) {
+
+			var j = jArray.length;
+			var employeeId="";
+			var subjectId="";
+			var practical="";
+			var boilerPlate = '';
+			var first='';
+
+			for ( var i = 0; i < j; i++) {
+				employeeId=jArray[i]["allocatedToEmployeeId"];
+				subjectId=jArray[i]["subjectId"];
+				if(i==0)
+					first=jArray[i]["practical"];
+
+				practical=jArray[i]["practical"];
+				boilerPlate += '<div  style="width: 94%; margin-left: 3%; margin-right: 3%;" id="EmployeeDiv'+i+'"><table class="smalltable"><tr>'+
+				'<th><input type="hidden" id="hidpractical'+i+'" value="'+practical+'" /><strong>Faculty Name :</strong></th><th><label><strong>'
+				+ jArray[i]["allocatedToname"]
+				+ '</strong></label></th><th><strong>Course Name</strong></th><th><label><strong>'
+				+ jArray[i]["subjectName"]
+				+ '</strong></label></th></tr><tr><td colspan="5">'
+				+ '<div style="width: 94%; margin-left: 3%; margin-right: 3%;" id="PerformanceMatrixForStudent'+i+'"></div>'+
+				'</td></tr><tr><td colspan="4">';
+				boilerPlate += '<input type="button" class="btn btn-inverse btn-mini  " id="savestudfeedback" value="Save & Next" onclick="SaveEmployeeFeedbackByStudent(\''+employeeId+'\','+subjectId+','+i+','+j+','+jArray[i]["employeeSubjectAllocationId"]+')" /></td>';
+				boilerPlate += '</tr></table></div><div class="alert alert-error" id="errorMsg" style="display:none;">'+
+				'<button type="button" class="close" data-dismiss="alert">Ã—</button>'+
+				'<strong>Warning...!</strong> You must select all Parameter.'+
+				'</div>';
+			}
+			boilerPlate += '</div>';
+			if(j==0)
+				boilerPlate='<div class="alert alert-error"><h3 style="color:red">You have already given feedback.</h3></td></div>';
+
+			$("#middleframe").html(boilerPlate);
+			PlanGenerationForStudent(0);
+			for ( var i = 0; i < j; i++) {
+				if (i != 0)
+					$("#EmployeeDiv" + i).hide();
+			}
+		},
+		error : function() {
+//			jAlert("Something went wrong, Please try after some time","Error");
+			getCustomAlertMessage("alert_error");
+		}
+	});
+
+}
+
+function PlanGenerationForStudent(DivIndex) {
+	if($('#hidpractical'+DivIndex).val()=='Yes')
+		$("#PerformanceMatrixForStudent"+DivIndex).html(kpaBoilerPlatePractical);
+	else
+		$("#PerformanceMatrixForStudent"+DivIndex).html(kpaBoilerPlate);
+
+	$('#errorMsg').hide();
+}
+
+function SaveEmployeeFeedbackByStudent(employeeId,subjectId,currentDiv,totsize,employeeSubjectAllocationId)
+{
+	var gradevalue=new Array();
+	var kpaplanid = $('#feedkpaid').val();
+
+	var flag=0;
+	var gval=0;
+	var cnt=0;
+	var gradetype='';
+
+	var size='';
+	if($('#hidpractical'+currentDiv).val()=='Yes')
+	{
+		gradetype=kpaGradeTypePractical;
+		if(kpaGradeTypePractical=='alphabet')
+		{
+
+			$('.gradeval').each(function(){
+				cnt++;
+				if($(this).attr('checked'))
+				{
+					gradevalue[gval]=$(this).val();
+					gval++;
+				}
+			});
+
+			if(gradevalue.length!=csize)
+				flag=1;
+		}
+		else
+		{
+			$('.gradeval').each(function(){
+				cnt++;
+				gradevalue[gval]=$(this).val();
+				gval++;
+			});
+		}
+
+		size=csize;
+	}
+	else
+	{
+		gradetype=kpaGradeTypeTheory;
+		if(kpaGradeTypeTheory=='alphabet')
+		{
+			$('.gradeval').each(function(){
+				cnt++;
+				if($(this).attr('checked'))
+				{
+					gradevalue[gval]=$(this).val();
+					gval++;
+				}
+			});
+
+			if(gradevalue.length!=csize)
+				flag=1;
+		}
+		else
+		{
+			$('.gradeval').each(function(){
+				cnt++;
+				gradevalue[gval]=$(this).val();
+				gval++;
+			});
+		}
+
+		size=csize;
+	}
+
+	var tempArray=new Array();
+
+	if($('#matrixfor').text()=='Cousre Type :theory')
+		tempArray=kpaScheduleAttributecompetencyid;
+	else
+		tempArray=kpaScheduleAttributecompetencypracticalid;
+
+	if(flag==0)
+	{	
+		var commonComment=$('#feedcomment').val();
+		$.ajax({
+			url :'saveStudentPerformanceMatrixForInstituteAppraisal.json?employeeId='+employeeId+'&subjectId='+subjectId+'&kpaScheduleAttributecompetencyid='+tempArray+'&gradevalue='+gradevalue+'&competencysize='+size
+			+'&commonComment='+commonComment+'&feedkpaid='+kpaplanid+'&employeeSubjectAllocationId='+employeeSubjectAllocationId+'&gradetype='+gradetype,
+			async:false,
+			beforeSend:function() {
+				$('#loading').modal('show');
+			},
+			complete: function() {
+				$('#loading').modal('hide');
+			},
+			success:function() {
+				var intcurrentDiv = parseInt(currentDiv);
+				var intNextDiv = intcurrentDiv + 1;
+				PlanGenerationForStudent(intNextDiv);
+				$("#EmployeeDiv" + intcurrentDiv).remove();
+				$("#EmployeeDiv" + intNextDiv).show();
+				if((totsize)==intNextDiv)
+				{
+					var submitboiler='<table class="table"><tr><td><h3 style="color:green">Your feedback is valuable to us. Thank you for your time.</h3></td></tr></table>';
+					$("#middleframe").html(submitboiler);
+
+
+					$.ajax({
+						url :'afterfeedchangestudpassword.json',
+						async:false,
+						success:function() {
+
+						},
+						error : function() {
+							alert("In grade error");
+						}
+					}); 
+				}	
+			},
+			error : function() {
+				alert("In grade error");
+			}
+		});
+	}
+	else
+	{
+		$('#errorMsg').show();
+	}
+}
+function loadprecomptTheory(attributeid)
+{
+	$('#feedbackstart').hide();
+	$('#msgparaegraph').hide();
+	var attibuteID = attributeid;
+	var gsize = '';
+	var gradid = '';
+	var inputType = 1;
+	$("#middleframe").html('');
+	kpaBoilerPlate='';
+	kpaBoilerPlatePractical='';
+	var gradeval=new Array();
+	var defaultval=new Array();
+	var radiocnt=1;
+	$.ajax({
+		url : 'getperformancematrixkpaForInstituteAppraisal.json?kpaScheduleAttributeId='+attibuteID+'&type=theory',
+		dataType : 'json',
+		async : false,
+		beforeSend:function() {
+			$('#loadingProgress').show();
+		},
+		complete: function() {
+			$('#loadingProgress').hide();
+		},
+		success : function(jArray) {
+			var j = jArray.length;
+
+			if (j > 0) {
+				for ( var i = 0; i < j; i++)
+				{
+					kpaGradeTypeTheory=jArray[i]["gradetype"];
+					if(jArray[i]["gradetype"]=='alphabet')
+					{
+						gradid = jArray[i]["kpaGradeAlphabetId"];
+
+						$.ajax({
+							url : 'getperformancematrixgradeForInstituteAppraisal.json?gradid='+gradid,
+							dataType : 'json',
+							async : false,
+							beforeSend:function() {
+								$('#loading').modal('show');
+							},
+							complete: function() {
+								$('#loading').modal('hide');
+							},
+							success : function(jGrade) {
+
+								gsize = jGrade.length;
+
+
+								kpaBoilerPlate += '<table class="table" style="margin-left:0%; margin-right:0%; width:100%;">' +
+								'<tr><th colspan="'+(gsize)+ '"><label><strong>'+ jArray[i]["kpaName"]+
+								'</strong></label></th><th><label id="matrixfor"><strong>Course Type :'+ jArray[i]["matrixFor"]+'</strong></label></th>'+
+								'</tr><tr><td></td>';
+
+								for ( var grade = 0; grade < gsize; grade++)
+								{
+									kpaBoilerPlate += '<th><label><strong>'+jGrade[grade]["gradeName"]+'</strong><label></th>';
+
+									gradeval[grade]=jGrade[grade]["kpaGradeAlphabetDetailId"];
+									defaultval[grade]=jGrade[grade]["gradeDefaultSetting"];
+								}
+
+							},
+							error : function() {
+								alert("In grade error");
+							}
+						});
+						kpaBoilerPlate += '</tr>';
+
+						var kpascheduleattributekpaId = jArray[i]["kpaScheduleAttributeKPAId"];
+
+						$.ajax({
+							url :'getperformancematrixcompetencyForInstituteAppraisal.json?kpascheduleattributekpaId='+kpascheduleattributekpaId,
+							dataType : 'json',
+							async : false,
+							beforeSend:function() {
+								$('#loading').modal('show');
+							},
+							complete: function() {
+								$('#loading').modal('hide');
+							},
+							success : function(jComp){
+
+								csize = jComp.length;
+								var cid=0;
+								for ( var comp = 0; comp < csize; comp++) {
+									kpaBoilerPlate += '<tr><th><label><pre style="background-color:white;border:0px">'+ jComp[comp]["competencyName"]+ '</pre></label></th>';
+
+									kpaScheduleAttributecompetencyid[cid]=jComp[comp]["kpaScheduleAttributeCompetencyId"];
+									cid++;
+									inputType = jArray[i]["typeOf"];
+									for ( var grade = 0; grade < gsize; grade++) {
+										kpaBoilerPlate += '<td  align="center" align="center">';
+										if (inputType == 1)//for radio button
+										{
+											if(defaultval[grade]==1)
+												kpaBoilerPlate += '<input type="radio" class="gradeval" name="R'+radiocnt+'" value="'+gradeval[grade]+'" checked="checked">';
+											else
+												kpaBoilerPlate += '<input type="radio" class="gradeval" name="R'+radiocnt+'" value="'+gradeval[grade]+'">';	
+
+										}
+
+										if (inputType == 2)//for checkbox 
+											kpaBoilerPlate += '<input type="checkbox" name="C" value="ON">';
+										if (inputType == 3)//for combo box
+										{
+											kpaBoilerPlate += '<select id="g">'
+												+ '<option value="1">1</option>'
+												+ '<option value="2">2</option>'
+												+ '<option value="3">3</option>'
+												+ '<option value="4">4</option>'
+												+ '<option value="5">5</option>'
+												+ '<option value="6">6</option>'
+												+ '<option value="7">7</option>'
+												+ '<option value="8">8</option>'
+												+ '<option value="9">9</option>'
+												+ '<option value="10">10</option>'
+												+ '</select>';
+										}
+
+										kpaBoilerPlate += '</td>';
+									}
+									radiocnt++;
+									kpaBoilerPlate += '</tr>';
+								}
+
+							},
+							error : function() {
+//								jAlert("Something went wrong, Please try after some time","Error");
+								getCustomAlertMessage("alert_error");
+							}
+						});
+						kpaBoilerPlate += '<tr><td  align="Left"><label><strong>Comment</strong></label></td><td colspan="'+ (gsize+2)+'"><textarea  id="feedcomment" style="width: 90%"></textarea></td></tr></table>';
+					}
+					else
+					{
+						gradid = jArray[i]["kpaGradeNumericId"];
+
+						var kpascheduleattributekpaId = jArray[i]["kpaScheduleAttributeKPAId"];
+
+						$.ajax({
+							url :'getperformancematrixcompetencyForInstituteAppraisal.json?kpascheduleattributekpaId='+kpascheduleattributekpaId,
+							dataType : 'json',
+							async : false,
+							beforeSend:function() {
+								$('#loading').modal('show');
+							},
+							complete: function() {
+								$('#loading').modal('hide');
+							},
+							success : function(jComp){
+
+								csize = jComp.length;
+
+								kpaBoilerPlate += '<table class="table" style="margin-left:0%; margin-right:0%; width:100%;">'+
+								'<tr><th colspan="'+(csize+1)+ '"><label><strong>'+ jArray[i]["kpaName"] +
+								'</strong></label></th><th><label id="matrixfor"><strong>Course Type :'+ jArray[i]["matrixFor"]+'</strong></label></th>'+
+								'</tr><tr><td></td>';
+
+								$.ajax({
+									url:'getKpaNumericValue.json?kpaGradeNumericId='+gradid,
+									dataType:'json',
+									async:false,
+									beforeSend:function() {
+										$('#loading').modal('show');
+									},
+									complete: function() {
+										$('#loading').modal('hide');
+									},
+									success:function(jGrade){
+
+										var mingrade=jGrade["mingrade"];
+										var maxgrade=jGrade["maxgrade"];
+										var defaultgrade=jGrade["defaultgrade"];
+
+										for ( var comp = 0; comp < csize; comp++)
+										{
+											kpaBoilerPlate += '<th><label><strong><pre style="background-color:white;border:0px">'
+												+ jComp[comp]["competencyName"]+' (Out of '+maxgrade+')'
+												+ '</pre></strong><label></th>';
+										}
+
+										kpaBoilerPlate+='<th>Total (Out of '+parseInt(csize)*parseInt(maxgrade)+')</th></tr>';
+
+										kpaBoilerPlate+='<tr><th></th>';
+										var cid=0;
+										for(var comp=0; comp<csize; comp++)
+										{
+											kpaBoilerPlate+='<td><select class="gradeval" onchange="totalfeedCount(\'totalcount\')">';
+											kpaScheduleAttributecompetencyid[cid]=jComp[comp]["kpaScheduleAttributeCompetencyId"];
+											cid++;
+											for(var temp=mingrade; temp<=maxgrade; temp++)
+											{
+												if(temp==defaultgrade)
+													kpaBoilerPlate+='<option value="'+temp+'" selected="selected">'+temp+'</option>';
+												else
+													kpaBoilerPlate+='<option value="'+temp+'">'+temp+'</option>';
+											}
+											kpaBoilerPlate+='</select></td>';
+										}
+										kpaBoilerPlate+='<td><label id="totalcount">'+parseInt(csize)*parseInt(defaultgrade)+'</label></td>';
+									},
+									error:function(){
+										alert("In grade error");
+									}
+								});
+
+							},
+							error : function() {
+								alert("In grade error");
+							}
+						});
+						kpaBoilerPlate += '</tr>';
+						kpaBoilerPlate += '<tr><td  align="Left"><label><strong>Comment</strong></label></td><td colspan="'+ (csize+3)+'"><textarea  id="feedcomment" style="width: 90%"></textarea></td></tr></table>';
+					}
+				}
+			}
+
+		}
+	});
+
+	gradeval=new Array();
+	defaultval=new Array();
+	radiocnt=1;
+	$.ajax({
+		url : 'getperformancematrixkpaForInstituteAppraisal.json?kpaScheduleAttributeId='+attibuteID+'&type=practical',
+		dataType : 'json',
+		async : false,
+		beforeSend:function() {
+			$('#loadingProgress').show();
+		},
+		complete: function() {
+			$('#loadingProgress').hide();
+		},
+		success : function(jArray) {
+			var j = jArray.length;
+
+			if (j > 0) {
+				for ( var i = 0; i < j; i++)
+				{
+					kpaGradeTypePractical=jArray[i]["gradetype"];
+					if(jArray[i]["gradetype"]=='alphabet')
+					{
+						gradid = jArray[i]["kpaGradeAlphabetId"];
+
+						$.ajax({
+							url : 'getperformancematrixgradeForInstituteAppraisal.json?gradid='+gradid,
+							dataType : 'json',
+							async : false,
+							beforeSend:function() {
+								$('#loading').modal('show');
+							},
+							complete: function() {
+								$('#loading').modal('hide');
+							},
+							success : function(jGrade) {
+
+								gsize = jGrade.length;
+
+
+								kpaBoilerPlatePractical += '<table class="table" style="margin-left:0%; margin-right:0%; width:100%;">'+
+								'<tr><th colspan="'+(gsize)+ '"><label><strong>'+ jArray[i]["kpaName"]+
+								'</strong></label></th><th><label id="matrixfor"><strong>Course Type :'+ jArray[i]["matrixFor"]+'</strong></label></th></tr>'+
+								'<tr><td></td>';
+
+								for ( var grade = 0; grade < gsize; grade++)
+								{
+									kpaBoilerPlatePractical += '<th><label><strong>'+ jGrade[grade]["gradeName"]+ '</strong><label></th>';
+
+									gradeval[grade]=jGrade[grade]["kpaGradeAlphabetDetailId"];
+									defaultval[grade]=jGrade[grade]["gradeDefaultSetting"];
+								}
+
+							},
+							error : function() {
+								alert("In grade error");
+							}
+						});
+						kpaBoilerPlatePractical += '</tr>';
+
+						var kpascheduleattributekpaId = jArray[i]["kpaScheduleAttributeKPAId"];
+
+						$.ajax({
+							url :'getperformancematrixcompetencyForInstituteAppraisal.json?kpascheduleattributekpaId='+kpascheduleattributekpaId,
+							dataType : 'json',
+							async : false,
+							beforeSend:function() {
+								$('#loading').modal('show');
+							},
+							complete: function() {
+								$('#loading').modal('hide');
+							},
+							success : function(jComp){
+
+								pracsize = jComp.length;
+								var cid=0;
+								for ( var comp = 0; comp < pracsize; comp++) {
+									kpaBoilerPlatePractical += '<tr><th><label><pre style="background-color:white;border:0px">'+ jComp[comp]["competencyName"]+ '</pre></label></th>';
+
+									kpaScheduleAttributecompetencypracticalid[cid]=jComp[comp]["kpaScheduleAttributeCompetencyId"];
+									cid++;
+									inputType = jArray[i]["typeOf"];
+									for ( var grade = 0; grade < gsize; grade++) {
+
+										kpaBoilerPlatePractical += '<td  align="center" align="center">';
+										if (inputType == 1)//for radio button
+										{
+											if(defaultval[grade]==1)
+												kpaBoilerPlatePractical += '<input type="radio" class="gradeval" name="R'+radiocnt+'" value="'+gradeval[grade]+'" checked="checked">';
+											else
+												kpaBoilerPlatePractical += '<input type="radio" class="gradeval" name="R'+radiocnt+'" value="'+gradeval[grade]+'">';	
+										}
+
+										if (inputType == 2)//for checkbox 
+											kpaBoilerPlatePractical += '<input type="checkbox" name="C" value="ON">';
+										if (inputType == 3)//for combo box
+										{
+											kpaBoilerPlatePractical += '<select id="g">'
+												+ '<option value="1">1</option>'
+												+ '<option value="2">2</option>'
+												+ '<option value="3">3</option>'
+												+ '<option value="4">4</option>'
+												+ '<option value="5">5</option>'
+												+ '<option value="6">6</option>'
+												+ '<option value="7">7</option>'
+												+ '<option value="8">8</option>'
+												+ '<option value="9">9</option>'
+												+ '<option value="10">10</option>'
+												+ '</select>';
+										}
+
+										kpaBoilerPlatePractical += '</td>';
+
+									}
+									radiocnt++;
+									kpaBoilerPlatePractical += '</tr>';
+								}
+
+							},
+							error : function() {
+//								jAlert("Something went wrong, Please try after some time","Error");
+								getCustomAlertMessage("alert_error");
+							}
+						});
+						kpaBoilerPlatePractical += '<tr><td  align="Left"><label><strong>Comment</strong></label></td><td colspan="'+ (gsize+2)+'"><textarea  id="feedcomment" style="width: 90%"></textarea></td></tr></table>';
+
+					}
+					else
+					{
+						gradid = jArray[i]["kpaGradeNumericId"];
+
+						var kpascheduleattributekpaId = jArray[i]["kpaScheduleAttributeKPAId"];
+
+						$.ajax({
+							url :'getperformancematrixcompetencyForInstituteAppraisal.json?kpascheduleattributekpaId='+kpascheduleattributekpaId,
+							dataType : 'json',
+							async : false,
+							beforeSend:function() {
+								$('#loading').modal('show');
+							},
+							complete: function() {
+								$('#loading').modal('hide');
+							},
+							success : function(jComp){
+
+								csize = jComp.length;
+
+								kpaBoilerPlatePractical += '<table class="table" style="margin-left:0%; margin-right:0%; width:100%;">'+
+								'<tr><th colspan="'+(csize+1)+ '"><label><strong>'+ jArray[i]["kpaName"]+
+								'</strong></label></th><th><label id="matrixfor"><strong>Course Type :'+ jArray[i]["matrixFor"]+'</strong></label></th>'+
+								'</tr><tr><td></td>';
+								$.ajax({
+									url:'getKpaNumericValue.json?kpaGradeNumericId='+gradid,
+									dataType:'json',
+									async:false,
+									beforeSend:function() {
+										$('#loading').modal('show');
+									},
+									complete: function() {
+										$('#loading').modal('hide');
+									},
+									success:function(jGrade){
+
+										var mingrade=jGrade["mingrade"];
+										var maxgrade=jGrade["maxgrade"];
+										var defaultgrade=jGrade["defaultgrade"];
+
+										for ( var comp = 0; comp < csize; comp++)
+										{
+											kpaBoilerPlatePractical += '<th><label><strong><pre style="background-color:white;border:0px">'
+												+ jComp[comp]["competencyName"]+' (Out of '+maxgrade+')'
+												+ '</pre></strong><label></th>';
+										}
+
+										kpaBoilerPlatePractical+='<th>Total (Out of '+parseInt(csize)*parseInt(maxgrade)+')</th></tr>';
+
+										kpaBoilerPlatePractical+='<tr><th></th>';
+										var cid=0;
+										for(var comp=0; comp<csize; comp++)
+										{
+											kpaBoilerPlatePractical+='<td><select class="gradeval" onchange="totalfeedCount(\'totalcount\')">';
+											kpaScheduleAttributecompetencypracticalid[cid]=jComp[comp]["kpaScheduleAttributeCompetencyId"];
+											cid++;
+											for(var temp=mingrade; temp<=maxgrade; temp++)
+											{
+												if(temp==defaultgrade)
+													kpaBoilerPlatePractical+='<option value="'+temp+'" selected="selected">'+temp+'</option>';
+												else
+													kpaBoilerPlatePractical+='<option value="'+temp+'">'+temp+'</option>';
+											}
+											kpaBoilerPlatePractical+='</select></td>';
+										}
+										kpaBoilerPlatePractical+='<td><label id="totalcount">'+parseInt(csize)*parseInt(defaultgrade)+'</label></td>';
+
+									},
+									error:function(){
+										alert("In grade error");
+									}
+								});
+
+							},
+							error : function() {
+								alert("In grade error");
+							}
+						});
+						kpaBoilerPlatePractical += '</tr>';
+						kpaBoilerPlatePractical += '<tr><td  align="Left"><label><strong>Comment</strong></label></td><td colspan="'+ (csize+3)+'"><textarea  id="feedcomment" style="width: 90%"></textarea></td></tr></table>';
+					}	
+				}
+
+
+
+			}
+
+		}
+	});
+	getEmployeeListForStudentFeedback(attibuteID);
+}
+
+function totalfeedCount(id)
+{
+	var total=0;
+
+	$('.gradeval').each(function(){
+
+		total=parseInt(total)+parseInt($(this).val());
+
+	});
+
+	$('#'+id).text(total);
+}
+
+
+
+
+
+
+/************************************************************************** Anil kateliya ******************************************************************************/
+
+/****
+ * @author	: Jignesh vaghela
+ * @use		: 
+ * @used	: true
+ */
+function configurePlanList()
+{
+	var hdnUserRole = $('#hdnUserRole').val();	
+	$.ajax({
+//		url:'StudentFeedbackPlans.json',
+		url:'stu_StudentFeedbackPlansNew.json',
+		dataType:'json',
+		type:'POST',
+		data:{globalMyIp:globalMyIp,UserRole:hdnUserRole},
+		async:false,
+		beforeSend: function() {
+			startCommonAjaxSpinner();
+		},
+		complete: function() {
+			stopCommonAjaxSpinner();
+		},
+		success:function(replay){	
+//			var time = new Date();
+//			var cTime = time.getHours()+":"+padNumber(time.getMinutes());
+//			var cDate = time.getFullYear()+"-"+padNumber(time.getMonth() + 1)+"-"+padNumber(time.getDate());
+
+			if(!replay.error)
+			{
+				var boiler = 
+					'<option value="0">Select</option>';
+
+				$('#cmbFeedbackPlans').html(boiler);
+
+				for(var i=0;i<replay.planList.length;i++)
+				{
+//					var startTime = replay.planList[i].startTime;
+//					var endTime = replay.planList[i].endTime;
+//					if(startTime != '' && startTime != undefined && endTime != '' && endTime != undefined){
+//				}
+//				if(cDate == replay.planList[i].startDate && cTime >= startTime){
+//						boiler = '<option value="'+replay.planList[i].kpaPlanId+'">'+replay.planList[i].planName+'</option>';
+//						$('#cmbFeedbackPlans').append(boiler);
+//					}
+// 				else if(cDate == replay.planList[i].endDate &&  cTime <= endTime){
+//						if(replay.planList[i].startDate == replay.planList[i].endDate){
+//							if( cTime >= startTime &&  cTime <= endTime){
+//								boiler = '<option value="'+replay.planList[i].kpaPlanId+'">'+replay.planList[i].planName+'</option>';
+//								$('#cmbFeedbackPlans').append(boiler);
+//							}
+//						}else{
+//							boiler = '<option value="'+replay.planList[i].kpaPlanId+'">'+replay.planList[i].planName+'</option>';
+//							$('#cmbFeedbackPlans').append(boiler);
+//						}
+//					}else if(cDate > replay.planList[i].startDate && cDate < replay.planList[i].endDate){
+						boiler = '<option value="'+replay.planList[i].kpaPlanId+'" minimumReqAttenance="'+replay.planList[i].minimumReqAttenance+'" >'+replay.planList[i].planName+'</option>';
+						$('#cmbFeedbackPlans').append(boiler);
+//					}
+					
+					$('#cmbFeedbackPlans option[value="'+replay.planList[i].kpaPlanId+'"]').data('batchSemId',replay.planList[i].batchSemId);
+				}
+
+			}
+
+		},
+		error:function(){
+//			jAlert("Something went wrong, Please try after some time","Error");
+			getCustomAlertMessage("alert_error");
+		}
+	});
+}
+
+/****
+ * @author	: Jignesh vaghela
+ * @use		: 
+ * @used	: true
+ */
+
+var gStudentFeedbackContent;
+function configureStudentFeedback()
+{
+	$('#divFeedbackContent').html('');
+	var kpaPlanId = $('#cmbFeedbackPlans').val();
+	var batchSemId = $('#cmbFeedbackPlans option[value="'+kpaPlanId+'"]').data('batchSemId');
+	var hdnUserRole = $('#hdnUserRole').val();
+	var minimumReqAttenance = $('#cmbFeedbackPlans option:selected').attr('minimumReqAttenance');
+	var subjectwiseBatchId = 0;
+	if($('#courseWiseFeedbackAfterCompletionofSession').val()==true || $('#courseWiseFeedbackAfterCompletionofSession').val()=='true'){
+		var curUrl = window.location.href;
+		if(curUrl.includes("stu_instituteFeedbackStudent.htm?feedbackParamCallStatus=true")){
+			subjectwiseBatchId = sessionStorage.getItem('feedbackParamsubBatchId');
+		}
+	}
+	
+	if(kpaPlanId!='0')
+	{
+		$.ajax({
+			url:'stu_StudentFeedbackContent.json',
+			dataType:'json',
+			type:'POST',
+			data:{
+				kpaPlanId:kpaPlanId,
+				batchSemId:batchSemId,
+				UserRole:hdnUserRole,
+				minimumReqAttenance:minimumReqAttenance.toString(),
+				subjectwiseBatchId:subjectwiseBatchId
+			},
+				async:false,
+				beforeSend: function() {
+					startCommonAjaxSpinner();
+				},
+				complete: function() {
+					stopCommonAjaxSpinner();
+				},
+				success:function(replay){
+					if(replay.message){
+						
+						jAlert(replay.message);
+					}else{
+						if(!replay.error) {
+							gStudentFeedbackContent = replay;
+							var boiler = '';
+							var count = 0;
+
+							if(gStudentFeedbackContent.instituteMatrix.length>0 && !gStudentFeedbackContent.isInstitute)
+								count--;
+							if(gStudentFeedbackContent.departmentMatrix.length>0 && !gStudentFeedbackContent.isDepartment)
+								count--;
+							if(gStudentFeedbackContent.libraryMatrix.length>0 && !gStudentFeedbackContent.isLibrary)
+								count--;
+							if(gStudentFeedbackContent.hostelMatrix.length>0 && !gStudentFeedbackContent.isHostel)
+								count--;
+							if(gStudentFeedbackContent.alumniMatrix.length>0 && !gStudentFeedbackContent.isAlumni)
+								count--;
+							if(gStudentFeedbackContent.examMatrix.length>0 && !gStudentFeedbackContent.isExam)
+								count--;
+							if(gStudentFeedbackContent.transportMatrix.length>0 && !gStudentFeedbackContent.isTransport)
+								count--;
+							if(gStudentFeedbackContent.internMatrix.length>0 && !gStudentFeedbackContent.isIntern)
+								count--;
+							if(gStudentFeedbackContent.admissionMatrix.length>0 && !gStudentFeedbackContent.isAdmission)
+								count--;
+							if(gStudentFeedbackContent.stuperspectiveMatrix.length>0 && !gStudentFeedbackContent.isstuperspective)
+								count--;
+							if(gStudentFeedbackContent.parperspectiveMatrix.length>0 && !gStudentFeedbackContent.isparperspective)
+								count--;
+							if(gStudentFeedbackContent.programoutcomeMatrix.length>0 && !gStudentFeedbackContent.isprogramoutcome)
+								count--;
+								
+								
+							$('#divFeedbackContent').data('facultyCount',count);
+							//var curriculumMatrix = gStudentFeedbackContent.curriculumMatrix;
+							if(count<0 || replay.facultyList.length>0 || replay.curriculumMatrix.length>0)
+								configureNextFaculty();
+							else {
+								boiler = '<div class="alert alert-error"><h3 style="color:red">You have given feedback.</h3></td></div>';
+								$('#divFeedbackContent').html(boiler);
+								removeJobtrayEntry();
+							}
+						}
+					}
+				},
+				error:function(){
+//					jAlert("Something went wrong, Please try after some time","Error");
+					getCustomAlertMessage("alert_error");
+				}
+		});
+	}
+}
+
+function configureStudentFeedbackRules()
+{
+
+	var kpaPlanId = $('#cmbFeedbackPlans option:selected').val();
+	var minimumReqAttenance = $('#cmbFeedbackPlans option:selected').attr('minimumReqAttenance');
+	if(kpaPlanId!='0')
+	{
+		$.ajax({
+			url:'stu_getRulesForKpaPlanDetails.json',
+			dataType:'json',
+			type:'POST',
+			data:{kpaPlanId:kpaPlanId,
+				minimumReqAttenance:minimumReqAttenance.toString()
+			},
+			async:false,
+			beforeSend: function() {
+				startCommonAjaxSpinner();
+			},
+			complete: function() {
+				stopCommonAjaxSpinner();
+			},
+			success:function(jArray){
+				$('#divFeedbackContent').html('Rules:');
+				var j=jArray.length
+				var boiler = '<table class="table table-bordered">'+
+				'<thead>'+
+				'<th>Rules</th>'+
+				'</thead>'+
+				'<tbody>';
+				var rules = "";
+				/*for ( var i = 0; i < j; i++) { */
+					
+					if(jArray[0]["kpaPlanrules"] != undefined && jArray[0]["kpaPlanrules"] != "undefined")
+						rules = jArray[0]["kpaPlanrules"];
+						
+						boiler+='<tr><td><div>'+rules+'</div></td></tr>';
+				/* }*/
+					boiler+='</tbody></table>';
+				
+
+				boiler +='<div style="text-align:right"><input type="button" value="NEXT"  class="btn btn-inverse btn-mini btnSubmitKpaPlanRules"></div>';
+				$('#divFeedbackContent').html(boiler);
+				$('.btnSubmitKpaPlanRules').click(function (){
+					configureStudentFeedback();
+				});
+				if(j == 0 || rules == ""){
+					$('.btnSubmitKpaPlanRules').trigger('click');
+				}
+				
+			},
+			error:function(){
+//				jAlert("Something went wrong, Please try after some time","Error");
+				getCustomAlertMessage("alert_error");
+			}
+		});
+	}
+}
+
+var facultyNo = 1;
+var facultyCurNo = 1;
+function configureNextFaculty()
+{
+	facultyList = gStudentFeedbackContent.facultyList;
+	var curLength = 0;
+	var otherLength = 0;
+	for(var i=0; i< facultyList.length; i++)
+		{
+		if(gStudentFeedbackContent.facultyList[i].iscurriculum == true ||gStudentFeedbackContent.facultyList[i].iscurriculum == "true")
+			{
+			curLength++;
+			}
+		else
+			{
+			otherLength++;
+			}
+		}
+	
+	
+	precticalMatrix = gStudentFeedbackContent.precticalMatrix;
+	theoryMatrix = gStudentFeedbackContent.theoryMatrix;
+	instituteMatrix = gStudentFeedbackContent.instituteMatrix;
+	departmentMatrix = gStudentFeedbackContent.departmentMatrix;
+	curriculumMatrix = gStudentFeedbackContent.curriculumMatrix;
+	
+	libraryMatrix = gStudentFeedbackContent.libraryMatrix;
+	hostelMatrix = gStudentFeedbackContent.hostelMatrix;
+	alumniMatrix = gStudentFeedbackContent.alumniMatrix;
+	examMatrix = gStudentFeedbackContent.examMatrix;
+	transportMatrix = gStudentFeedbackContent.transportMatrix;
+	internMatrix = gStudentFeedbackContent.internMatrix;
+	admissionMatrix = gStudentFeedbackContent.admissionMatrix;
+	
+	stuperspectiveMatrix =  gStudentFeedbackContent.stuperspectiveMatrix;
+	parperspectiveMatrix = gStudentFeedbackContent.parperspectiveMatrix;
+	programoutcomeMatrix = gStudentFeedbackContent.programoutcomeMatrix;
+	
+	if(precticalMatrix.length==0 && theoryMatrix.length==0 && instituteMatrix.length==0 && departmentMatrix.length==0 && curriculumMatrix.length == 0 && libraryMatrix.length ==0
+			&& hostelMatrix.length==0 && alumniMatrix.length==0 && examMatrix.length == 0 && transportMatrix.length ==0	&& internMatrix.length == 0 && admissionMatrix.length == 0 && parperspectiveMatrix.length == 0 && stuperspectiveMatrix.length == 0 && programoutcomeMatrix.length == 0 ) {
+		boiler = '<div class="alert alert-error"><h3 style="color:red">Feedback schema is not defined. Please contact to your Co-ordinator.</h3></td></div>';
+		$('#divFeedbackContent').html(boiler);
+		return;
+	}
+
+	var facultyCount = $('#divFeedbackContent').data('facultyCount');
+
+	var boiler = '';
+
+	if(facultyCount<facultyList.length)
+	{
+		var schemaDetail;
+		var type = "";
+		if(facultyCount<0 && (!gStudentFeedbackContent.isInstitute && instituteMatrix.length > 0)) {
+			schemaDetail = instituteMatrix;
+			type = 'institute';
+		} else if(facultyCount<0  && (!gStudentFeedbackContent.isDepartment && departmentMatrix.length > 0)) {
+			schemaDetail = departmentMatrix;
+			type = 'department';
+		}
+		
+		 else if(facultyCount<0  && (!gStudentFeedbackContent.isTransport && transportMatrix.length > 0)) {
+			schemaDetail = transportMatrix;
+			type = 'transport';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isHostel && hostelMatrix.length > 0)) {
+			schemaDetail = hostelMatrix;
+			type = 'hostel';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isAlumni && alumniMatrix.length > 0)) {
+			schemaDetail = alumniMatrix;
+			type = 'alumni';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isExam && examMatrix.length > 0)) {
+			schemaDetail = examMatrix;
+			type = 'exam';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isLibrary && libraryMatrix.length > 0)) {
+			schemaDetail = libraryMatrix;
+			type = 'library';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isIntern && internMatrix.length > 0)) {
+			schemaDetail = internMatrix;
+			type = 'intern';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isAdmission && admissionMatrix.length > 0)) {
+			schemaDetail = admissionMatrix;
+			type = 'admission';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isstuperspective && stuperspectiveMatrix.length > 0)) {
+			schemaDetail = stuperspectiveMatrix;
+			type = 'stuperspective';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isparperspective && parperspectiveMatrix.length > 0)) {
+			schemaDetail = parperspectiveMatrix;
+			type = 'parperspective';
+		}else if(facultyCount<0  && (!gStudentFeedbackContent.isprogramoutcome && programoutcomeMatrix.length > 0)) {
+			schemaDetail = programoutcomeMatrix;
+			type = 'programoutcomes';
+		}
+		
+		 
+		 else if(facultyList[facultyCount].isPractical){
+			schemaDetail = precticalMatrix;
+		}else if(facultyList[facultyCount].iscurriculum){
+			schemaDetail = curriculumMatrix;
+		}
+		else 
+			schemaDetail = theoryMatrix;
+
+		if(schemaDetail.length<1)
+		{
+			$('#divFeedbackContent').data('facultyCount',++facultyCount);
+			configureNextFaculty();
+			return;
+		}
+
+		if(facultyCount>=0)
+		{
+			var empId = facultyList[facultyCount].empId;
+			var empName = facultyList[facultyCount].empName;
+			var subName = facultyList[facultyCount].subjectName.gemsDecode();
+			var subCode = facultyList[facultyCount].subCode;
+			boiler = '<table class="table table-bordered" id="tblFacultyDetail">';
+			if(!facultyList[facultyCount].iscurriculum){
+				boiler +='<tr><td style="width:10%"><b>Faculty Name</b></td>';
+				boiler +='<td>'+
+			'<img src="getEmployeeProfileImageById.json?id='+encodeURIComponent(empId)+'" width="36px" height="36px" border="1" style="background-color: #FFFFFF" />'+
+			'&nbsp;&nbsp;<b>'+empName+'</b></td></tr>';
+			}
+			if ($('#customerHelper').val() != "RAMAIAH") {
+			boiler +='<tr><td style="width:15%"><b>Course Name</b></td><td><b>'+subName+'</b></td><td style="width:15%"><b>Course Code</b></td><td><b>'+subCode+'</b></td></tr>';
+			
+			if ($('#customerHelper').val() == "NITIE") {
+				boiler +='<tr><td style="width:15%"><b>Semester </b></td><td><b>'+gStudentFeedbackContent.semesterName+'</b></td>';
+			}
+			if ($('#customerHelper').val() != "DES")
+				{
+				
+				var facultyNoUpdate = 0; 
+				var overAllCnt = 0;
+				var deptName = subName.split("-")[0];
+				if(facultyList[facultyCount].iscurriculum)
+					{
+					facultyNoUpdate = facultyCurNo++; 
+					overAllCnt = curLength;
+					}
+				else{
+					facultyNoUpdate = facultyNo++; 
+					overAllCnt = otherLength;
+					}
+				
+				if ($('#customerHelper').val() == "NITIE") {
+					boiler +='<td colspan="2" style="text-align:right"><b> '+(facultyNoUpdate)+' / '+overAllCnt+' </b></td></tr>';
+				}else{
+					boiler +='<tr><td colspan="4" style="text-align:right"><b> Course/Faculty :  '+(facultyNoUpdate)+' / Remaining : '+overAllCnt+' </b></td></tr>';
+				}
+				}
+			boiler +='</table><br>';
+			}
+			else
+				{
+				var facultyNoUpdate = 0; 
+				var overAllCnt = 0;
+				var deptName = subName.split("-")[0];
+				if(facultyList[facultyCount].iscurriculum)
+					{
+					facultyNoUpdate = facultyCurNo++; 
+					overAllCnt = curLength;
+					}
+				else{
+					facultyNoUpdate = facultyNo++; 
+					overAllCnt = otherLength;
+					}
+				boiler +='<tr><td style="width:10%"><b>Programme</b></td><td><b>'+deptName+'</b></td>'+
+//				'<td style="width:10%">Subject Code</td><td>'+subCode+'</td>'+
+				'</tr><tr><td colspan="4" style="text-align:right"><b> Course/Faculty : '+(facultyNoUpdate)+' / Remaining : '+overAllCnt+' </b></td></tr></table><br>';				
+				}
+		} else {
+
+if(schemaDetail.length > 0 && type == 'institute')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && !gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Institute Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'department'){// && !gStudentFeedbackContent.isLibrary && gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && !gStudentFeedbackContent.isExam)
+	if($('#customerHelper').val() != 'RAMAIAH_UNIVERSITY' && $('#customerHelper').val() != 'RAMAIAH'){
+		boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Programme Feedback</th></tr></thead></table><br>';
+	}else{
+		boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Programme Curriculum Feedback</th></tr></thead></table><br>';
+	}
+}else if(schemaDetail.length > 0 && type == 'transport')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && !gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Transport Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'hostel')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && !gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Hostel Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'alumni')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && !gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Alumni Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'exam')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && gStudentFeedbackContent.isAlumni && !gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Exam Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'library')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Library Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'intern')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && gStudentFeedbackContent.isExam)
+				boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Intern Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'admission')// && !gStudentFeedbackContent.isLibrary && !gStudentFeedbackContent.isInstitute && !gStudentFeedbackContent.isDepartment && !gStudentFeedbackContent.isTransport && !gStudentFeedbackContent.isHostel && !gStudentFeedbackContent.isAlumni && gStudentFeedbackContent.isExam)
+	boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Admission Process Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'stuperspective')
+	boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Student Perspective Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'parperspective')
+	boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Parents Perspective Feedback</th></tr></thead></table><br>';
+else if(schemaDetail.length > 0 && type == 'programoutcomes')
+	boiler = '<table class="table table-bordered" id="tblFacultyDetail" style="width:980px;"><thead><tr><th>Program Outcomes</th></tr></thead></table><br>';
+
+		}
+
+		boiler += '<div id="divFacultyFeedbackDetail" style="height:100%;"></div>'+
+		'<div style="text-align:center">'+
+		'<input type="button" class="btn btn-inverse btn-mini " value="Save and Next" id="btnSaveFeedBack">'+
+		'</div>';
+		$('#divFeedbackContent').html(boiler);
+		$('#divFeedbackContent').data('facultyCount',facultyCount);
+		$('#divFeedbackContent').data('type',type);
+		
+		$('#btnSaveFeedBack').unbind('click');
+		$('#btnSaveFeedBack').click(function(){
+			submitStdFeedbackForFaculty(facultyList,precticalMatrix,theoryMatrix,curriculumMatrix);
+		});
+
+		for(var i=0;i<schemaDetail.length;i++)
+		{
+			var gradesLength = 1;
+			var gradeBoiler = '';
+
+			if(schemaDetail[i].type==4) {
+				gradesLength = 2;
+				gradeBoiler = '<tr><td></td><th style="text-align:center">Description</th></tr>';
+			} else if(!schemaDetail[i].isNumericGrade && !schemaDetail[i].isCompetencyGroup) {
+				gradeBoiler = '<tr><td></td>';
+				gradesLength = (schemaDetail[i].grades.length)+1;
+				for(var j=0;j<schemaDetail[i].grades.length;j++)
+				{
+					var gradeName = schemaDetail[i].grades[j].abbrivation==undefined?"":schemaDetail[i].grades[j].abbrivation;
+					gradeBoiler += '<th style="text-align:center">'+gradeName+'</th>';
+				}
+				gradeBoiler += '</tr>';
+			} else if(schemaDetail[i].isNumericGrade) {
+				gradesLength = 2;
+				gradeBoiler = '<tr><td></td><th style="text-align:center">Marks</th></tr>';
+			} else if(schemaDetail[i].isCompetencyGroup) {
+				gradesLength = 1;
+				gradeBoiler = '';
+			}
+
+			var matrixType = '';
+
+			var kpaName = schemaDetail[i].kpaName==undefined?"":schemaDetail[i].kpaName;
+			boiler = '<table class="table table-bordered tblSchemaMatrix" style="width:100%;" id="kpaSchmaMatrix_'+i+'">'+
+			matrixType+'<tr><th colspan="'+gradesLength+'" style="text-align:left;font-size: 12px;">'+kpaName+'</th>'+
+			'</tr>'+gradeBoiler;
+
+			var typeOf= schemaDetail[i].type==undefined?0:schemaDetail[i].type;
+			var noOfGroup = schemaDetail[i].noOfGroup==undefined?0:schemaDetail[i].noOfGroup;
+
+			var groupNo = 0;
+
+			if(typeOf==4) {
+				for(var j=0;j<schemaDetail[i].competency.length;j++)
+				{
+					var competencyName = schemaDetail[i].competency[j].competencyName==undefined?"":(schemaDetail[i].competency[j].competencyName).replace(/&singleQuote;/g,'\'');
+					boiler += '<tr><td><pre style="background-color:white;border:0px">'+competencyName+'</pre></td><td style="text-align:center"><textarea class="hasQtip" id="text_'+i+'_'+j+'" style="width: 577px; height: 85px;"></textarea></td></tr>';
+				}
+			} else if(!schemaDetail[i].isNumericGrade && !schemaDetail[i].isCompetencyGroup) {
+
+				for(var j=0;j<schemaDetail[i].competency.length;j++)
+				{
+					var competencyName = schemaDetail[i].competency[j].competencyName==undefined?"":(schemaDetail[i].competency[j].competencyName).replace(/&singleQuote;/g,'\'');
+
+					boiler += '<tr><td class="hasQtip" id="competencyOf_'+i+'_'+j+'" style="min-width:200px;"><b><pre style="background-color:white;border:0px">'+competencyName+'</pre></b></td>';
+
+					for(var k=0;k<schemaDetail[i].grades.length;k++)
+					{
+						var gradeId = schemaDetail[i].grades[k].gradeId;
+					//	boiler += '<td style="text-align:center">';
+
+						if(typeOf==1)//for radio button
+							boiler+='<td style="text-align:center; width: 10%;"><input type="radio" name="R_'+i+'_'+j+'" atrGrd="'+gradeId+'px" class="markOf_'+i+'_'+j+'">';
+						else if(typeOf==2)//for checkbox 
+							boiler+='<td style="text-align:center; width: 10%;"><input type="checkbox" name="c_'+i+'_'+j+'" atrGrd="'+gradeId+'px" class="markOf_'+i+'_'+j+'">';
+
+						boiler += '</td>';
+					}
+
+					boiler +='</tr>';
+				}
+			} else if(schemaDetail[i].isNumericGrade) {
+				for(var j=0;j<schemaDetail[i].competency.length;j++)
+				{
+					var competencyName = schemaDetail[i].competency[j].competencyName==undefined?"":(schemaDetail[i].competency[j].competencyName).replace(/&singleQuote;/g,'\'');
+					var marks = schemaDetail[i].competency[j].competencyMarks==undefined?1:schemaDetail[i].competency[j].competencyMarks;
+					boiler += '<tr><td><pre style="background-color:white;border:0px">'+competencyName+'</pre></td>';
+
+					if(typeOf==3)//for combo box
+					{
+						boiler+= '<td><select class="hasQtip" id="selectBox_'+i+'_of_'+j+'"><option value="">Select</option>';
+
+						for(var k=1;k<=marks;k++)
+							boiler+='<option value="'+k+'">'+k+'</option>';
+
+						boiler +='</select></td>';
+					}
+
+					boiler +='</tr>';
+				}
+			} else if(schemaDetail[i].isCompetencyGroup) {
+				for(var j=0;j<schemaDetail[i].competency.length;j++)
+				{
+					var competencyName = schemaDetail[i].competency[j].competencyName==undefined?"":(schemaDetail[i].competency[j].competencyName).replace(/&singleQuote;/g,'\'');
+					groupNo = schemaDetail[i].competency[j].groupNo==undefined?0:schemaDetail[i].competency[j].groupNo;
+					boiler += '<tr><td>'+
+					'<input type="checkbox" class="Group_'+i+'_'+groupNo+' competencyGroup_'+i+'" id="groupCompetency_'+i+'_'+j+'" onclick="manageGroupCheckBox(this,'+i+','+noOfGroup+','+groupNo+');"><pre style="background-color:white;border:0px">'+
+					competencyName+'</pre></td></tr>';
+				}
+			}
+
+			boiler += '</table>';
+			$('#divFacultyFeedbackDetail').append(boiler);
+		}
+		if(type != 'stuperspective' && type != 'parperspective' && type !='programoutcomes')
+			{
+		boiler = '<table class="table table-bordered" style="width:100%">';
+		boiler+='<tr>';
+		if ($('#customerHelper').val() == "INDIRA_PUNE") {
+				boiler+='<td style="width:20%;display:none"><label style="display:none">Comment/Suggestion</td>';
+			boiler+='<td style="display:none"><textarea id="empComment" style="width:99%;display:none">-</textarea></td></tr>'+
+			'</table>';      // Comment Section Removed As Per Client Request --  Ticket #432544
+		}
+		else
+			{
+			if($('#customerHelper').val() == "DES"){
+				if(type == 'institute')		
+				{
+						boiler+='<td style="width:20%;"><label>Give three observation / suggestions to improve the overall teaching / learning experience in your institution.</td>';
+				}else{
+					if($('#customerHelper').val() == "DYPATIL"){
+						boiler+='<td style="width:20%;"><label><b>Comments / Any other suggestions</b></td>';
+					}else{
+						boiler+='<td style="width:20%;"><label><b>Comments</b></td>';
+					}
+					
+				}
+			}else
+			{
+				if($('#customerHelper').val() == "DYPATIL"){
+					boiler+='<td style="width:20%;"><label><b>Comments / Any other suggestions</b></td>';
+				}else{
+					boiler+='<td style="width:20%;"><label><b>Comments</b></td>';
+				}
+			}
+			
+			
+			boiler+='<td><textarea id="empComment" style="width:99%;">-</textarea></td></tr>'+
+			'</table>';
+			}
+		
+//		boiler+='<td><textarea id="empComment" style="width:99%;">-</textarea></td></tr>'+
+//		'</table>';
+			}
+		else{
+			boiler = '<table class="table table-bordered" style="width:100%;display:none">'+
+			'<tr><td style="width:20%;display:none"><label>Comment</td>'+
+			'<td><textarea id="empComment" style="width:99%;display:none">-</textarea></td></tr>'+
+			'</table>';
+		}
+
+		$('#divFacultyFeedbackDetail').append(boiler);
+		//$(window).unbind('scroll');
+		//$(window).scroll(sticky_relocate);
+
+	} else {
+		boiler = '<div class="alert alert-error"><h3 style="color:red">Thanks for your valuable time and feedback.</h3></td></div>';
+		$('#divFeedbackContent').html(boiler);
+		removeJobtrayEntry();
+	}
+}
+
+function sticky_relocate() {
+
+	var window_top = $(window).scrollTop();
+	var div_top = $('#tblFeedbackPlan').offset().top;
+	if (window_top > div_top) {
+		$('#tblFacultyDetail').addClass('stick');
+		$('#tblFacultyDetail').css('top','2px');
+	} else {
+		$('#tblFacultyDetail').removeClass('stick');
+		$('#tblFacultyDetail').css('top','');
+	}
+}
+
+function manageGroupCheckBox(chkSrc,i,noOfGroup,groupNo)
+{
+	if($(chkSrc).is(':checked')) {
+		for(var j=1;j<=noOfGroup;j++) {
+
+			if(j!=groupNo) {
+				$('.Group_'+i+'_'+j).attr('checked',false);
+				$('.Group_'+i+'_'+j).attr('disabled',true);
+			}
+		}
+	} else {
+		if($('#Group_'+i+'_'+groupNo+':checked').length<1)
+			$('.competencyGroup_'+i).attr('disabled',false);
+	}
+}
+
+function submitStdFeedbackForFacultyOld(facultyList,precticalMatrix,theoryMatrix,curriculumMatrix)
+{
+	
+	try{$('.hasQtip').qtip('destroy');}catch(e){}
+	var kpaPlanId = $('#cmbFeedbackPlans').val();
+	var facultyCount = $('#divFeedbackContent').data('facultyCount');
+	var feedbackDetail = [];
+	var matrixCount;
+	var schemaDetail;
+	var comment = ($('#empComment').val()+"").trim();
+	if(comment=='')
+		comment = 'NA';
+	var empId;
+	var empSubId = "0";
+	var subId = "0";
+	var instituteFeedback = false;
+
+	
+	var departmentFeedback = false;
+	var libraryFeedback = false;
+	var hostelFeedback = false;
+	var alumniFeedback = false;
+	var examFeedback = false;
+	var transportFeedback = false;
+	var internFeedback = false;
+	var admissionFeedback = false;
+	
+	var stuperspectiveFeedback = false;
+	var parperspectiveFeedback = false;
+	var programoutcomeFeedback = false;
+	
+	var type = $('#divFeedbackContent').data('type');
+	if(facultyCount<0 && departmentMatrix.length > 0 && type=="department") {
+		
+		matrixCount = departmentMatrix.length;
+		schemaDetail = departmentMatrix;
+		empId = "NO/ADJUSTMENT";
+		departmentFeedback = true;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		
+	} else if(facultyCount<0 && instituteMatrix.length > 0 && type=="institute") {
+		matrixCount = instituteMatrix.length;
+		schemaDetail = instituteMatrix;		
+		empId = "NO/ADJUSTMENT";
+		instituteFeedback = true;
+		departmentFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	} 
+	
+	else if(facultyCount<0 && libraryMatrix.length > 0 && type=="library"){
+		matrixCount = libraryMatrix.length;
+		schemaDetail = libraryMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		libraryFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && hostelMatrix.length > 0 && type=="hostel"){
+		matrixCount = hostelMatrix.length;
+		schemaDetail = hostelMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		hostelFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && alumniMatrix.length > 0 && type=="alumni"){
+		matrixCount = alumniMatrix.length;
+		schemaDetail = alumniMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		alumniFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && examMatrix.length > 0 && type=="exam"){
+		matrixCount = examMatrix.length;
+		schemaDetail = examMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		examFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && transportMatrix.length > 0 && type=="transport"){
+		matrixCount = transportMatrix.length;
+		schemaDetail = transportMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		transportFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && internMatrix.length > 0 && type=="intern"){
+		matrixCount = internMatrix.length;
+		schemaDetail = internMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = true;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && admissionMatrix.length > 0 && type=="admission"){
+		matrixCount = admissionMatrix.length;
+		schemaDetail = admissionMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		admissionFeedback = true;
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		stuperspectiveFeedback = false;
+		
+		}
+	else if(facultyCount<0 && stuperspectiveMatrix.length > 0 && type=="stuperspective"){
+		matrixCount = stuperspectiveMatrix.length;
+		schemaDetail = stuperspectiveMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		stuperspectiveFeedback = true;
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		}
+	else if(facultyCount<0 && parperspectiveMatrix.length > 0 && type=="parperspective"){
+		matrixCount = parperspectiveMatrix.length;
+		schemaDetail = parperspectiveMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		parperspectiveFeedback = true;
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		
+		}else if(facultyCount<0 && programoutcomeMatrix.length > 0 && type=="programoutcomes"){
+			matrixCount = programoutcomeMatrix.length;
+			schemaDetail = programoutcomeMatrix;		
+			empId = "NO/ADJUSTMENT";
+
+			parperspectiveFeedback = false;
+			transportFeedback = false;
+			departmentFeedback = false;
+			instituteFeedback = false;
+			libraryFeedback = false;
+			hostelFeedback = false;
+			alumniFeedback = false;
+			examFeedback = false;
+			internFeedback = false;
+			admissionFeedback = false;
+			stuperspectiveFeedback = false;
+			programoutcomeFeedback = true;
+			
+		}else {
+
+		empId = facultyList[facultyCount].empId;
+		empSubId = facultyList[facultyCount].empSubId;
+		subId = facultyList[facultyCount].subId;
+
+		if(facultyList[facultyCount].isPractical) {
+			matrixCount = precticalMatrix.length;
+			schemaDetail = precticalMatrix;
+		}else if(facultyList[facultyCount].iscurriculum) {
+			matrixCount = curriculumMatrix.length;
+			schemaDetail = curriculumMatrix;
+		} else {
+			matrixCount = theoryMatrix.length;
+			schemaDetail = theoryMatrix;
+		}
+	}
+
+	var flag = true;
+	for(var i=0;i<matrixCount;i++)
+	{
+		var typeOf = schemaDetail[i].type==undefined?0:schemaDetail[i].type;
+
+		for(var j=0;j<schemaDetail[i].competency.length;j++)
+		{
+			var compId = schemaDetail[i].competency[j].kpaScheduleAttrCompetencyId==undefined?"":schemaDetail[i].competency[j].kpaScheduleAttrCompetencyId;
+			var competency = schemaDetail[i].competency[j].competencyName==undefined?"":(schemaDetail[i].competency[j].competencyName).replace(/&singleQuote;/g,'\'');
+			var marks;
+			var type="";
+
+			if(typeOf==4) {
+				type = "text";
+				marks = $('#text_'+i+'_'+j).val();
+//				$('#text_'+i+'_'+j).qtip('destroy');
+				hideFileDetail('text_'+i+'_'+j);
+				if(marks == ""){
+					showValidateMsg('text_'+i+'_'+j,'Enter data for '+competency);
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+
+					break;
+				}
+			} else if(schemaDetail[i].isNumericGrade) {
+				marks = $('#selectBox_'+i+'_of_'+j).val();
+				type = "numeric";
+				hideFileDetail('selectBox_'+i+'_of_'+j);
+//				$('#selectBox_'+i+'_of_'+j).qtip('destroy');
+				if(marks.length==0) {
+					showValidateMsg('selectBox_'+i+'_of_'+j,'Select grade for '+competency);
+					$("html, body").animate({scrollTop: 0}, 2000);
+
+					break;
+				}
+			} else if(schemaDetail[i].isCompetencyGroup) {
+				marks = 1;
+				type = "competencyGroup";
+//				$('#competencyOf_'+i+'_'+j).qtip('destroy');
+				hideFileDetail('competencyOf_'+i+'_'+j);
+				if($('.competencyGroup_'+i+':checked').length<1) {
+					showValidateMsg('competencyOf_'+i+'_'+j,'Select grade for '+competency);
+					
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+					break;
+					
+				}
+			} else {
+//				$('#competencyOf_'+i+'_'+j).qtip('destroy');
+				hideFileDetail('competencyOf_'+i+'_'+j);
+				marks = $('.markOf_'+i+'_'+j+':checked').attr('atrGrd');
+				if($('.markOf_'+i+'_'+j+':checked').length<1) {
+					showValidateMsg('competencyOf_'+i+'_'+j,'Select grade for '+competency);
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+
+					break;
+					}
+				else
+					marks = marks.split('px')[0];
+				type = "alphabetic";
+			}
+
+			if(marks==undefined)
+				marks=0;
+
+			if((schemaDetail[i].isCompetencyGroup && $('#groupCompetency_'+i+'_'+j).is(':checked'))||!schemaDetail[i].isCompetencyGroup)
+				var str = (compId+'argSep'+marks+'argSep'+type).replace(/,/g, '~comma~');
+				feedbackDetail.push(str.replace(/'/g, '~apostrophe~'));
+		}
+	}
+
+	if(flag)
+	{
+		$.ajax({
+			url:'stu_SubmitStdFeedbackForFaculty.json',
+			dataType:'json',
+			type:'POST',
+			data:{kpaPlanId:kpaPlanId,
+				empSubId:empSubId,
+				subId:subId,
+				comment:comment,
+				feedbackDetail:feedbackDetail+'',
+				empId:empId
+			},
+			async:false,
+			beforeSend:function() {
+//				$('#loading').modal('show');
+				startCommonAjaxSpinner();		
+			},
+			complete: function() {
+//				$('#loading').modal('hide');
+				stopCommonAjaxSpinner(); 
+			},
+			success:function(replay){	
+
+				if(!replay.error) {
+					if(instituteFeedback)
+					{
+						gStudentFeedbackContent.isInstitute = true;
+					}
+					else if(departmentFeedback)
+					{
+						gStudentFeedbackContent.isDepartment = true;
+					}
+					else if(libraryFeedback)
+					{
+						gStudentFeedbackContent.isLibrary = true;
+					}
+					else if(hostelFeedback)
+					{
+						gStudentFeedbackContent.isHostel = true;
+					}
+					else if(alumniFeedback)
+					{
+						gStudentFeedbackContent.isAlumni = true;
+					}
+					else if(examFeedback){
+						gStudentFeedbackContent.isExam = true;
+					}
+					else if(transportFeedback)
+					{
+						gStudentFeedbackContent.isTransport = true;
+					}else if(internFeedback)
+					{
+						gStudentFeedbackContent.isIntern = true;
+					}else if(admissionFeedback){
+						gStudentFeedbackContent.isAdmission = true;	
+					}
+					else if(stuperspectiveFeedback)
+					{
+						gStudentFeedbackContent.isstuperspective = true;	
+					}else if(parperspectiveFeedback)
+					{
+						gStudentFeedbackContent.isparperspective = true;	
+					}else if(programoutcomeFeedback)
+					{
+						gStudentFeedbackContent.isprogramoutcome = true;	
+					}
+					
+					
+					$('#divFeedbackContent').data('facultyCount',(parseInt(facultyCount)+parseInt(1)));
+					configureNextFaculty();
+				} else if(replay.errorCode=="1001"){
+					location.reload(true);
+				}
+				$("html, body").animate({ scrollTop: 0 }, "slow");
+				  return false;
+					//location.reload(true);
+
+			},
+			error:function(){
+				getCustomAlertMessage("alert_error");
+			}
+		});
+	}
+	else{
+		return;
+	}
+}
+
+
+function submitStdFeedbackForFaculty(facultyList,precticalMatrix,theoryMatrix,curriculumMatrix)
+{
+	try{$('.hasQtip').qtip('destroy');}catch(e){}
+	var kpaPlanId = $('#cmbFeedbackPlans').val();
+	var facultyCount = $('#divFeedbackContent').data('facultyCount');
+	var feedbackDetail = [];
+	var matrixCount;
+	var schemaDetail;
+	var comment = ($('#empComment').val()+"").trim();
+	if(comment=='')
+		comment = 'NA';
+	var empId;
+	var empSubId = "0";
+	var subId = "0";
+	var instituteFeedback = false;
+
+	
+	var departmentFeedback = false;
+	var libraryFeedback = false;
+	var hostelFeedback = false;
+	var alumniFeedback = false;
+	var examFeedback = false;
+	var transportFeedback = false;
+	var internFeedback = false;
+	var admissionFeedback = false;
+	
+	var stuperspectiveFeedback = false;
+	var parperspectiveFeedback = false;
+	var programoutcomeFeedback = false;
+	
+	var type = $('#divFeedbackContent').data('type');
+	if(facultyCount<0 && departmentMatrix.length > 0 && type=="department") {
+		
+		matrixCount = departmentMatrix.length;
+		schemaDetail = departmentMatrix;
+		empId = "NO/ADJUSTMENT";
+		departmentFeedback = true;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	} else if(facultyCount<0 && instituteMatrix.length > 0 && type=="institute") {
+		matrixCount = instituteMatrix.length;
+		schemaDetail = instituteMatrix;		
+		empId = "NO/ADJUSTMENT";
+		instituteFeedback = true;
+		departmentFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	} 
+	
+	else if(facultyCount<0 && libraryMatrix.length > 0 && type=="library"){
+		matrixCount = libraryMatrix.length;
+		schemaDetail = libraryMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		libraryFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && hostelMatrix.length > 0 && type=="hostel"){
+		matrixCount = hostelMatrix.length;
+		schemaDetail = hostelMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		hostelFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && alumniMatrix.length > 0 && type=="alumni"){
+		matrixCount = alumniMatrix.length;
+		schemaDetail = alumniMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		alumniFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		examFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && examMatrix.length > 0 && type=="exam"){
+		matrixCount = examMatrix.length;
+		schemaDetail = examMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		examFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		transportFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && transportMatrix.length > 0 && type=="transport"){
+		matrixCount = transportMatrix.length;
+		schemaDetail = transportMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		transportFeedback = true;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+	}
+	else if(facultyCount<0 && internMatrix.length > 0 && type=="intern"){
+		matrixCount = internMatrix.length;
+		schemaDetail = internMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = true;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		
+	}
+	else if(facultyCount<0 && admissionMatrix.length > 0 && type=="admission"){
+		matrixCount = admissionMatrix.length;
+		schemaDetail = admissionMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		admissionFeedback = true;
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		stuperspectiveFeedback = false;
+		
+		}
+	
+	else if(facultyCount<0 && stuperspectiveMatrix.length > 0 && type=="stuperspective"){
+		matrixCount = stuperspectiveMatrix.length;
+		schemaDetail = stuperspectiveMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		stuperspectiveFeedback = true;
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		parperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		}
+	else if(facultyCount<0 && parperspectiveMatrix.length > 0 && type=="parperspective"){
+		matrixCount = parperspectiveMatrix.length;
+		schemaDetail = parperspectiveMatrix;		
+		empId = "NO/ADJUSTMENT";
+
+		parperspectiveFeedback = true;
+		transportFeedback = false;
+		departmentFeedback = false;
+		instituteFeedback = false;
+		libraryFeedback = false;
+		hostelFeedback = false;
+		alumniFeedback = false;
+		examFeedback = false;
+		internFeedback = false;
+		admissionFeedback = false;
+		stuperspectiveFeedback = false;
+		programoutcomeFeedback = false;
+		
+		}else if(facultyCount<0 && programoutcomeMatrix.length > 0 && type=="programoutcomes"){
+			matrixCount = programoutcomeMatrix.length;
+			schemaDetail = programoutcomeMatrix;		
+			empId = "NO/ADJUSTMENT";
+
+			parperspectiveFeedback = false;
+			programoutcomeFeedback = true;
+			transportFeedback = false;
+			departmentFeedback = false;
+			instituteFeedback = false;
+			libraryFeedback = false;
+			hostelFeedback = false;
+			alumniFeedback = false;
+			examFeedback = false;
+			internFeedback = false;
+			admissionFeedback = false;
+			stuperspectiveFeedback = false;
+			
+		}else {
+
+		empId = facultyList[facultyCount].empId;
+		empSubId = facultyList[facultyCount].empSubId;
+		subId = facultyList[facultyCount].subId;
+
+		if(facultyList[facultyCount].isPractical) {
+			matrixCount = precticalMatrix.length;
+			schemaDetail = precticalMatrix;
+		}else if(facultyList[facultyCount].iscurriculum) {
+			matrixCount = curriculumMatrix.length;
+			schemaDetail = curriculumMatrix;
+		} else {
+			matrixCount = theoryMatrix.length;
+			schemaDetail = theoryMatrix;
+		}
+	}
+
+	var flag = true;
+	for(var i=0;i<matrixCount;i++)
+	{
+		var typeOf = schemaDetail[i].type==undefined?0:schemaDetail[i].type;
+
+		for(var j=0;j<schemaDetail[i].competency.length;j++)
+		{
+			var compId = schemaDetail[i].competency[j].kpaScheduleAttrCompetencyId==undefined?"":schemaDetail[i].competency[j].kpaScheduleAttrCompetencyId;
+			var competencyId = schemaDetail[i].competency[j].kpaCompetencyId==undefined?"":schemaDetail[i].competency[j].kpaCompetencyId;
+			
+			var competency = schemaDetail[i].competency[j].competencyName==undefined?"":(schemaDetail[i].competency[j].competencyName).replace(/&singleQuote;/g,'\'');
+			var marks;
+			var type="";
+
+			if(typeOf==4) {
+				type = "text";
+				marks = $('#text_'+i+'_'+j).val();
+//				$('#text_'+i+'_'+j).qtip('destroy');
+				hideFileDetail('text_'+i+'_'+j);
+				if(marks == ""){
+					showValidateMsg('text_'+i+'_'+j,'Enter data for '+competency);
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+					break;
+				}
+			} else if(schemaDetail[i].isNumericGrade) {
+				marks = $('#selectBox_'+i+'_of_'+j).val();
+				type = "numeric";
+				hideFileDetail('selectBox_'+i+'_of_'+j);
+//				$('#selectBox_'+i+'_of_'+j).qtip('destroy');
+				if(marks.length==0) {
+					showValidateMsg('selectBox_'+i+'_of_'+j,'Select grade for '+competency);
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+					break;
+				}
+			} else if(schemaDetail[i].isCompetencyGroup) {
+				marks = 1;
+				type = "competencyGroup";
+//				$('#competencyOf_'+i+'_'+j).qtip('destroy');
+				hideFileDetail('competencyOf_'+i+'_'+j);
+				if($('.competencyGroup_'+i+':checked').length<1) {
+					showValidateMsg('competencyOf_'+i+'_'+j,'Select grade for '+competency);
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+					break;
+				}
+			} else {
+//				$('#competencyOf_'+i+'_'+j).qtip('destroy');
+				hideFileDetail('competencyOf_'+i+'_'+j);
+				marks = $('.markOf_'+i+'_'+j+':checked').attr('atrGrd');
+				if($('.markOf_'+i+'_'+j+':checked').length<1) {
+					showValidateMsg('competencyOf_'+i+'_'+j,'Select grade for '+competency);
+					flag = false;
+					$("html, body").animate({scrollTop: 0}, 2000);
+					break;
+					}
+				else
+					marks = marks.split('px')[0];
+				type = "alphabetic";
+			}
+
+			if(marks==undefined)
+				marks=0;
+
+			var matrixType = schemaDetail[i]["matrixType"];
+			var kpaId = schemaDetail[i]["kpaId"];
+			
+			if((schemaDetail[i].isCompetencyGroup && $('#groupCompetency_'+i+'_'+j).is(':checked'))||!schemaDetail[i].isCompetencyGroup)
+				var str = (compId+'argSep'+marks+'argSep'+type+'argSep'+competencyId+'argSep'+matrixType+'argSep'+kpaId).replace(/,/g, '~comma~');
+				feedbackDetail.push(str.replace(/'/g, '~apostrophe~'));
+				feedbackDetail.push();
+		}
+	}
+
+	if(flag)
+	{
+		$.ajax({
+			url:'stu_SubmitStdFeedbackForFaculty.json',
+			dataType:'json',
+			type:'POST',
+			data:{kpaPlanId:kpaPlanId,
+				empSubId:empSubId,
+				subId:subId,
+				comment:comment,
+				feedbackDetail:feedbackDetail+'',
+				empId:empId,
+				matrixType:matrixType
+			},
+			async:false,
+			beforeSend:function() {
+//				$('#loading').modal('show');
+				startCommonAjaxSpinner();		
+			},
+			complete: function() {
+//				$('#loading').modal('hide');
+				stopCommonAjaxSpinner(); 
+			},
+			success:function(replay){	
+
+				if(!replay.error) {
+					/*if(instituteFeedback){
+						gStudentFeedbackContent.isInstitute = true;
+					}*/
+					
+					if(instituteFeedback){
+						gStudentFeedbackContent.isInstitute = true;
+					}
+					else if(departmentFeedback){
+						gStudentFeedbackContent.isDepartment = true;
+					}
+					else if(libraryFeedback){
+						gStudentFeedbackContent.isLibrary = true;
+					}
+					else if(hostelFeedback){
+						gStudentFeedbackContent.isHostel = true;
+					}
+					else if(alumniFeedback){
+						gStudentFeedbackContent.isAlumni = true;
+					}
+					else if(examFeedback){
+						gStudentFeedbackContent.isExam = true;
+					}
+					else if(transportFeedback){
+						gStudentFeedbackContent.isTransport = true;
+					}else if(internFeedback)
+					{
+						gStudentFeedbackContent.isIntern = true;
+					}else if(admissionFeedback)
+					{
+						gStudentFeedbackContent.isAdmission = true;
+					}else if(stuperspectiveFeedback)
+					{
+						gStudentFeedbackContent.isstuperspective = true;	
+					}else if(parperspectiveFeedback)
+					{
+						gStudentFeedbackContent.isparperspective = true;	
+					}else if(programoutcomeFeedback)
+					{
+						gStudentFeedbackContent.isprogramoutcome = true;	
+					}
+					
+					
+					
+					$('#divFeedbackContent').data('facultyCount',(parseInt(facultyCount)+parseInt(1)));
+					configureNextFaculty();
+				} else if(replay.errorCode=="1001"){
+					location.reload(true);
+				}
+				$("html, body").animate({ scrollTop: 0 }, "slow");
+				  return false;
+					//location.reload(true);
+
+			},
+			error:function(){
+//				jAlert("Something went wrong, Please try after some time","Error");
+				getCustomAlertMessage("alert_error");
+			}
+		});
+	}
+}
+function hideFileDetail(id) {
+	try{$('#'+id).qtip('destroy');}catch(e){}
+	
+}
+function showValidateMsg(id,content)
+{
+	$('#'+id).qtip({
+		content: content, // Set the tooltip content to the current corner
+		position: {
+			corner: {
+				tooltip: 'bottomMiddle',
+				target: 'topMiddle' // ...and opposite corner
+			},
+		},
+		show: {
+			when: false, // Don't specify a show event
+			ready: true // Show the tooltip when ready
+		},
+
+		hide:{
+			fixed: true // Make it fixed so it can be hovered over
+		}, // Don't hide them
+		style: {
+			border: {
+				width: 3,
+				radius: 2,
+				color:'#BCE8F1',
+			},
+			padding: 10, 
+			textAlign: 'center',
+			tip: true, // Give it a speech bubble tip with automatic corner detection
+			name: 'blue', // Style it according to the preset 'cream' style
+			color:'#3A87AD',
+			background: '#D9EDF7',
+			font:'bold',
+		}
+
+	});
+}
+
+function padNumber(number)
+{
+	var ret = new String(number);
+	if (ret.length == 1)
+		ret = "0" + ret;
+	return ret;
+}
+
+function convertTo12Hr(time24Hr) {
+	if (time24Hr.split(":").length == 2) {
+		var hour = eval(time24Hr.split(":")[0]);
+		var min = eval(time24Hr.split(":")[1]);
+		var amPm = "AM";
+		
+		if(hour >= 12)
+			amPm = "PM";
+		
+		if (hour > 12)
+			hour = hour - 12;
+		
+		
+		if (hour < 10)
+			hour = "0" + eval(hour);
+
+		if (hour == "00") {
+			hour = "12";
+			amPm = "AM";
+		}
+
+		if (min < 10)
+			min = "0" + eval(min);
+
+		return hour + ":" + min ;
+	} else {
+		return "";
+	}
+}
+
+
+
+function getMyLocalIp(){
+    var myIP = '';
+    window.RTCPeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;   //compatibility for firefox and chrome
+        var pc = new RTCPeerConnection({iceServers:[]}), noop = function(){};      
+        pc.createDataChannel("");    //create a bogus data channel
+        pc.createOffer(pc.setLocalDescription.bind(pc), noop);    // create offer and set local description
+        pc.onicecandidate = function(ice){  //listen for candidate events
+            if(!ice || !ice.candidate || !ice.candidate.candidate)  return;
+            globalMyIp = /([0-9]{1,3}(\.[0-9]{1,3}){3}|[a-f0-9]{1,4}(:[a-f0-9]{1,4}){7})/.exec(ice.candidate.candidate)[1];
+            //console.log('my IP: ', globalMyIp);   
+            pc.onicecandidate = noop;
+        };
+        globalMyIp = myIP;
+}
+
+function removeJobtrayEntry(){
+	var kpaPlanId = $('#cmbFeedbackPlans').val();
+	$.ajax({
+		url:'removeJobtrayEntry.json',
+		dataType:'json',
+		type:'POST',
+		data:{kpaPlanId:kpaPlanId
+		},
+		async:false,
+		beforeSend:function() {
+			startCommonAjaxSpinner();		
+		},
+		complete: function() {
+			stopCommonAjaxSpinner(); 
+		}
+	});
+}
+v8H¹Ry      iÕÂ]iÕÂ]I\†¥iÖZ   p    O^partitionKey=%28https%2Ccmrit.ac.in%29,:https://erp.cmrit.ac.in/studentMPW/scripts/instituteStudentFeedback.js strongly-framed 1 security-info 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 request-method GET response-head HTTP/1.1 200 
+Date: Mon, 06 Apr 2026 04:55:15 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"78330-1773410050000"
+Last-Modified: Fri, 13 Mar 2026 13:54:10 GMT
+Content-Type: text/javascript
+Content-Length: 78330
+ original-response-headers Date: Mon, 06 Apr 2026 04:55:15 GMT
+Server: Apache/2.4.62 (Rocky Linux) OpenSSL/3.5.1
+Accept-Ranges: bytes
+ETag: W/"78330-1773410050000"
+Last-Modified: Fri, 13 Mar 2026 13:54:10 GMT
+Content-Type: text/javascript
+Content-Length: 78330
+Keep-Alive: timeout=5, max=99
+Connection: Keep-Alive
+ ctid 2 net-response-time-onstart 38 net-response-time-onstop 38  1ú

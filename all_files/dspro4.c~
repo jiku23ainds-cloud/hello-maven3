@@ -1,0 +1,83 @@
+//converting infix to postfix expression
+#include<stdio.h>
+#include<ctype.h>
+#define SIZE 100
+
+int top=-1;
+char stack[SIZE];
+
+void push(char a)
+{
+	if(top==SIZE-1)
+		printf("Overflow!\n");
+	else
+	{
+		top++;
+		stack[top]=a;
+	}
+}
+
+int pop()
+{
+	if(top==-1)
+		printf("Underflow!\n");
+	else
+		return stack[top--];
+}
+
+int prece(int b)
+{
+	if (b=='(')
+		return 0;
+	else if (b=='^')
+		return 1;
+	else if (b=='/'||'*'||'%')
+		return 2;
+	else
+		return 3;
+}
+int main()
+{
+	int i;
+	char str[20];
+	printf("Enter a Expression\n");
+	scanf("%s",str[i]);
+	while(str[i]!='\0')
+	{
+		 if(isalnum(str[i]))
+		 {
+		 	printf("%s",str[i]);
+		 }
+		 else if(str[i]=='(')
+		 {
+		 	push(str[i]);
+		 }
+		 else if(str[i]==')')
+		 {
+		 	char x=pop();
+		 	while(x!=')')
+		 	{
+		 		printf("%c",x);
+		 		x=pop();
+		 		//break;
+		 	}
+		 }
+		 else
+		 {
+		 	while(prece(stack[top])>=prece(str[i]))
+		 	{
+		 		printf("%c",pop());
+		 		push(str[i]);
+		 		//break;
+		 	}
+		 }
+		 i++;
+		 //break;
+	}
+	while(top!=1){
+		printf("%c",pop());
+		//break;
+	}
+	return 0;
+}
+

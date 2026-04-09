@@ -1,0 +1,64 @@
+#include<stdio.h>
+#include<stdlib.h>
+#include<time.h>
+void swap(int *p,int*q)
+{
+   int temp=*p;
+   *p=*q;
+   *q=temp;
+}
+int partition(int arr[], int low, int high) {
+    int pivot = arr[low]; 
+    int i = low; 
+    int j = high; 
+  
+    while (i < j) { 
+  
+       
+        while (arr[i] <= pivot && i <= high - 1) { 
+            i++; 
+        } 
+  
+        
+        while (arr[j] > pivot && j >= low + 1) { 
+            j--; 
+        } 
+        if (i < j) { 
+            swap(&arr[i], &arr[j]); 
+        } 
+    } 
+    swap(&arr[low], &arr[j]); 
+    return j; 
+}
+
+
+int quicksort(int arr[],int low,int high)
+{
+   if(low<high)
+   {
+    int p=partition(arr,low,high);
+    quicksort(arr,low,p-1);
+    quicksort(arr,p+1,high);
+   }
+}
+int main()
+{
+  /*int m;
+  printf("Enter the size of array:\n");
+  scanf("%d",&m);
+  int arr[m];
+  for(int i=0;i<m;i++)
+  arr[i]=rand()%999;*/
+ 
+  int arr[]={ 40, 60, 80, 10, 20, 35, 65, 95, 5 };
+  int m=sizeof arr/sizeof(arr[0]);
+  time_t t0=clock();
+  quicksort(arr,0,m-1);
+  time_t t1=clock();
+  for(int i=0;i<m;i++)
+  {
+    printf("%d\t",arr[i]);
+  }
+  float t=((double)(t1-t0)/CLOCKS_PER_SEC);
+  printf("%f clocks per second\n",t);
+}                                                                                       

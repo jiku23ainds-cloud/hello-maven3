@@ -1,0 +1,138 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+struct Student {
+char USN[20], Name[30], Programme[10];
+int Sem;
+char PhNo[15];
+struct Student *next;
+};
+typedef struct Student Node;
+Node *head = NULL;
+
+Node* createNode() {
+Node *newNode = (Node*)malloc(sizeof(Node));
+printf("\nEnter Student USN: ");
+scanf("%s", newNode->USN);
+printf("Enter Name: ");
+scanf("%s", newNode->Name);
+printf("Enter Programme: ");
+scanf("%s", newNode->Programme);
+printf("Enter Semester: ");
+scanf("%d", &newNode->Sem);
+printf("Enter Phone Number: ");
+scanf("%s", newNode->PhNo);
+newNode->next = NULL;
+return newNode;
+}
+
+void createList() {
+int n, i;
+printf("\nHow many students to insert? ");
+scanf("%d", &n);
+for(i = 0; i < n; i++) {
+Node *newNode = createNode();
+newNode->next = head;
+head = newNode;
+}
+}
+
+void display() {
+Node *temp = head;
+
+int count = 0;
+if(head == NULL) {
+printf("\nSLL is empty.\n");
+return;
+}
+printf("\nSingly Linked List Contents:\n");
+printf("---------------------------------------------------------------\n");
+printf("USN\tName\tProgramme\tSem\tPhone\n");
+printf("---------------------------------------------------------------\n");
+while(temp != NULL) {
+printf("%s\t%s\t%s\t\t%d\t%s\n",
+temp->USN, temp->Name, temp->Programme, temp->Sem, temp->PhNo);
+temp = temp->next;
+count++;
+}
+printf("\nTotal number of nodes: %d\n", count);
+}
+
+void insertEnd() {
+Node *newNode = createNode();
+if(head == NULL) {
+head = newNode;
+return;
+}
+Node *temp = head;
+while(temp->next != NULL)
+temp = temp->next;
+temp->next = newNode;
+}
+
+void deleteEnd() {
+if(head == NULL) {
+printf("\nList is Empty.\n");
+return;
+}
+if(head->next == NULL) {
+free(head);
+head = NULL;
+printf("\nLast node deleted.\n");
+return;
+}
+Node *temp = head, *prev = NULL;
+while(temp->next != NULL) {
+prev = temp;
+
+temp = temp->next;
+}
+prev->next = NULL;
+free(temp);
+printf("\nEnd node deleted.\n");
+}
+
+void insertFront() {
+Node *newNode = createNode();
+newNode->next = head;
+head = newNode;
+}
+
+void deleteFront() {
+if(head == NULL) {
+printf("\nList Empty.\n");
+return;
+}
+Node *temp = head;
+head = head->next;
+free(temp);
+printf("\nFront node deleted.\n");
+}
+
+int main() {
+int choice;
+while(1) {
+printf("\n--- SINGLY LINKED LIST MENU ---\n");
+printf("1. Create SLL using Front Insertion\n");
+printf("2. Display SLL and Count Nodes\n");
+printf("3. Insert at End\n");
+printf("4. Delete from End\n");
+printf("5. Insert at Front (Stack Push)\n");
+printf("6. Delete from Front (Stack Pop)\n");
+printf("7. Exit\n");
+printf("\nEnter your choice: ");
+scanf("%d", &choice);
+switch(choice) {
+case 1: createList(); break;
+case 2: display(); break;
+case 3: insertEnd(); break;
+case 4: deleteEnd(); break;
+case 5: insertFront(); break;
+case 6: deleteFront(); break;
+
+case 7: exit(0);
+default: printf("\nInvalid choice! Try again.\n");
+}
+}
+return 0;
+}
